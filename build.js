@@ -1,6 +1,6 @@
 // build.js — 编译脚本
 // 用法：
-//   node build.js                       # 编译 content/*.md 里第一个文件（默认）
+//   node build.js                       # 编译 content/ 目录下所有 .md
 //   node build.js content/xxx.md        # 编译指定文件
 //   node build.js content/*.md          # 编译所有
 //
@@ -35,7 +35,6 @@ const ROOT = __dirname;
 const TEMPLATE_PATH = path.join(ROOT, 'template/index.html.tpl');
 const CSS_PATH = path.join(ROOT, 'template/styles/main.css');
 const DIST_DIR = path.join(ROOT, 'dist');
-const DEFAULT_INPUT = path.join(ROOT, 'content/how-to-create-skill.md');
 
 // ============================================================
 // 工具
@@ -89,12 +88,27 @@ async function buildFile(inputPath) {
   // 4) 把组件占位符替换回组件 HTML
   bodyHtml = renderer.mergeComponents(bodyHtml, components);
 
+  // 4.5) 处理行内公式 $...$（依赖 katex，未安装则跳过）
+  bodyHtml = renderer.processInlineFormulas(bodyHtml);
+
   // 5) 给 h2 注入 id
   bodyHtml = injectSectionIds(bodyHtml);
 
   // 6) 读模板和 CSS
   const tpl = fs.readFileSync(TEMPLATE_PATH, 'utf8');
   const css = fs.readFileSync(CSS_PATH, 'utf8');
+
+  // 6.5) 加载 KaTeX CSS（数学/化学公式组件依赖）
+  // KaTeX 的渲染逻辑在公式组件里用 require('katex') 在编译时跑，
+  // 渲染出的 HTML 依赖这份 CSS 才能正确显示数学符号
+  let katexCss = '';
+  const katexCssPath = path.join(ROOT, 'node_modules/katex/dist/katex.min.css');
+  if (fs.existsSync(katexCssPath)) {
+    katexCss = fs.readFileSync(katexCssPath, 'utf8');
+  } else {
+    console.error('! 警告：未找到 KaTeX CSS（node_modules/katex/dist/katex.min.css）');
+    console.error('  公式组件将无法正确渲染。请运行: npm install katex');
+  }
 
   // 7) 渲染侧边导航
   const nav = renderer.renderSideNav(fm.sections || [], fm.title, fm.subtitle, fm.author);
@@ -111,7 +125,7 @@ async function buildFile(inputPath) {
     .replace(/\{\{THEME\}\}/g, () => escapeHtml(fm.theme || 'lavender'))
     .replace(/\{\{NAV_ITEMS\}\}/g, () => nav.items)
     .replace(/\{\{CONTENT\}\}/g, () => bodyHtml)
-    .replace(/\{\{CSS\}\}/g, () => css)
+    .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss)
     .replace(/\{\{CLIENT_JS\}\}/g, () => clientJs);
 
   // 10) 写文件
@@ -135,17 +149,13 @@ async function main() {
   // 默认：编译 content/ 目录下所有 .md
   let targets;
   if (args.length === 0) {
-    if (fs.existsSync(DEFAULT_INPUT)) {
-      targets = [DEFAULT_INPUT];
+    const contentDir = path.join(ROOT, 'content');
+    if (fs.existsSync(contentDir)) {
+      targets = fs.readdirSync(contentDir)
+        .filter(f => f.endsWith('.md'))
+        .map(f => path.join(contentDir, f));
     } else {
-      const contentDir = path.join(ROOT, 'content');
-      if (fs.existsSync(contentDir)) {
-        targets = fs.readdirSync(contentDir)
-          .filter(f => f.endsWith('.md'))
-          .map(f => path.join(contentDir, f));
-      } else {
-        targets = [];
-      }
+      targets = [];
     }
   } else {
     // 解析所有参数（支持 glob-like 简单展开 *.md）

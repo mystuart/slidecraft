@@ -107,6 +107,15 @@ sections:
 
 ### 4.3 Fill-blank（填空题）
 
+> **使用限制（重要）**：fill-blank **只用于有明确单一答案的场景**。判分走**严格字符串相等**——不做语义识别、不做归一化、不做模糊匹配。
+> 
+> 适合的：单词拼写、公式、专有名词、化学元素、文件名、命令
+> 不适合的：开放性填空（"用一句话总结..."）、多解答案（"可以是 X 也可以是 Y"）、自然语言句子
+> 
+> 需要同义答案用 `|` 分隔多个：`"answer": "USA | United States | 美国"`——但也只是**精确字符串匹配**多个候选之一。
+> 
+> 大小写敏感、首尾空格敏感（用户输入会被 trim 一遍）
+
 ````markdown
 ```fill-blank
 {
@@ -202,11 +211,47 @@ sections:
 
 普通 markdown（标题、列表、引用、代码块、图片、表格、`<details>` 折叠）走 marked 默认渲染。
 
-### 4.9 组件清单
+### 4.9 Quiz-track（多题轮播）
 
-**MVP 7 个组件**（进入本次实现）：
+当一组 quiz 题目需要连续浏览（综合测试、知识串联），用 `quiz-track` 把多个 quiz 放进一个**轮播组件**里——左右切换题、点击圆点直达、键盘 ←/→ 控制。
+
+````markdown
+```quiz-track
+[
+  {
+    "id": "q1",
+    "type": "single",
+    "question": "第一题...？",
+    "options": [{"id": "a", "text": "..."}, ...],
+    "correct": ["a"],
+    "feedback": {"correct": "...", "wrong": "..."}
+  },
+  {
+    "id": "q2",
+    "type": "single",
+    "question": "第二题...？",
+    ...
+  }
+]
+```
+````
+
+**行为**：
+- 顶部：进度文字「第 N / 共 M 题」+ 圆点导航（点击直达任意题）
+- 中间：当前题卡片，左右滑动切换（transform/left 动画）
+- 底部：「上一题」「下一题」按钮，单题时隐藏
+- 键盘：focus 容器后按 ←/→ 切换
+
+**打印模式**（Cmd+P）：carousel 容器展开成纵向列表，所有题平铺显示，圆点和导航按钮隐藏。
+
+**已知问题**：carousel 用 transform / left 切题时，Chrome 的 GPU 合成层可能穿透父级 `overflow: hidden` 导致相邻 slide 漏边。临时方案是给 `.quiz-carousel-slide` 加 `padding: 0 5%` 左右留白——即使漏出也只是空白。根因待查（合成层穿透 overflow 是 Chrome 实现行为，W3C spec 跟 Chrome 有出入）。
+
+### 4.10 组件清单
+
+**MVP 8 个组件**（进入本次实现）：
 - `hero` — 开篇封面
 - `quiz` — 选择题（单选/多选，含即时反馈）
+- `quiz-track` — 多题轮播（quiz 数组，carousel 切换）
 - `fill-blank` — 填空题
 - `step-guide` — 步骤引导
 - `compare` — 前后对比
@@ -216,12 +261,11 @@ sections:
 侧边导航由 frontmatter 的 `sections` 字段自动生成（无独立组件）。
 
 **后续可扩展**（不进入 MVP）：
-- `tabs`（选项卡）—— 可用普通 markdown 的小标题替代
 - `accordion`（折叠列表）—— 可用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 内容量大时再加
 - `timeline`（时间线）—— 适合讲发展史
 
-### 4.10 组件内联 markdown 支持
+### 4.11 组件内联 markdown 支持
 
 `step-guide` 的 `content`、`callout` 的 `content`、`compare` 的 `label` / `points` 都支持以下内联语法（由 `template/components/_inline.js` 的 `processInline` 统一处理）：
 
@@ -235,7 +279,7 @@ sections:
 
 > 安全：所有输入先 `escapeHtml`，再做替换；`url` 走白名单协议，杜绝 `javascript:` / `data:` XSS。
 
-### 4.11 组件字段扩展
+### 4.12 组件字段扩展
 
 **hero.ctaHref**（可选，默认 `#section-1`）
 - `cta` 为空时整块不渲染（适合无 sections 的封面场景）

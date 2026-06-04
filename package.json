@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "gray-matter": "^4.0.3",
+    "katex": "^0.16.9",
     "marked": "^18.0.4"
   }
 }

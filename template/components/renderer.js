@@ -15,11 +15,15 @@ const stepGuide = require('./step-guide.js');
 const compare = require('./compare.js');
 const conceptCard = require('./concept-card.js');
 const callout = require('./callout.js');
+const formula = require('./formula.js');
 
 // 语言标记 → 组件渲染器
 const COMPONENT_MAP = {
   'hero': hero,
   'quiz': quiz,
+  'quiz-track': quiz,
+  'quiztrack': quiz,
+  'quiz_track': quiz,
   'fill-blank': fillBlank,
   'fillblank': fillBlank,
   'fill_blank': fillBlank,
@@ -31,6 +35,7 @@ const COMPONENT_MAP = {
   'conceptcard': conceptCard,
   'concept_card': conceptCard,
   'callout': callout,
+  'formula': formula,
 };
 
 const PLACEHOLDER_RE = /<!--\s*CW-COMPONENT-(\d+)\s*-->/g;
@@ -60,7 +65,9 @@ function processMarkdown(md) {
         `Body 内容:\n${body}`
       );
     }
-    const html = comp.render(data);
+    const html = (comp.renderTrack && Array.isArray(data))
+      ? comp.renderTrack(data)
+      : comp.render(data);
     const idx = components.length;
     components.push(html);
     return `<!--CW-COMPONENT-${idx}-->`;
@@ -76,6 +83,48 @@ function processMarkdown(md) {
  */
 function mergeComponents(html, components) {
   return html.replace(PLACEHOLDER_RE, (m, idx) => components[parseInt(idx, 10)] || '');
+}
+
+/**
+ * 处理正文里的行内公式 $...$（不跨行）
+ *  - 跳过 <code>/<pre> 里的内容（避免把代码里的 $ 误判为公式）
+ *  - KaTeX 解析失败时保持原样（不报错）
+ *  - 依赖可选：未安装 katex 时直接返回原 html（行内公式不会渲染，但 build 不会失败）
+ */
+function processInlineFormulas(html) {
+  let katex;
+  try {
+    katex = require('katex');
+  } catch (e) {
+    return html; // katex 未安装，跳过行内公式处理
+  }
+
+  // 1) 保护 <code>/<pre> 块：用占位符暂时替换，正则处理完再还原
+  const codeBlocks = [];
+  html = html.replace(/(<code\b[^>]*>[\s\S]*?<\/code>|<pre\b[^>]*>[\s\S]*?<\/pre>)/g, (m) => {
+    const idx = codeBlocks.length;
+    codeBlocks.push(m);
+    return `\u0000CWINLINECODE${idx}\u0000`;
+  });
+
+  // 2) 处理行内公式 $...$（不允许跨行）
+  html = html.replace(/\$([^$\n]+?)\$/g, (match, expr) => {
+    const trimmed = String(expr).trim();
+    if (!trimmed) return match;
+    try {
+      return katex.renderToString(trimmed, {
+        throwOnError: false,
+        displayMode: false,
+      });
+    } catch (e) {
+      return match; // 解析失败保持原样
+    }
+  });
+
+  // 3) 还原 <code>/<pre> 块
+  html = html.replace(/\u0000CWINLINECODE(\d+)\u0000/g, (_, i) => codeBlocks[parseInt(i, 10)]);
+
+  return html;
 }
 
 /**
@@ -181,6 +230,7 @@ function escapeHtml(s) {
 module.exports = {
   processMarkdown,
   mergeComponents,
+  processInlineFormulas,
   collectClientScript,
   renderSideNav,
   components: COMPONENT_MAP,
