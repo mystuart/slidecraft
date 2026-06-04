@@ -1,0 +1,187 @@
+// renderer.js — 组件主调度器
+// 职责：
+//   1. 扫描 markdown 文本，提取所有 fenced code block
+//   2. 把语言标记为组件名的代码块，调用对应组件渲染 → 替换为 HTML 注释占位符
+//   3. 把渲染后的 HTML 收集到数组
+//   4. 让外部把剩余 markdown 交给 marked 渲染
+//   5. 让外部把占位符替换回组件 HTML
+//   6. 提供 collectClientScript() 把所有组件的客户端 JS 拼起来
+//   7. 提供 renderSideNav(sections) 渲染侧边导航 HTML
+
+const hero = require('./hero.js');
+const quiz = require('./quiz.js');
+const fillBlank = require('./fill-blank.js');
+const stepGuide = require('./step-guide.js');
+const compare = require('./compare.js');
+const conceptCard = require('./concept-card.js');
+const callout = require('./callout.js');
+
+// 语言标记 → 组件渲染器
+const COMPONENT_MAP = {
+  'hero': hero,
+  'quiz': quiz,
+  'fill-blank': fillBlank,
+  'fillblank': fillBlank,
+  'fill_blank': fillBlank,
+  'step-guide': stepGuide,
+  'stepguide': stepGuide,
+  'step_guide': stepGuide,
+  'compare': compare,
+  'concept-card': conceptCard,
+  'conceptcard': conceptCard,
+  'concept_card': conceptCard,
+  'callout': callout,
+};
+
+const PLACEHOLDER_RE = /<!--\s*CW-COMPONENT-(\d+)\s*-->/g;
+
+/**
+ * 扫描 markdown，把组件代码块替换为占位符，返回剩余 markdown + 组件 HTML 列表
+ * @param {string} md
+ * @returns {{ md: string, components: string[] }}
+ */
+function processMarkdown(md) {
+  const components = [];
+  // 匹配 ```lang ... ``` 三反引号代码块
+  // lang 与 body 之间允许空格/tab/可选换行（标准 markdown 允许 ```hero` 直接接内容）
+  const replaced = md.replace(/```([a-zA-Z][\w-]*)[ \t]*\n?([\s\S]*?)```/g, (m, lang, body, offset) => {
+    const key = String(lang).toLowerCase();
+    const comp = COMPONENT_MAP[key];
+    if (!comp) return m; // 不是组件，留给 marked 正常处理
+    let data;
+    try {
+      data = JSON.parse(String(body).trim());
+    } catch (e) {
+      // 算出 body 在原文中大致行号，便于定位
+      const before = md.slice(0, offset);
+      const line = (before.match(/\n/g) || []).length + 1;
+      throw new Error(
+        `[renderer] 组件 "${key}" JSON 解析失败（大约第 ${line} 行）: ${e.message}\n` +
+        `Body 内容:\n${body}`
+      );
+    }
+    const html = comp.render(data);
+    const idx = components.length;
+    components.push(html);
+    return `<!--CW-COMPONENT-${idx}-->`;
+  });
+  return { md: replaced, components };
+}
+
+/**
+ * 把 marked 渲染后的 HTML 中的占位符替换回组件 HTML
+ * @param {string} html
+ * @param {string[]} components
+ * @returns {string}
+ */
+function mergeComponents(html, components) {
+  return html.replace(PLACEHOLDER_RE, (m, idx) => components[parseInt(idx, 10)] || '');
+}
+
+/**
+ * 收集所有组件的客户端 JS
+ * @returns {string}
+ */
+function collectClientScript() {
+  return [
+    quiz.clientJs,
+    fillBlank.clientJs,
+    stepGuide.clientJs,
+    initSideNavScript(),
+  ].filter(Boolean).join('\n\n');
+}
+
+/**
+ * 侧边导航的 HTML
+ * @param {string[]} sections
+ * @param {string} [title]
+ * @param {string} [subtitle]
+ * @param {string} [author]
+ */
+function renderSideNav(sections, title, subtitle, author) {
+  if (!Array.isArray(sections) || sections.length === 0) {
+    return {
+      titleTag: escapeHtml(title || ''),
+      subtitleTag: subtitle ? `<div class="sidebar-subtitle">${escapeHtml(subtitle)}</div>` : '',
+      items: '',
+      author: escapeHtml(author || ''),
+    };
+  }
+  const items = sections.map((s, i) =>
+    `<li><a href="#section-${i + 1}" data-section-idx="${i}">${escapeHtml(s)}</a></li>`
+  ).join('');
+  return {
+    titleTag: escapeHtml(title || ''),
+    subtitleTag: subtitle ? `<div class="sidebar-subtitle">${escapeHtml(subtitle)}</div>` : '',
+    items,
+    author: escapeHtml(author || ''),
+  };
+}
+
+/**
+ * 侧边导航 scroll-spy 客户端脚本
+ * 监听主内容区的 h2 标题，高亮对应的导航项
+ */
+function initSideNavScript() {
+  return `
+// Scroll-spy 侧边导航高亮
+(function() {
+  var navLinks = document.querySelectorAll('.side-nav a[data-section-idx]');
+  if (navLinks.length === 0) return;
+  var sectionIds = [];
+  navLinks.forEach(function(a) {
+    sectionIds.push(a.getAttribute('href').slice(1));
+  });
+  function activate(idx) {
+    navLinks.forEach(function(a, i) {
+      a.classList.toggle('is-active', i === idx);
+    });
+  }
+  // 点击直接跳转（不依赖 hashchange 重新触发）
+  navLinks.forEach(function(a) {
+    a.addEventListener('click', function() {
+      var idx = parseInt(a.getAttribute('data-section-idx'), 10);
+      activate(idx);
+    });
+  });
+  // 滚动时高亮当前可见的章节
+  var sections = sectionIds.map(function(id) { return document.getElementById(id); }).filter(Boolean);
+  if (sections.length === 0 || !('IntersectionObserver' in window)) {
+    activate(0);
+    return;
+  }
+  var currentIdx = 0;
+  var io = new IntersectionObserver(function(entries) {
+    // 找到最靠近顶部且可见的 section
+    var visible = entries
+      .filter(function(e) { return e.isIntersecting; })
+      .sort(function(a, b) { return a.boundingClientRect.top - b.boundingClientRect.top; });
+    if (visible.length > 0) {
+      var id = visible[0].target.id;
+      var idx = sectionIds.indexOf(id);
+      if (idx >= 0) {
+        currentIdx = idx;
+        activate(idx);
+      }
+    }
+  }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+  sections.forEach(function(s) { io.observe(s); });
+  // 初始激活第一个
+  activate(0);
+})();
+`;
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[c]);
+}
+
+module.exports = {
+  processMarkdown,
+  mergeComponents,
+  collectClientScript,
+  renderSideNav,
+  components: COMPONENT_MAP,
+};
