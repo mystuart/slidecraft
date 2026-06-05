@@ -26,23 +26,7 @@ sections:
 
 ## 1. hero · 封面
 
-```hero
-{
-  "title": "一元二次方程",
-  "subtitle": "代数 · 初三数学",
-  "emoji": "📐"
-}
-```
-
-```hero
-{
-  "title": "化学方程式配平",
-  "subtitle": "化学反应 · 高一化学",
-  "emoji": "⚗️",
-  "cta": "开始练习",
-  "ctaHref": "#sec-quiz-track"
-}
-```
+> hero 组件的展示见本页 sidebar 顶部的 brand 区（由 frontmatter 的 `title` / `subtitle` / `emoji` 字段驱动），不重复嵌入示例块。
 
 ---
 
