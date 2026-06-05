@@ -46,10 +46,10 @@ sections:
   ],
   "correct": ["a"],
   "feedback": {
-    "correct": "✓ 正确。$a = 2 > 0$，开口向上。",
+    "correct": "✓ 正确。$a = 2 \\gt 0$，开口向上。",
     "wrong": "看二次项系数 $a$ 的正负即可。"
   },
-  "hint": "$a > 0$ 开口向上，$a < 0$ 开口向下。"
+  "hint": "$a \\gt 0$ 开口向上，$a \\lt 0$ 开口向下。"
 }
 ```
 
@@ -66,7 +66,7 @@ sections:
   ],
   "correct": ["c", "d"],
   "feedback": {
-    "correct": "✓ 全部选对。$\\Delta = (-2)^2 - 4 \\times 1 \\times 5 = -16 < 0$，无实数根。",
+    "correct": "✓ 全部选对。$\\Delta = (-2)^2 - 4 \\times 1 \\times 5 = -16 \\lt 0$，无实数根。",
     "wrong": "判别式 $\\Delta = b^2 - 4ac$ 的符号决定根的情况。"
   }
 }
@@ -86,7 +86,7 @@ sections:
       {"id": "a", "text": "5"},
       {"id": "b", "text": "6"},
       {"id": "c", "text": "7"},
-      {"id": "d", "text": "√7"}
+      {"id": "d", "text": "$\\sqrt{7}$"}
     ],
     "correct": ["a"],
     "feedback": {
@@ -101,7 +101,7 @@ sections:
     "options": [
       {"id": "a", "text": "3"},
       {"id": "b", "text": "6"},
-      {"id": "c", "text": "6√2"},
+      {"id": "c", "text": "$6\\sqrt{2}$"},
       {"id": "d", "text": "12"}
     ],
     "correct": ["b"],
@@ -116,9 +116,9 @@ sections:
     "type": "single",
     "options": [
       {"id": "a", "text": "1"},
-      {"id": "b", "text": "√2"},
+      {"id": "b", "text": "$\\sqrt{2}$"},
       {"id": "c", "text": "2"},
-      {"id": "d", "text": "√3"}
+      {"id": "d", "text": "$\\sqrt{3}$"}
     ],
     "correct": ["b"],
     "feedback": {
@@ -232,13 +232,13 @@ sections:
   "steps": [
     {
       "title": "写方程式",
-      "content": "写出**未配平**的化学方程式，例如：\n\nFe + O₂ → Fe₂O₃",
+      "content": "写出**未配平**的化学方程式，例如：\\n\\nFe + O₂ → Fe₂O₃",
       "example": "左右两边原子数不等，这就是配平要解决的问题。"
     },
     {
       "title": "数原子",
       "content": "分别统计左右两边各元素的原子数。",
-      "example": "Fe: 左 1 / 右 2\nO: 左 2 / 右 3"
+      "example": "Fe: 左 1 / 右 2\\nO: 左 2 / 右 3"
     },
     {
       "title": "调系数",
@@ -270,12 +270,12 @@ sections:
     },
     {
       "title": "判断摩擦力",
-      "content": "根据相对运动或趋势判断方向：\n- 滑动摩擦力：与相对运动方向**相反**\n- 静摩擦力：与相对运动趋势**相反**"
+      "content": "根据相对运动或趋势判断方向：\\n- 滑动摩擦力：与相对运动方向**相反**\\n- 静摩擦力：与相对运动趋势**相反**"
     },
     {
       "title": "列方程",
       "content": "沿坐标轴分解各力，列牛顿第二定律方程组。",
-      "example": "水平方向：F合x = maₓ\n竖直方向：F合y = maᵧ = 0"
+      "example": "水平方向：F合x = maₓ\\n竖直方向：F合y = maᵧ = 0"
     }
   ]
 }
@@ -290,16 +290,16 @@ sections:
   "id": "cmp-lens",
   "title": "凸透镜成像规律",
   "left": {
-    "label": "物距 $u > 2f$",
+    "label": "物距 $u \\gt 2f$",
     "tag": "good",
     "points": [
       "成**倒立缩小**实像",
-      "像距 $f < v < 2f$",
+      "像距 $f \\lt v \\lt 2f$",
       "应用：**照相机**"
     ]
   },
   "right": {
-    "label": "物距 $u < f$",
+    "label": "物距 $u \\lt f$",
     "tag": "bad",
     "points": [
       "成**正立放大**虚像",
@@ -318,7 +318,7 @@ sections:
     "label": "放热反应",
     "tag": "warn",
     "points": [
-      "$\\Delta H < 0$",
+      "$\\Delta H \\lt 0$",
       "反应物能量**高于**生成物",
       "**释放**热量，注意散热安全",
       "例：燃烧、中和反应"
@@ -328,7 +328,7 @@ sections:
     "label": "吸热反应",
     "tag": "neutral",
     "points": [
-      "$\\Delta H > 0$",
+      "$\\Delta H \\gt 0$",
       "反应物能量**低于**生成物",
       "**吸收**热量，需要持续加热",
       "例：碳酸钙分解"
