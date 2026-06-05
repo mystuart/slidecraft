@@ -29,7 +29,7 @@ related:
 | 5 | step-guide | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 3 |
 | 6 | compare | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 6 |
 | 7 | concept-card | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 4 |
-| 8 | callout | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 3 |
+| 8 | callout | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 3 |
 | 9 | formula | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 4 |
 | 10 | math-step | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 7+ |
 
@@ -72,6 +72,8 @@ related:
 > 这些是「明知有代价但选择保留」的架构决策，需要有据可查才不会被后人当 bug 误改。
 
 1. **组件 clientJs 用字符串模板内联**（2026-06-05）— quiz / step-guide / math-step 等组件的 `clientJs` 是 200 行的 JS 字符串，最终内联到 HTML `<script>`。没有 source map，调试困难。**为什么这样选**：项目「零运行时依赖」是顶层约束（构建产物要纯静态、可离线打开），改成外部 .js 文件需要 build 链路多一道 copy 步骤，性价比不高。**重评条件**：如果将来有人频繁调试 clientJs 卡住、或者要支持 source map 调试，可重新评估。
+
+2. **callout 5 色调色板定型**（2026-06-05）— tip 绿 / warning 琥珀 / info 蓝 / danger 红 / note 紫，5 个不同色相，0 撞色。**为什么这样选**：(a) 语义清晰：tip = 积极建议 → 绿色（复用 `--color-success`），note = 中性记录 → 紫色（保留主题主色），warn = 小心 → 琥珀，info = 补充 → 蓝，danger = 危险 → 红。(b) 零新变量：5 色全部复用现有 5 个变量（success / warning / info / danger / primary），主题色板不膨胀。(c) 顺手清理：math-step-insight 之前借用了 `--color-tip-bg`（已删），跟随改用 `--color-success-bg` 保持视觉关联。**重评条件**：如果引入「emoji → SVG 图标库」决策（影响 callout 的 5 个 icon 表现力），或要扩展第 6 种 type（如 `success` / `question`），需要重新审视色板。
 
 ---
 
@@ -155,9 +157,9 @@ related:
 - **方向**：卡片 hover 效果（hairline 加粗 + 微 translateY？还是要不要 hover？）· emoji 决策：保留 / 切到 lucide SVG / 接受跨平台差异 · 响应式（移动端 4 列降级到 2 列 / 1 列的断点）。
 
 #### 8. callout
-- **当前**：5 种 type（tip / warning / info / danger / note）。
+- **当前**：5 种 type（tip / warning / info / danger / note），调色板：tip 绿 / warning 琥珀 / info 蓝 / danger 红 / note 紫（5 色相全分开，复用 success 变量零新增）。
 - **借鉴**：parchment「tag 用 solid hex 背景方块 + 1px ink 描边」（callout 本来就是这种思路，但还可以更克制）
-- **方向**：5 种 type 调色板审视（tip / info / note 是不是太接近？要不要合并成 3 种？）· 每个 type 配一个 SVG icon 统一视觉签名 · 内容超过 N 行默认折叠？
+- **方向**：✅ 调色板定型（tip/warning/info/danger/note 5 色相 0 撞色，2026-06-05）· 每个 type 配一个 SVG icon 统一视觉签名 · 内容超过 N 行默认折叠？
 
 #### 9. formula
 - **当前**：KaTeX 编译时 + caption。
@@ -422,7 +424,7 @@ related:
 | `title` | string | — | 高亮块标题 |
 | `content` | string | ✅ | 高亮块内容（走 processInline） |
 
-**状态**：🟡 v0.1.0 待打磨
+**状态**：🟢 v0.2.0
 
 **依赖**：main.css `.callout` 系列
 
@@ -431,11 +433,12 @@ related:
 - `content` 里的 `$...$` 不被渲染（系统级问题 #1）
 
 **待打磨方向**：
-- [ ] 5 种 type 配色微调
+- [x] 5 种 type 配色微调（2026-06-05 完成，tip 改绿）
 - [ ] 是否要支持折叠（内容长了能收起来）
 - [ ] `title` 缺省时如何处理
 
 **更新日志**：
+- 2026-06-05 v0.2.0 5 种 type 调色板定型：tip 改绿（复用 --color-success），与 note 紫彻底拉开色距；math-step-insight 跟随 tip-bg 改用 success-bg
 - 2026-06-05 v0.1.0 首次登记
 
 ---
