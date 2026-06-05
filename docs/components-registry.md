@@ -59,6 +59,7 @@ related:
 1. **`processInline` 不处理 `$...$` 行内 LaTeX** — 导致 quiz 的 `options[].text`、`feedback.content`、callout 的 `content`、math-step 的 `step.content` 里写数学公式都渲染不出来。要么升级 `_inline.js` 支持 LaTeX，要么这些字段继续走组件字段（`formula` / `problemFormula`）绕过。
 2. **CTA 锚点 `#sec-xxx` 与 renderer 自动生成的 anchor 未对齐** — hero 的 `ctaHref` 跳到 `#sec-quiz-track` 这种，但 renderer 自动生成 anchor 的规则没文档化，跨 .md 复用时容易断。
 3. **emoji 跨平台渲染不一致** — concept-card 的 `icon`、hero 的 `emoji`、callout 的图标都受此影响。
+4. ✅ **sidebar 渲染依赖 frontmatter.sections**（已修 2026-06-05）— markdown 没写 `sections` 字段时 sidebar 是空 ol。修复：① 写 `template/fm-template.md` reference 模板列必填字段；② 改 `build.js` 加 warning 兜底（缺 sections 但正文有 h2 时 console.warn 提示）；③ 顺手修 `renderSideNav` 兼容对象格式 sections（formula-test.md 之前吐 [object Object]）。
 
 ---
 
