@@ -16,6 +16,7 @@ const compare = require('./compare.js');
 const conceptCard = require('./concept-card.js');
 const callout = require('./callout.js');
 const formula = require('./formula.js');
+const mathStep = require('./math-step.js');
 
 // 语言标记 → 组件渲染器
 const COMPONENT_MAP = {
@@ -36,6 +37,9 @@ const COMPONENT_MAP = {
   'concept_card': conceptCard,
   'callout': callout,
   'formula': formula,
+  'math-step': mathStep,
+  'mathstep': mathStep,
+  'math_step': mathStep,
 };
 
 const PLACEHOLDER_RE = /<!--\s*CW-COMPONENT-(\d+)\s*-->/g;
@@ -136,6 +140,7 @@ function collectClientScript() {
     quiz.clientJs,
     fillBlank.clientJs,
     stepGuide.clientJs,
+    mathStep.clientJs,
     initSideNavScript(),
   ].filter(Boolean).join('\n\n');
 }
@@ -156,9 +161,15 @@ function renderSideNav(sections, title, subtitle, author) {
       author: escapeHtml(author || ''),
     };
   }
-  const items = sections.map((s, i) =>
-    `<li><a href="#section-${i + 1}" data-section-idx="${i}">${escapeHtml(s)}</a></li>`
-  ).join('');
+  // 兼容两种 sections 格式：
+  //   字符串数组: ['一、热身', '二、二进制运算', ...]
+  //   对象数组:   [{id: 1, title: '一、热身'}, ...]
+  // 对象缺 id 时回退到数组下标 + 1，保持与 marked 生成 h2 id 的对齐
+  const items = sections.map((s, i) => {
+    const label = typeof s === 'string' ? s : (s && s.title ? s.title : '');
+    const idNum = (s && typeof s.id === 'number') ? s.id : (i + 1);
+    return `<li><a href="#section-${idNum}" data-section-idx="${i}">${escapeHtml(label)}</a></li>`;
+  }).join('');
   return {
     titleTag: escapeHtml(title || ''),
     subtitleTag: subtitle ? `<div class="sidebar-subtitle">${escapeHtml(subtitle)}</div>` : '',

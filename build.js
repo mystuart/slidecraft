@@ -113,6 +113,13 @@ async function buildFile(inputPath) {
   // 7) 渲染侧边导航
   const nav = renderer.renderSideNav(fm.sections || [], fm.title, fm.subtitle, fm.author);
 
+  // 7.5) 兜底提醒：frontmatter 没写 sections 但正文有 h2，sidebar 会是空的
+  // 漏写 sections 不会让 build 失败（向后兼容），只给 warning
+  if (!nav.items && /<h2[\s>]/i.test(bodyHtml)) {
+    console.warn(`! 提醒：${path.basename(inputPath)} 有 <h2> 但 frontmatter 没写 sections，sidebar 会是空的。`);
+    console.warn('  复制 template/fm-template.md 的 frontmatter，参考 binary-card-trick.md 补 sections。');
+  }
+
   // 8) 收集客户端 JS
   const clientJs = renderer.collectClientScript();
 
