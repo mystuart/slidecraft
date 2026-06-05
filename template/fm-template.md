@@ -21,7 +21,7 @@ FRONTMATTER 必填与可选字段说明
   subtitle         副标题（sidebar 标题下小字）
   description      课件简介（meta description、分享卡）
   author           作者名（sidebar 底部）
-  theme            主题色：lavender / champagne / green / dark / gold（缺省 lavender）
+  theme            主题色：lavender / champagne / green / dark / rosegold / blue（缺省 lavender）
   emoji            sidebar 标题前的小图标（一个 emoji 字符）
 
 ================================================================================
@@ -45,6 +45,7 @@ sections 两种格式（二选一，不要混用）
 -->
 
 ---
+
 title: 课件标题
 subtitle: 副标题（可选）
 description: 课件简介（可选，1-2 句话）
@@ -70,11 +71,12 @@ sections:
 
 ```hero
 {
-  "eyebrow": "本节要点",
-  "title": "章节大标题",
-  "subtitle": "副标题",
-  "body": "正文段落",
-  "primaryCta": {"label": "开始", "href": "#section-1"}
+  "emoji": "🃏",
+  "title": "用 5 张扑克牌学会二进制",
+  "subtitle": "数学 + 魔术 + 计算机基础，零基础也能懂",
+  "description": "本课件用扑克牌魔术开场，从直觉引入二进制概念。",
+  "cta": "开始这场魔术",
+  "ctaHref": "#section-1"
 }
 ```
 
@@ -82,16 +84,52 @@ sections:
 
 ## 二、章节 2 标题
 
+```callout
+{
+  "type": "tip",
+  "title": "解题小技巧",
+  "content": "先画图，把已知条件标在图上。`a^2 + b^2 = c^2` 是经典公式。"
+}
+```
+
 ```quiz
 {
-  "question": "问题",
-  "options": ["A", "B", "C"],
-  "answer": 0,
-  "feedback": {"correct": "答对了", "wrong": "再想想"}
+  "id": "q1",
+  "question": "二进制的基是？",
+  "options": [
+    {"label": "2", "value": "2", "correct": true},
+    {"label": "8", "value": "8"},
+    {"label": "10", "value": "10"},
+    {"label": "16", "value": "16"}
+  ],
+  "feedback": {"correct": "对！二进制只有 0 和 1", "wrong": "再想想"}
 }
 ```
 
 ## 三、章节 3 标题
+
+```concept-card
+{
+  "title": "进制",
+  "description": "用一组固定的符号和规则来表示数字的方法。",
+  "columns": 2,
+  "items": [
+    {"term": "二进制", "definition": "基为 2，只有 0/1 两个数字"},
+    {"term": "十进制", "definition": "基为 10，0-9 十个数字"}
+  ]
+}
+```
+
+```step-guide
+{
+  "id": "s1",
+  "title": "从右到左，每位权重翻倍",
+  "steps": [
+    {"label": "最右位（第 1 位）", "content": "权重 **1** (= 2^0)，亮 = 加 1"},
+    {"label": "1010 = ?", "content": "**1**×8 + **0**×4 + **1**×2 + **0**×1 = **10**"}
+  ]
+}
+```
 
 最后一个章节……
 
@@ -99,11 +137,37 @@ sections:
 
 <!--
 ================================================================================
+组件字段速查（详见 docs/components-registry.md）
+================================================================================
+所有组件都包在 ```xxx  围栏代码块里，内部是 JSON。
+
+hero       必填：emoji, title, subtitle
+           可选：description, cta + ctaHref, tags, visual: { value, rotated }
+
+callout    必填：type（tip / warning / info / danger / note）, content
+           可选：title
+
+quiz       必填：question, options
+           options[]: { label, value, correct: true/false }
+           可选：multiSelect, feedback.{correct,wrong}
+
+concept-card  必填：title, description
+              可选：columns（1-4）, items 或 cards
+              items[]: { term, definition } 或 { title, desc, icon }
+
+step-guide    必填：id, steps[]
+              steps[]: { title 或 label, content }
+              可选：title（tab 大标题）, example
+
+processInline  支持：**bold** / *italic* / `code` / [text](url) / $LaTeX$
+
+================================================================================
 写完后自检清单（推荐三秒钟过一遍）
 ================================================================================
 □ frontmatter 里的 `title` 填了吗
 □ `sections` 的每一项和正文 `##` 标题完全一致吗
 □ `sections` 数量和 `##` 数量对得上吗
 □ 跑一次 build，看 build 输出的 sidebar li 数量是不是 0
+□ 跑一次 build，看 console 有没有 warning
 ================================================================================
 -->

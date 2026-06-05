@@ -23,8 +23,6 @@
   --color-warning-bg: #fbf3e3;
   --color-info: #4a90c2;
   --color-info-bg: #e8f1f8;
-  --color-tip: #8b7dd8;
-  --color-tip-bg: #f3f0fb;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -922,7 +920,7 @@ details summary { cursor: pointer; font-weight: 600; }
 .callout-content p:first-child { margin-top: 0; }
 .callout-content p:last-child { margin-bottom: 0; }
 
-.callout-tip { background: var(--color-tip-bg); border-color: var(--color-tip); }
+.callout-tip { background: var(--color-success-bg); border-color: var(--color-success); }
 .callout-tip .callout-title { color: var(--color-primary-dark); }
 .callout-warning { background: var(--color-warning-bg); border-color: var(--color-warning); }
 .callout-warning .callout-title { color: #8a6a30; }
@@ -1202,7 +1200,7 @@ details summary { cursor: pointer; font-weight: 600; }
 .math-step-warning     > summary { color: #8a3a3a; }
 .math-step-warning     .math-step-expandable-body { color: #6e2c2c; border-top-color: rgba(214, 90, 90, 0.2); }
 
-.math-step-insight     { background: var(--color-tip-bg); }
+.math-step-insight     { background: var(--color-success-bg); }
 .math-step-insight     > summary { color: var(--color-primary-dark); }
 .math-step-insight     .math-step-expandable-body { color: #4a3d80; border-top-color: rgba(139, 125, 216, 0.2); }
 

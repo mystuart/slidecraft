@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-blue.svg)](./CHANGELOG.md)
-[![Components: 7](https://img.shields.io/badge/components-7-green.svg)](./template/README.md)
+[![Components: 10](https://img.shields.io/badge/components-10-green.svg)](./template/README.md)
 [![Size: ~60KB](https://img.shields.io/badge/size-~60KB-lightgrey.svg)](./dist)
 
 ## 特性

@@ -23,3 +23,6 @@ npm-debug.log*
 # 环境
 .env
 .env.local
+
+# Alice 工具自动生成的临时文件
+*.alice-buffer-*.tmp

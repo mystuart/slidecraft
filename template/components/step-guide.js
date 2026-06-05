@@ -9,12 +9,12 @@ function render(data) {
   const steps = Array.isArray(data.steps) ? data.steps : [];
 
   const tabsHtml = steps.map((s, i) => `
-    <button class="step-guide-tab${i === 0 ? ' is-active' : ''}" data-step-idx="${i}" data-step-num="${i + 1}">${escapeHtml(s.title || ('步骤 ' + (i + 1)))}</button>
+    <button class="step-guide-tab${i === 0 ? ' is-active' : ''}" data-step-idx="${i}" data-step-num="${i + 1}">${escapeHtml(s.title || s.label || ('步骤 ' + (i + 1)))}</button>
   `).join('');
 
   const panelsHtml = steps.map((s, i) => `
     <div class="step-guide-panel${i === 0 ? ' is-active' : ''}" data-step-idx="${i}">
-      <h4 class="step-guide-step-title">第 ${i + 1} 步：${escapeHtml(s.title || '')}</h4>
+      <h4 class="step-guide-step-title">第 ${i + 1} 步：${escapeHtml(s.title || s.label || '')}</h4>
       <div class="step-guide-content">${processInline(s.content || '')}</div>
       ${s.example ? `<div class="step-guide-example">${processInline(s.example)}</div>` : ''}
     </div>

@@ -9,6 +9,7 @@
 //   5. 换行符           → <br>
 //
 // 所有输入先 escapeHtml，再做替换，保证 XSS 安全。
+const katex = require('katex');
 
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
@@ -27,7 +28,23 @@ function isSafeUrl(url) {
 }
 
 function processInline(s) {
-  let out = escapeHtml(s);
+  const raw = String(s == null ? '' : s);
+
+  // 0) LaTeX inline math $...$ — 先在 raw 上提取到占位符，escapeHtml 后还原
+  const mathSegments = [];
+  const rawWithMath = raw.replace(/\$([^$\n]+)\$/g, (m, content) => {
+    try {
+      const html = katex.renderToString(content, { throwOnError: false, displayMode: false });
+      const idx = mathSegments.length;
+      mathSegments.push(html);
+      return `\x00MATH${idx}\x00`;
+    } catch (e) {
+      return m; // KaTeX 解析失败时保持原样
+    }
+  });
+
+  let out = escapeHtml(rawWithMath);
+
   // 1) inline code 先处理，避免内部 * / [ 被误解析
   out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
   // 2) bold (** 比 * 长，先匹配)
@@ -44,6 +61,10 @@ function processInline(s) {
   });
   // 5) 换行
   out = out.replace(/\n/g, '<br>');
+
+  // 6) 还原 LaTeX 段（占位符未 escape，含 < > 是 HTML 标签，直接插入）
+  out = out.replace(/\x00MATH(\d+)\x00/g, (_, idx) => mathSegments[+idx]);
+
   return out;
 }
 
