@@ -62,6 +62,8 @@ related:
 4. ✅ **sidebar 渲染依赖 frontmatter.sections**（已修 2026-06-05）— markdown 没写 `sections` 字段时 sidebar 是空 ol。修复：① 写 `template/fm-template.md` reference 模板列必填字段；② 改 `build.js` 加 warning 兜底（缺 sections 但正文有 h2 时 console.warn 提示）；③ 顺手修 `renderSideNav` 兼容对象格式 sections（formula-test.md 之前吐 [object Object]）。
 5. ✅ **escapeHtml 在 7 个文件重复定义**（已修 2026-06-05）— `_inline.js` 已经导出 escapeHtml，但 build.js / renderer.js / hero / quiz / concept-card / fill-blank / formula 各自重写了一份，违反 DRY。修复：7 个文件改为 `import { escapeHtml } from './_inline.js'`，删除本地副本。GLM 5.1 评估漏数了 fill-blank.js / formula.js，实际是 7 个副本不是 6 个。
 6. **build.js 的 marked.setOptions 是全局副作用** — 当前串行编译没问题，但 future 想做并行编译时会冲突（多文件共享 setOptions 状态互相覆盖）。优先级：低，等真有并行需求再重构 loader。
+7. **concept-card 的 desc 走 escapeHtml 而非 processInline**（GLM 5.1 评估 · 2026-06-05）— 概念卡片的描述不支持 `**粗体**` / `[链接]()` 等内联语法，和其他组件（callout / quiz）不一致。修复：把 desc 字段也走 processInline。
+8. **compare 的 good/bad 左右排序约定未文档化**（GLM 5.1 评估 · 2026-06-05）— compare 有 4 种 tag（good / bad / warn / neutral），但 good/bad 哪个放左没明确规则，导致跨 .md 复用时左右顺序不一致。优先级：低，先定约定（建议 good 在左 / bad 在右 / warn 居中）。
 
 ---
 
@@ -135,7 +137,7 @@ related:
 #### 4. fill-blank
 - **当前**：单空 / 多答案 `|` 分隔。
 - **借鉴**：parchment 风格的填空「被填进纸里」（hairline 描边输入框，不用浮起的 box-shadow 输入框）。
-- **方向**：等价答案规则（大小写 / unicode 标准化 / 去空格）· 多空场景字段设计（一题多个 `____`，按顺序 `answer[0]` `answer[1]` 还是命名 `answers.q1` `answers.q2`）· 判分粒度（全对 vs 部分得分）。
+- **方向**：等价答案规则（大小写 / unicode 标准化 / 去空格）· 多空场景字段设计（一题多个 `____`，按顺序 `answer[0]` `answer[1]` 还是命名 `answers.q1` `answers.q2`）· 判分粒度（全对 vs 部分得分）· mode 字段文档同步：SPEC 写了 reveal vs practice 的语义，但 template/README 没完全同步。
 
 #### 5. step-guide
 - **当前**：tab 切换，按钮组形式。
