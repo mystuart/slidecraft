@@ -18,7 +18,8 @@ sections:
 {
   "title": "公式组件测试",
   "subtitle": "formula component playground",
-  "emoji": "🧪"
+  "emoji": "🧪",
+  "visual": { "value": "🧪", "rotated": -8 }
 }
 ```
 

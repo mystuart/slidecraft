@@ -14,7 +14,8 @@ sections:
 {
   "title": "Math-step 公式测试",
   "subtitle": "验证分步解题组件的所有字段：公式、提示、解析、警告、洞察",
-  "emoji": "📐"
+  "emoji": "📐",
+  "visual": { "value": "📐", "rotated": -8 }
 }
 ```
 

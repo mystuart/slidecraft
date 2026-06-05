@@ -20,7 +20,8 @@ sections:
 {
   "title": "组件总览",
   "subtitle": "10 个交互组件的真实示例 · 字段、视觉、交互逐个打磨",
-  "emoji": "🧩"
+  "emoji": "🧩",
+  "visual": { "value": "🧩", "rotated": -8 }
 }
 ```
 

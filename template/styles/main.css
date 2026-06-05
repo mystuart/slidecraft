@@ -215,50 +215,73 @@ details summary { cursor: pointer; font-weight: 600; }
 }
 
 /* ============================================================
-   Hero 封面
+   Hero 封面（杂志海报风 · 两列布局）
    ============================================================ */
 .hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 2em;
+  min-height: 50vh;
+  padding: 5em 4em;
   margin: 0 0 2em;
-  padding: 1.2em 1.6em;
-  background: var(--color-primary-bg);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--color-primary);
   color: var(--color-text);
+  position: relative;
+  overflow: hidden;
 }
-.hero-inner { max-width: 640px; }
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 640px;
+}
 .hero-emoji {
-  font-size: 2rem;
-  margin-bottom: 0.2em;
+  font-size: 3.5rem;
+  line-height: 1;
+  margin-bottom: 0.4em;
 }
 .hero-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0.2em 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin: 0;
   color: var(--color-text);
   border: none;
   padding: 0;
-  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 .hero-subtitle {
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   color: var(--color-text-muted);
-  margin: 0.3em 0 0;
+  margin: 0.6em 0 0;
   line-height: 1.5;
+  font-weight: 400;
 }
 .hero-cta {
   display: inline-block;
-  padding: 0.5em 1.2em;
-  background: var(--color-surface);
-  color: var(--color-primary-dark);
-  border: 1px solid var(--color-primary);
-  border-radius: 4px;
+  margin-top: 2.5em;
+  padding: 0.8em 1.8em;
+  background: var(--color-primary);
+  color: #ffffff;
+  border-radius: 999px;
   font-weight: 600;
-  font-size: 0.9rem;
-  transition: background 0.15s ease;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 .hero-cta:hover {
-  background: var(--color-primary-bg);
+  opacity: 0.88;
   text-decoration: none;
+  transform: translateY(-1px);
+}
+.hero-visual {
+  font-size: 22rem;
+  line-height: 1;
+  opacity: 0.15;
+  text-align: center;
+  user-select: none;
+  pointer-events: none;
 }
 
 /* ============================================================
@@ -923,8 +946,16 @@ details summary { cursor: pointer; font-weight: 600; }
     border-bottom: 1px solid var(--color-border);
   }
   .content { padding: 1.5em 1.2em 3em; }
-  .hero { margin: -1.5em -1.2em 1.5em; padding: 3em 1.5em; }
-  .hero-title { font-size: 2rem; }
+  .hero {
+    display: flex;
+    flex-direction: column-reverse;
+    padding: 3em 1.5em;
+    min-height: auto;
+    margin: -1.5em -1.2em 1.5em;
+  }
+  .hero-visual { font-size: 10rem; margin-bottom: 1em; }
+  .hero-title { font-size: 2.2rem; }
+  .hero-emoji { font-size: 2.5rem; }
   .compare-grid { grid-template-columns: 1fr; }
   .concept-card-grid[data-cols="3"],
   .concept-card-grid[data-cols="4"] { grid-template-columns: repeat(2, 1fr); }

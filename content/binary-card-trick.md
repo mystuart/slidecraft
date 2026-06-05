@@ -15,7 +15,8 @@ sections:
   "title": "用 5 张扑克牌学会二进制",
   "subtitle": "数学 + 魔术 + 计算机基础，一次打包带走",
   "emoji": "🃏",
-  "cta": "开始这场魔术"
+  "cta": "开始这场魔术",
+  "visual": { "value": "🃏", "rotated": -8 }
 }
 ```
 

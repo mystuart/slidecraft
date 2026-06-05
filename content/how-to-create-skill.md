@@ -17,7 +17,8 @@ sections:
   "title": "如何创作 SKILL",
   "subtitle": "从零开始，写出可复用的 AI 技能",
   "emoji": "📘",
-  "cta": "开始学习"
+  "cta": "开始学习",
+  "visual": { "value": "📘", "rotated": -8 }
 }
 ```
 
