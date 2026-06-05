@@ -63,6 +63,112 @@ related:
 
 ---
 
+## 打磨方向（借鉴 html-anything · 2026-06-05）
+
+**学习源**：nexu-io/html-anything（75 skills × 9 surfaces，重点读了 `deck-swiss-international` 和 `doc-kami-parchment`）
+
+**借鉴核心**：「**设计签名 + 铁律**」—— 每个 skill 配严选 palette（4 选 1）+ 字体分工（display / body / mono / 中文）+ 版式池（22 个锁死）+ 「绝不」清单（drop-shadow / 圆角 / 渐变 / 霓虹色）。相比我现在的「通用 HTML 默认风格 + 5 个自由切换主题」，html-anything 是「少而精 + 严选 + 克制」。
+
+### 全局打磨方向（适用于所有组件）
+
+1. **给每个主题配「设计签名」**（不只换色）
+   - **当前**：5 个主题（lavender / champagne / green / dark / gold）只是色调不同，字体 / 间距 / 装饰元素都共用 → 换主题像换壁纸，视觉签名没变。
+   - **借鉴**：deck-swiss-international 4 套配色各有 accent + paper + ink 三色 + 字体约束 + 铁律（"文字必须黑/白"等）。
+   - **方向**：每个主题补「签名段」：accent 色 + paper 色 + ink 色 + 字体 + 圆角策略（0 / 4 / 12）+ 阴影策略（hairline 描边 vs drop-shadow）。
+
+2. **字号极端反差**（display 9.6vw vs body 14-16px vs label 11px）
+   - **当前**：所有字号走浏览器默认，标题 vs 正文反差不够强。
+   - **借鉴**：display 9.6vw + body 14-16px + label 11px uppercase letterspacing 0.08em。
+   - **方向**：课件建立 4 级字号系统：display（章首 4-5rem）/ h2（节标题 1.75-2rem）/ body（正文 1rem）/ label（角标 0.75rem uppercase）。
+
+3. **「绝不」清单**（铁律）
+   - **当前**：CSS 里啥都能用，缺铁律。
+   - **借鉴**：每个 skill 都有「绝不 drop-shadow / 圆角 / 渐变 / 霓虹色 / rgba」段。
+   - **方向**：每个主题配「铁律」段——什么一定不要。比如 dark 主题：不要纯白文字（用 95% 白）；lavender 主题：不要霓虹色 accent（用 muted 紫）。
+
+4. **Ground texture（背景纹理）**
+   - **当前**：纯色背景，没质感。
+   - **借鉴**：parchment 羊皮纸底 / dot pattern 点阵 / grid 网格——做氛围底。
+   - **方向**：选 1-2 个主题试 ground texture（lavender 加 dot pattern 9% 透明度 / dark 加 grid 6% 透明度做底）。
+
+5. **Hairline 描边代替阴影**
+   - **当前**：卡片用 `box-shadow`。
+   - **借鉴**：parchment 用 `0 0 0 1px #d4d1c5` 描边代替阴影。
+   - **方向**：默认 hairline 1px 描边代替 shadow（更印感、更克制），特殊场景（hover / focus / drag）才用 shadow。
+
+6. **字体系统化分工**
+   - **当前**：main.css 字体声明跟系统默认走。
+   - **借鉴**：4 种字体分工——display (Inter Tight) / body (Inter) / 中文 (Noto Sans SC) / 数字 mono (JetBrains Mono)。
+   - **方向**：建 `template/styles/fonts.css` 集中声明，4 种字体各司其职，组件 CSS 通过 CSS 变量引用，不散落。
+
+7. **「被排过版的纸」质感**（parchment 哲学）
+   - **借鉴**："Composed pages, not dashboards. 写得像被排版的纸，不是 dashboard，不是网页。"
+   - **方向**：课件的 detail 元素（quote / footnote / metadata / page number）按「印感」打磨，而不是 web card 感。具体：metadata 用 hairline 分隔，footnote 用 1px 顶 rule + 字号 0.8rem + 灰色，page number 用 11px uppercase 角标。
+
+### 逐组件借鉴方向
+
+#### 1. hero
+- **当前**：背景色 + 大标题 + 副标题 + 可选 CTA + emoji。
+- **借鉴**：S01 Cover「accent 全屏 + ASCII 呼吸点阵 + 反白标题 + 元数据 chrome（date / № / topic）」
+- **方向**：加 ground texture · 元数据 chrome（右下角 №N/M 章号 + 左下角 topic 标签）· display 字号（标题 4-5rem）· emoji 切到 SVG 图标（关联系统级问题 #3）。
+
+#### 2. quiz
+- **当前**：题干 + 选项 + 反馈。
+- **借鉴**：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」
+- **方向**：题型分类标签（概念题 / 计算题 / 应用题）—— 给 quiz 加 `category` 字段？· 多选状态机（未选 / 部分选 / 全选错 / 全选对 / 提交后）的颜色规范 · feedback 折叠/展开默认决策。
+
+#### 3. quiz-track
+- **当前**：题组 carousel，孤立圆点表示进度。
+- **借鉴**：S11 Horizontal Timeline「顶部 headline + 中部 hairline 轴 + 等距节点」
+- **方向**：进度点用 hairline 轴连成 timeline，不要孤立圆点 · 答对/答错用 hairline 颜色变化（不用填色）· 全部完成时的「总结」是 callout 内嵌还是 modal 浮层？
+
+#### 4. fill-blank
+- **当前**：单空 / 多答案 `|` 分隔。
+- **借鉴**：parchment 风格的填空「被填进纸里」（hairline 描边输入框，不用浮起的 box-shadow 输入框）。
+- **方向**：等价答案规则（大小写 / unicode 标准化 / 去空格）· 多空场景字段设计（一题多个 `____`，按顺序 `answer[0]` `answer[1]` 还是命名 `answers.q1` `answers.q2`）· 判分粒度（全对 vs 部分得分）。
+
+#### 5. step-guide
+- **当前**：tab 切换，按钮组形式。
+- **借鉴**：S11 Horizontal Timeline（顶部 headline + 节点 + 步骤名）。
+- **方向**：tab 视觉从「按钮组」改为「timeline 节点」· `example` 字段的展示形式（折叠 / 展开 / 代码高亮）· 键盘左右切换 + 当前 step 序号角标。
+
+#### 6. compare
+- **当前**：左右两列 + tag 颜色。
+- **借鉴**：S08 Duo Compare「垂直分割线；左 Before / 右 After」
+- **方向**：中间分割线风格（实线 / 虚线 / 留白）· tag 颜色映射约定（good 绿 / bad 红 / warn 黄 / neutral 灰）是否对齐到 callout 5 种 type？· points 数量上限（多了要折叠）。
+
+#### 7. concept-card
+- **当前**：网格 + emoji + 标题 + 描述。
+- **借鉴**：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」
+- **方向**：卡片 hover 效果（hairline 加粗 + 微 translateY？还是要不要 hover？）· emoji 决策：保留 / 切到 lucide SVG / 接受跨平台差异 · 响应式（移动端 4 列降级到 2 列 / 1 列的断点）。
+
+#### 8. callout
+- **当前**：5 种 type（tip / warning / info / danger / note）。
+- **借鉴**：parchment「tag 用 solid hex 背景方块 + 1px ink 描边」（callout 本来就是这种思路，但还可以更克制）
+- **方向**：5 种 type 调色板审视（tip / info / note 是不是太接近？要不要合并成 3 种？）· 每个 type 配一个 SVG icon 统一视觉签名 · 内容超过 N 行默认折叠？
+
+#### 9. formula
+- **当前**：KaTeX 编译时 + caption。
+- **借鉴**：parchment「文字层级靠衬线对比 + 字号 + 留白，不靠颜色」（公式块不要花哨背景，纯白底 + 居中 + 大留白）
+- **方向**：块级 / 行内默认值决策（display 默认 `true` 还是 `false`？行内用 `display: inline` + 中等 padding？）· `showExpr` 教学场景（折叠 / 悬浮 tooltip / 始终展开）· 编号系统（要不要「公式 1.1」自动编号）。
+
+#### 10. math-step
+- **当前**：题面 / 步骤 / 答案 / 4 种折叠区。
+- **借鉴**：parchment「细节质感」+「"被排过版"」
+- **方向**：answer 块 vs 折叠区展开/折叠的统一规则（要不要全部默认折叠？用户点击展开才"教学感"）· 4 种折叠区配色（hint 黄 / explanation 蓝 / warning 红 / insight 紫）是否对齐到 callout 5 种 type？· 进度条计算（每步勾 +1 vs 全部勾完 +1）· 全部完成时「全卡片变绿」是否保留（视觉太重？）。
+
+### 待你拍板的关键决策（影响多个组件）
+
+> 这些是借鉴过程中浮现的「二选一 / 三选一」，需要你点头才能动代码。
+
+- **emoji 命运**：保留（接受跨平台差异）/ 切到 lucide SVG（更统一但要引入图标库）/ 用 ASCII 几何（最克制但表达力弱）。影响 hero / concept-card / callout。
+- **圆角策略**：dark 主题保持 8-12px（柔和）/ 全部切到 0 直角（最克制，学院派）/ 大元素 0 直角 + 小元素 4px 圆角（混合）。影响全部组件视觉。
+- **阴影策略**：默认全无（最克制）/ 默认 hairline 1px（印感）/ 保留 box-shadow（当前）。影响全部组件。
+- **主题数量**：5 个太散，要不要砍到 3 个（lavender + dark + gold）？
+- **磨优先级**：从哪个组件开刀（建议 hero → callout → formula → compare → concept-card → quiz → quiz-track → step-guide → fill-blank → math-step，但你说了算）。
+
+---
+
 ## 1. hero
 
 **作用**：页面封面。课件的开篇/章首/单元首页。
