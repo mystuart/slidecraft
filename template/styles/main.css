@@ -1009,3 +1009,226 @@ details summary { cursor: pointer; font-weight: 600; }
   h2 { break-before: page; page-break-before: always; }
   h2:first-of-type { break-before: auto; page-break-before: auto; }
 }
+
+/* ============================================================
+   Math-step 分步解题
+   ============================================================ */
+.math-step {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: 1.4em 1.6em 1.6em;
+  margin: 1.8em 0;
+  box-shadow: var(--shadow-sm);
+  transition: border-left-color 0.25s ease;
+}
+.math-step-all-done {
+  border-left-color: var(--color-success);
+}
+
+.math-step-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin: 0 0 0.8em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.math-step-problem-box {
+  background: var(--color-primary-bg);
+  border-radius: var(--radius-sm);
+  padding: 0.8em 1em;
+  margin-bottom: 1em;
+}
+.math-step-problem {
+  margin: 0 0 0.4em;
+  font-weight: 600;
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+.math-step-problem:last-child { margin-bottom: 0; }
+.math-step-problem-formula { margin: 0.4em 0 0; }
+
+.math-step-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin-bottom: 1em;
+  padding: 0.4em 0.8em;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+}
+.math-step-progress-text { font-weight: 500; }
+.math-step-progress-count {
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  font-variant-numeric: tabular-nums;
+}
+.math-step-all-done .math-step-progress-count { color: var(--color-success); }
+
+.math-step-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.math-step-step {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.8em 1em;
+  background: var(--color-bg);
+}
+.math-step-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  flex-wrap: wrap;
+  margin-bottom: 0.4em;
+}
+.math-step-step-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+.math-step-done-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.math-step-done-label input { cursor: pointer; }
+.math-step-done:checked + span {
+  color: var(--color-success);
+  font-weight: 600;
+  text-decoration: line-through;
+  text-decoration-color: var(--color-success);
+}
+
+.math-step-step-body {
+  font-size: 0.96rem;
+  line-height: 1.6;
+}
+.math-step-step-content { margin: 0.4em 0; }
+.math-step-step-formula { margin: 0.6em 0; }
+
+/* 折叠区 */
+.math-step-expandable {
+  margin-top: 0.6em;
+  border-radius: var(--radius-sm);
+  padding: 0;
+  overflow: hidden;
+}
+.math-step-expandable > summary {
+  cursor: pointer;
+  padding: 0.5em 0.8em;
+  font-size: 0.9rem;
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  user-select: none;
+}
+.math-step-expandable > summary::-webkit-details-marker { display: none; }
+.math-step-expandable > summary::after {
+  content: "▸";
+  margin-left: auto;
+  font-size: 0.75em;
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease;
+}
+.math-step-expandable[open] > summary::after { transform: rotate(90deg); }
+.math-step-expandable-icon { font-size: 1.05em; }
+.math-step-expandable-body {
+  padding: 0.4em 0.8em 0.7em;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  border-top: 1px solid;
+}
+
+.math-step-hint        { background: var(--color-warning-bg); }
+.math-step-hint        > summary { color: #8a6a30; }
+.math-step-hint        .math-step-expandable-body { color: #6e5320; border-top-color: rgba(217, 154, 58, 0.2); }
+
+.math-step-explanation { background: var(--color-info-bg); }
+.math-step-explanation > summary { color: #2a5d80; }
+.math-step-explanation .math-step-expandable-body { color: #1f4d6e; border-top-color: rgba(74, 144, 194, 0.2); }
+
+.math-step-warning     { background: var(--color-danger-bg); }
+.math-step-warning     > summary { color: #8a3a3a; }
+.math-step-warning     .math-step-expandable-body { color: #6e2c2c; border-top-color: rgba(214, 90, 90, 0.2); }
+
+.math-step-insight     { background: var(--color-tip-bg); }
+.math-step-insight     > summary { color: var(--color-primary-dark); }
+.math-step-insight     .math-step-expandable-body { color: #4a3d80; border-top-color: rgba(139, 125, 216, 0.2); }
+
+/* 答案块：绿色突出，默认展开 */
+.math-step-answer {
+  margin-top: 0.6em;
+  padding: 0.5em 0.8em;
+  background: var(--color-success-bg);
+  border: 1px solid #b8e0cc;
+  border-left: 4px solid var(--color-success);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.math-step-answer-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-success);
+  background: white;
+  padding: 0.1em 0.5em;
+  border-radius: var(--radius-sm);
+  margin-right: 0.5em;
+  vertical-align: middle;
+}
+.math-step-answer-body { display: inline; }
+.math-step-answer-body p:first-child { margin-top: 0; }
+.math-step-answer-body p:last-child { margin-bottom: 0; }
+
+.math-step-error {
+  background: #fff0f0;
+  border-left: 4px solid #d9534f;
+  border-radius: var(--radius-md);
+  padding: 0.8em 1em;
+  color: #a94442;
+  font-size: 0.92em;
+  margin: 1.2em 0;
+}
+.math-step-formula-error {
+  display: block;
+  background: rgba(0,0,0,0.04);
+  padding: 0.3em 0.5em;
+  border-radius: 3px;
+  font-size: 0.88em;
+  color: #6c2a28;
+  word-break: break-all;
+}
+
+/* 打印：折叠区全部展开 + 勾选隐藏 + 答案/折叠区可见 */
+@media print {
+  .math-step-done-label { display: none !important; }
+  .math-step-expandable[open] > summary::after { display: none; }
+  .math-step {
+    box-shadow: none;
+    border-left: 4px solid #888;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .math-step-step { break-inside: avoid; page-break-inside: avoid; }
+}
