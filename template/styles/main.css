@@ -200,12 +200,20 @@ details summary { cursor: pointer; font-weight: 600; }
 
 .content {
   flex: 1;
-  padding: 3em 3em 5em;
+  padding: 2em 2.5em 4em;
   min-width: 0;
 }
 .article {
   max-width: var(--content-max);
   margin: 0 auto;
+}
+.article > h1:first-child {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 0.6em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid var(--color-border);
+  line-height: 1.25;
 }
 
 /* 章节标题给侧边导航的锚点 */
@@ -217,49 +225,46 @@ details summary { cursor: pointer; font-weight: 600; }
    Hero 封面
    ============================================================ */
 .hero {
-  min-height: calc(100vh - 4em);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  margin: -3em -3em 2em;
-  padding: 4em 2em;
-  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-accent) 100%);
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  margin: 0 0 2em;
+  padding: 1.2em 1.6em;
+  background: var(--color-primary-bg);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-primary);
   color: var(--color-text);
 }
 .hero-inner { max-width: 640px; }
 .hero-emoji {
-  font-size: 4rem;
-  margin-bottom: 0.4em;
-  filter: drop-shadow(0 4px 12px rgba(60, 40, 120, 0.15));
+  font-size: 2rem;
+  margin-bottom: 0.2em;
 }
 .hero-title {
-  font-size: 2.6rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 700;
   margin: 0.2em 0;
   color: var(--color-text);
   border: none;
   padding: 0;
+  line-height: 1.25;
 }
 .hero-subtitle {
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   color: var(--color-text-muted);
-  margin: 0.6em 0 1.4em;
+  margin: 0.3em 0 0;
+  line-height: 1.5;
 }
 .hero-cta {
   display: inline-block;
-  padding: 0.7em 1.6em;
+  padding: 0.5em 1.2em;
   background: var(--color-surface);
   color: var(--color-primary-dark);
-  border-radius: 999px;
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
   font-weight: 600;
-  box-shadow: var(--shadow-md);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
 }
 .hero-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-primary-bg);
   text-decoration: none;
 }
 
