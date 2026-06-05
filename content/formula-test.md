@@ -14,9 +14,13 @@ sections:
     title: 错误处理
 ---
 
-# Formula 公式组件测试
-
-> 验证 formula 组件的 4 个核心场景：基础数学、经典公式、化学方程式、错误处理。
+```hero
+{
+  "title": "公式组件测试",
+  "subtitle": "formula component playground",
+  "emoji": "🧪"
+}
+```
 
 ## 基础数学
 

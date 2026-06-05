@@ -207,14 +207,7 @@ details summary { cursor: pointer; font-weight: 600; }
   max-width: var(--content-max);
   margin: 0 auto;
 }
-.article > h1:first-child {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin: 0 0 0.6em;
-  padding-bottom: 0.5em;
-  border-bottom: 1px solid var(--color-border);
-  line-height: 1.25;
-}
+
 
 /* 章节标题给侧边导航的锚点 */
 .article > h2, .article > section[id] > h2 {

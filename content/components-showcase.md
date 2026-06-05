@@ -1,7 +1,6 @@
 ---
 title: 组件总览
 subtitle: 10 个交互组件的真实示例 · 字段、视觉、交互逐个打磨
-emoji: 🧩
 author: Alice
 sections:
   - 1. hero · 封面
@@ -17,12 +16,13 @@ sections:
   - 打磨方向预告
 ---
 
-# 组件总览
-
-> 这份文件覆盖所有 10 个组件，每个组件至少 2 个示例。
-> 老板和我会用它逐个组件讨论打磨方向（视觉、交互、字段设计）。
->
-> **已知限制（待打磨）**：`_inline.js` 的 `processInline` 当前不支持 `$...$` 行内 LaTeX 渲染——只有组件字段（如 `problemFormula` / `step.formula` / `formula.expr`）走 KaTeX 编译时渲染。本文件示例中的 `$...$` 在 `content` / `hint` / `feedback` 字段里会**原样输出**，是预期的"待打磨"展示。
+```hero
+{
+  "title": "组件总览",
+  "subtitle": "10 个交互组件的真实示例 · 字段、视觉、交互逐个打磨",
+  "emoji": "🧩"
+}
+```
 
 ## 1. hero · 封面
 
