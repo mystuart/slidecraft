@@ -1,10 +1,16 @@
-const { escapeHtml } = require('./_inline.js');
+const { escapeHtml, processInline } = require('./_inline.js');
 
 // Quiz 选择题组件
-// 单题数据：{ id, question, type: 'single'|'multi', options: [{id,text}], correct: [id,...], feedback: {correct, wrong}, hint }
+// 单题数据：{ id, question, type: 'single'|'multi', options: [{id,text}], correct: [id,...], feedback: {correct, wrong}, hint, category }
+// category: 'concept'|'calc'|'apply'|'review'，加题干前 chip；不填不显示
 // 题组（quiz-track）数据：[单题1, 单题2, ...] — 数组，渲染为 carousel
 
-
+const CATEGORY_LABELS = {
+  concept: '💡 概念题',
+  calc: '🧮 计算题',
+  apply: '🌐 应用题',
+  review: '🔁 复习题'
+};
 
 function renderSingleQuestion(data) {
   const id = data.id || ('q-' + Math.random().toString(36).slice(2, 8));
@@ -14,17 +20,19 @@ function renderSingleQuestion(data) {
   const correct = Array.isArray(data.correct) ? data.correct : [];
   const feedback = data.feedback || {};
   const hint = data.hint || '';
+  const category = CATEGORY_LABELS[data.category] ? data.category : '';
   const inputType = type === 'multi' ? 'checkbox' : 'radio';
   const name = 'q-' + id;
 
-  return `<div class="quiz" data-quiz-id="${escapeHtml(id)}" data-type="${type}" data-correct='${escapeHtml(JSON.stringify(correct))}' data-feedback-correct="${escapeHtml(feedback.correct || '答对了！')}" data-feedback-wrong="${escapeHtml(feedback.wrong || '再想想～')}">
-  <div class="quiz-question">${escapeHtml(question)}${type === 'multi' ? ' <small style="color:var(--color-text-muted);font-weight:400;">(多选)</small>' : ''}</div>
-  ${hint ? `<details class="quiz-hint"><summary>💡 提示</summary><div>${escapeHtml(hint)}</div></details>` : ''}
+  return `<div class="quiz" data-quiz-id="${escapeHtml(id)}" data-type="${type}" data-correct='${escapeHtml(JSON.stringify(correct))}' data-feedback-correct="${escapeHtml(feedback.correct || '答对了！')}" data-feedback-wrong="${escapeHtml(feedback.wrong || '再想想～')}" data-category="${escapeHtml(category)}">
+  ${category ? `<div class="quiz-category quiz-category--${escapeHtml(category)}">${CATEGORY_LABELS[category]}</div>` : ''}
+  <div class="quiz-question">${processInline(question)}${type === 'multi' ? ' <small style="color:var(--color-text-muted);font-weight:400;">(多选)</small>' : ''}</div>
+  ${hint ? `<details class="quiz-hint"><summary>💡 提示</summary><div>${processInline(hint)}</div></details>` : ''}
   <div class="quiz-options">
     ${options.map(o => `
     <label class="quiz-option" data-option-id="${escapeHtml(o.id)}">
       <input type="${inputType}" name="${name}" value="${escapeHtml(o.id)}">
-      <span class="quiz-option-text">${escapeHtml(o.text)}</span>
+      <span class="quiz-option-text">${processInline(o.text)}</span>
     </label>`).join('')}
   </div>
   <div class="quiz-actions">
@@ -103,10 +111,11 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
     if (!input) return;
     input.addEventListener('change', function() {
       if (type === 'single') {
-        options.forEach(function(x) { x.classList.remove('is-selected'); });
+        options.forEach(function(x) { x.classList.remove('is-selected', 'is-pending'); });
       }
-      if (input.checked) o.classList.add('is-selected');
-      else o.classList.remove('is-selected');
+      var selClass = type === 'multi' ? 'is-pending' : 'is-selected';
+      if (input.checked) o.classList.add(selClass);
+      else o.classList.remove('is-selected', 'is-pending');
     });
   });
 
@@ -119,15 +128,21 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
       return;
     }
     var isRight = arraysEqual(sels, correct);
+    // partial: 多选 + 答错 + sels 里有对的（部分对部分错）
+    var isPartial = !isRight && type === 'multi' && sels.some(function(s) { return correct.indexOf(s) !== -1; });
     options.forEach(function(o) {
       var oid = o.getAttribute('data-option-id');
-      o.classList.remove('is-correct', 'is-wrong');
-      if (correct.indexOf(oid) !== -1) o.classList.add('is-correct');
-      else if (sels.indexOf(oid) !== -1) o.classList.add('is-wrong');
+      o.classList.remove('is-selected', 'is-pending', 'is-correct', 'is-wrong');
+      var inCorrect = correct.indexOf(oid) !== -1;
+      var isSel = sels.indexOf(oid) !== -1;
+      if (inCorrect) o.classList.add('is-correct');
+      else if (isSel) o.classList.add('is-wrong');
     });
     feedback.hidden = false;
-    feedback.className = 'quiz-feedback ' + (isRight ? 'is-correct' : 'is-wrong');
-    feedback.textContent = isRight ? '✓ ' + fbCorrect : '✗ ' + fbWrong;
+    var fbClass = isRight ? 'is-correct' : (isPartial ? 'is-partial' : 'is-wrong');
+    var fbText = isRight ? '✓ ' + fbCorrect : (isPartial ? '◐ 部分正确，再想想～' : '✗ ' + fbWrong);
+    feedback.className = 'quiz-feedback ' + fbClass;
+    feedback.textContent = fbText;
     checkBtn.disabled = true;
   });
 
@@ -135,7 +150,7 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
     options.forEach(function(o) {
       var input = o.querySelector('input');
       if (input) input.checked = false;
-      o.classList.remove('is-selected', 'is-correct', 'is-wrong');
+      o.classList.remove('is-selected', 'is-pending', 'is-correct', 'is-wrong');
     });
     feedback.hidden = true;
     feedback.className = 'quiz-feedback';

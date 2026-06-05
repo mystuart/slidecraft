@@ -23,7 +23,7 @@ related:
 | # | 组件 | 版本 | 状态 | 首次可用 | 最近更新 | 字段数 |
 |---|---|---|---|---|---|---|
 | 1 | hero | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 6 |
-| 2 | quiz | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 7 |
+| 2 | quiz | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 7 |
 | 3 | quiz-track | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 1 (数组) |
 | 4 | fill-blank | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 6 |
 | 5 | step-guide | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 3 |
@@ -233,19 +233,23 @@ related:
 | `feedback.wrong` | string | — | 答错反馈文案 |
 | `hint` | string | — | 提示文案 |
 
-**状态**：🟡 v0.1.0 待打磨
+**状态**：🟢 v0.2.0 打磨完成
 
-**依赖**：main.css `.quiz` 系列 + katex（`question` 里的 `questionFormula` 字段无；目前 question 文本走 processInline 不走 katex）
+**依赖**：main.css `.quiz` 系列 + katex（options / question / hint 已走 processInline，支持 `$...$` 渲染）
 
 **已知问题**：
-- `options[].text` 和 `feedback.content` 里的 `$...$` 不被渲染（系统级问题 #1）
+- 无（系统级问题 #1 已在 v0.2.0 通过 processInline 修复）
 
 **待打磨方向**：
-- [ ] options / feedback 是否要支持 LaTeX
-- [ ] 多选的视觉区分（已选/部分选/全错）
-- [ ] 题干是否需要图标/分类标签
+- [x] options / feedback 是否要支持 LaTeX（v0.2.0 走 processInline）
+- [x] 多选的视觉区分（v0.2.0 4 态选项 + partial 反馈）
+- [x] 题干是否需要图标/分类标签（v0.2.0 4 chip 分类）
+- [ ] a11y 强化（role/aria-live/aria-labelledby）
+- [ ] 提交后按钮文案变化（"✓ 已提交 · 查看结果"）
+- [ ] 数字键快捷键（1-9 选选项）
 
 **更新日志**：
+- 2026-06-05 v0.2.0 4 态选项（default/selected/pending/correct/wrong）+ 1 partial 反馈；options / question / hint 走 processInline（支持 LaTeX）；category 字段（concept/calc/apply/review）渲染题干前 chip
 - 2026-06-05 v0.1.0 首次登记
 
 ---
