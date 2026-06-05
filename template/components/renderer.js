@@ -1,3 +1,5 @@
+const { escapeHtml } = require('./_inline.js');
+
 // renderer.js — 组件主调度器
 // 职责：
 //   1. 扫描 markdown 文本，提取所有 fenced code block
@@ -232,11 +234,7 @@ function initSideNavScript() {
 `;
 }
 
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  })[c]);
-}
+
 
 module.exports = {
   processMarkdown,

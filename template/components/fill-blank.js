@@ -1,12 +1,10 @@
+const { escapeHtml } = require('./_inline.js');
+
 // Fill-blank 填空题组件
 // 数据：{ id, question, answer, hint, placeholder }
 // 比对规则：不区分大小写、忽略首尾空格、多个答案用 | 分隔
 
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  })[c]);
-}
+
 
 function render(data) {
   const id = data.id || ('f-' + Math.random().toString(36).slice(2, 8));

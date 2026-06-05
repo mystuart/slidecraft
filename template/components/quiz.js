@@ -1,12 +1,10 @@
+const { escapeHtml } = require('./_inline.js');
+
 // Quiz 选择题组件
 // 单题数据：{ id, question, type: 'single'|'multi', options: [{id,text}], correct: [id,...], feedback: {correct, wrong}, hint }
 // 题组（quiz-track）数据：[单题1, 单题2, ...] — 数组，渲染为 carousel
 
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  })[c]);
-}
+
 
 function renderSingleQuestion(data) {
   const id = data.id || ('q-' + Math.random().toString(36).slice(2, 8));

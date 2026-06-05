@@ -1,3 +1,5 @@
+const { escapeHtml } = require('./template/components/_inline.js');
+
 // build.js — 编译脚本
 // 用法：
 //   node build.js                       # 编译 content/ 目录下所有 .md
@@ -39,11 +41,7 @@ const DIST_DIR = path.join(ROOT, 'dist');
 // ============================================================
 // 工具
 // ============================================================
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  })[c]);
-}
+
 
 /**
  * 把 marked 渲染后的 HTML 中正文里的 h2 加上 id
@@ -173,15 +171,15 @@ async function main() {
         // 目录：取所有 .md
         fs.readdirSync(abs).filter(f => f.endsWith('.md')).forEach(f => targets.push(path.join(abs, f)));
       } else if (abs.includes('*')) {
-        // glob 简单展开
+        // 简化 glob：只支持 *.xxx 模式（不递归、不子目录 glob）
         const dir = path.dirname(abs);
-        const pattern = path.basename(abs).replace(/\*/g, '.*');
-        if (fs.existsSync(dir)) {
-          fs.readdirSync(dir).forEach(f => {
-            if (f.endsWith('.md') && new RegExp('^' + pattern + '$').test(f)) {
-              targets.push(path.join(dir, f));
-            }
-          });
+        const base = path.basename(abs);
+        const extMatch = base.match(/^\*\.(.+)$/);
+        if (extMatch && fs.existsSync(dir)) {
+          const ext = '.' + extMatch[1];
+          fs.readdirSync(dir).filter(f => f.endsWith(ext)).forEach(f => targets.push(path.join(dir, f)));
+        } else {
+          console.warn(`[build] glob 模式不支持：${abs}（只支持 *.xxx）`);
         }
       } else if (fs.existsSync(abs)) {
         targets.push(abs);

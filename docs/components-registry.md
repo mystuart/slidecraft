@@ -60,6 +60,16 @@ related:
 2. **CTA 锚点 `#sec-xxx` 与 renderer 自动生成的 anchor 未对齐** — hero 的 `ctaHref` 跳到 `#sec-quiz-track` 这种，但 renderer 自动生成 anchor 的规则没文档化，跨 .md 复用时容易断。
 3. **emoji 跨平台渲染不一致** — concept-card 的 `icon`、hero 的 `emoji`、callout 的图标都受此影响。
 4. ✅ **sidebar 渲染依赖 frontmatter.sections**（已修 2026-06-05）— markdown 没写 `sections` 字段时 sidebar 是空 ol。修复：① 写 `template/fm-template.md` reference 模板列必填字段；② 改 `build.js` 加 warning 兜底（缺 sections 但正文有 h2 时 console.warn 提示）；③ 顺手修 `renderSideNav` 兼容对象格式 sections（formula-test.md 之前吐 [object Object]）。
+5. ✅ **escapeHtml 在 7 个文件重复定义**（已修 2026-06-05）— `_inline.js` 已经导出 escapeHtml，但 build.js / renderer.js / hero / quiz / concept-card / fill-blank / formula 各自重写了一份，违反 DRY。修复：7 个文件改为 `import { escapeHtml } from './_inline.js'`，删除本地副本。GLM 5.1 评估漏数了 fill-blank.js / formula.js，实际是 7 个副本不是 6 个。
+6. **build.js 的 marked.setOptions 是全局副作用** — 当前串行编译没问题，但 future 想做并行编译时会冲突（多文件共享 setOptions 状态互相覆盖）。优先级：低，等真有并行需求再重构 loader。
+
+---
+
+## 决策记录
+
+> 这些是「明知有代价但选择保留」的架构决策，需要有据可查才不会被后人当 bug 误改。
+
+1. **组件 clientJs 用字符串模板内联**（2026-06-05）— quiz / step-guide / math-step 等组件的 `clientJs` 是 200 行的 JS 字符串，最终内联到 HTML `<script>`。没有 source map，调试困难。**为什么这样选**：项目「零运行时依赖」是顶层约束（构建产物要纯静态、可离线打开），改成外部 .js 文件需要 build 链路多一道 copy 步骤，性价比不高。**重评条件**：如果将来有人频繁调试 clientJs 卡住、或者要支持 source map 调试，可重新评估。
 
 ---
 

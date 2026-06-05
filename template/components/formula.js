@@ -1,14 +1,12 @@
+const { escapeHtml } = require('./_inline.js');
+
 // formula.js — 公式组件（数学/化学/物理）
 // 编译时用 KaTeX 服务端渲染成 HTML，客户端无需 katex JS 即可看到公式
 // KaTeX CSS 由 build.js 注入到产物 <style> 里
 
 const katex = require('katex');
 
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  })[c]);
-}
+
 
 /**
  * 渲染单个公式

@@ -1,11 +1,9 @@
+const { escapeHtml } = require('./_inline.js');
+
 // Concept-card 概念卡片网格组件
 // 数据：{ id, title, columns: 1|2|3|4, cards: [{icon, title, desc}] }
 
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  })[c]);
-}
+
 
 function render(data) {
   const id = data.id || ('cc-' + Math.random().toString(36).slice(2, 8));

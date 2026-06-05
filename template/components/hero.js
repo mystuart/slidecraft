@@ -1,14 +1,12 @@
+const { escapeHtml } = require('./_inline.js');
+
 // Hero 封面组件（杂志海报风 · 两列布局）
 // 数据：{ title, subtitle, emoji, cta?, ctaHref?, visual? }
 // visual: { value, rotated } 存在时渲染右列装饰（22rem 放大 emoji）
 // cta 为空时按钮不渲染
 // ctaHref 默认跳 #section-1
 
-function escapeHtml(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  })[c]);
-}
+
 
 function render(data) {
   const title = data.title || '';
