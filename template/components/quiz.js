@@ -43,26 +43,35 @@ function renderSingleQuestion(data) {
 </div>`;
 }
 
-// 题组渲染：carousel 容器，header(counter+dots) + track(slides) + nav(prev/next)
+// 题组渲染：carousel 容器，header(counter+dots) + track(slides) + summary(callout 内嵌) + nav(prev/next/finish/restart)
 // 内部用 .quiz 元素复用现有交互逻辑
 function renderTrack(quizArray) {
   if (!Array.isArray(quizArray) || quizArray.length === 0) {
     throw new Error('[quiz-track] body 必须是 quiz 对象数组（至少 1 个）');
   }
   const slides = quizArray.map((q, i) => {
-    return `<div class="quiz-carousel-slide" data-slide-idx="${i}">${renderSingleQuestion(q)}</div>`;
+    return `<div class="quiz-carousel-slide" data-slide-idx="${i}" data-slide-status="default">${renderSingleQuestion(q)}</div>`;
   }).join('\n');
   const total = quizArray.length;
   const dots = Array.from({ length: total }, (_, i) =>
     `<span class="quiz-carousel-dot${i === 0 ? ' is-active' : ''}" data-dot-idx="${i}"></span>`
   ).join('');
-  return `<div class="quiz-carousel" data-total="${total}" data-active="0" tabindex="0">
+  return `<div class="quiz-carousel" data-total="${total}" data-active="0" data-summary-state="hidden" tabindex="0">
   <div class="quiz-carousel-header">
     <span class="quiz-carousel-counter">第 1 / ${total} 题</span>
     <div class="quiz-carousel-dots">${dots}</div>
   </div>
   <div class="quiz-carousel-viewport">
     <div class="quiz-carousel-track">${slides}</div>
+  </div>
+  <div class="quiz-carousel-summary" hidden>
+    <div class="quiz-carousel-summary-title">本组完成</div>
+    <div class="quiz-carousel-summary-stats">
+      <span class="summary-stat summary-stat--total"><span class="summary-num">${total}</span><span class="summary-label">总题数</span></span>
+      <span class="summary-stat summary-stat--correct"><span class="summary-num" data-summary-correct>0</span><span class="summary-label">全对</span></span>
+      <span class="summary-stat summary-stat--partial"><span class="summary-num" data-summary-partial>0</span><span class="summary-label">部分对</span></span>
+      <span class="summary-stat summary-stat--wrong"><span class="summary-num" data-summary-wrong>0</span><span class="summary-label">答错</span></span>
+    </div>
   </div>
   <div class="quiz-carousel-nav">
     <button class="quiz-carousel-prev" type="button" disabled aria-label="上一题">← 上一题</button>
@@ -78,9 +87,10 @@ function render(data) {
 
 const clientJs = `
 // 单题 quiz 交互（提交/重做/反馈）
-// 注：carousel 内部的 .quiz 由下方 carousel 逻辑统一处理，不重复绑定
+// 注：carousel 内部的 .quiz 也走这里处理（修复：原代码 return 跳过了，导致 carousel 内
+// quiz 提交按钮不响应）。carousel 块另起一段监听这里派发的 quiz:answered 事件来更新
+// 进度节点 + 总结态。
 document.querySelectorAll('.quiz').forEach(function(quiz) {
-  if (quiz.closest('.quiz-carousel')) return;
   var correct = JSON.parse(quiz.getAttribute('data-correct') || '[]');
   var fbCorrect = quiz.getAttribute('data-feedback-correct') || '答对了！';
   var fbWrong = quiz.getAttribute('data-feedback-wrong') || '再想想～';
@@ -144,6 +154,9 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
     feedback.className = 'quiz-feedback ' + fbClass;
     feedback.textContent = fbText;
     checkBtn.disabled = true;
+    // 派发 quiz:answered 自定义事件，carousel 块会监听
+    var status = isRight ? 'correct' : (isPartial ? 'partial' : 'wrong');
+    quiz.dispatchEvent(new CustomEvent('quiz:answered', { bubbles: true, detail: { status: status } }));
   });
 
   resetBtn.addEventListener('click', function() {
@@ -156,14 +169,20 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
     feedback.className = 'quiz-feedback';
     feedback.textContent = '';
     checkBtn.disabled = false;
+    // 派发 quiz:reset，carousel 块会把 slide 状态重置回 default
+    quiz.dispatchEvent(new CustomEvent('quiz:reset', { bubbles: true }));
   });
 });
 
-// 题组 carousel 切换逻辑
+// 题组 carousel 切换逻辑 + 进度反馈 + 完成态总结
 (function() {
   document.querySelectorAll('.quiz-carousel').forEach(function(carousel) {
     var total = parseInt(carousel.getAttribute('data-total') || '0', 10);
-    if (total <= 1) return; // 1 题不切
+    if (total <= 1) {
+      // 单题 carousel：直接监听 quiz:answered 维护状态，但保留 finish/restart 入口
+      bindProgressAndSummary(carousel, 1);
+      return;
+    }
 
     var prevBtn = carousel.querySelector('.quiz-carousel-prev');
     var nextBtn = carousel.querySelector('.quiz-carousel-next');
@@ -185,11 +204,49 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
         d.classList.toggle('is-active', i === active);
       });
       if (prevBtn) prevBtn.disabled = (active === 0);
-      if (nextBtn) nextBtn.disabled = (active === total - 1);
+      syncNextButton();
+    }
+
+    bindProgressAndSummary(carousel, total, {
+      onAllAnswered: syncNextButton,
+      onReset: syncNextButton
+    });
+
+    function syncNextButton() {
+      if (!nextBtn) return;
+      var summaryOpen = carousel.getAttribute('data-summary-state') === 'visible';
+      if (summaryOpen) {
+        nextBtn.textContent = '↺ 重新开始';
+        nextBtn.disabled = false;
+        return;
+      }
+      if (allAnswered(carousel) && active === total - 1) {
+        nextBtn.textContent = '完成 ✓';
+        nextBtn.disabled = false;
+        return;
+      }
+      nextBtn.textContent = '下一题 →';
+      nextBtn.disabled = (active === total - 1);
     }
 
     if (prevBtn) prevBtn.addEventListener('click', function() { goTo(active - 1); });
-    if (nextBtn) nextBtn.addEventListener('click', function() { goTo(active + 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function() {
+      var summaryOpen = carousel.getAttribute('data-summary-state') === 'visible';
+      if (summaryOpen) {
+        // 重新开始
+        resetCarousel(carousel, total);
+        active = 0;
+        goTo(0);
+        return;
+      }
+      if (allAnswered(carousel) && active === total - 1) {
+        // 展开完成态
+        showSummary(carousel);
+        syncNextButton();
+        return;
+      }
+      goTo(active + 1);
+    });
     dots.forEach(function(d, i) {
       d.addEventListener('click', function() { goTo(i); });
     });
@@ -199,6 +256,77 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
       else if (e.key === 'ArrowRight' && active < total - 1) { e.preventDefault(); goTo(active + 1); }
     });
   });
+
+  // 共享辅助：绑定每题进度状态 + 完成态总结渲染
+  function bindProgressAndSummary(carousel, total, hooks) {
+    var slides = carousel.querySelectorAll('.quiz-carousel-slide');
+    var dots = carousel.querySelector('.quiz-carousel-dots');
+    function setProgress() {
+      if (!dots || total <= 0) return;
+      var answered = 0;
+      slides.forEach(function(s) {
+        if (s.getAttribute('data-slide-status') !== 'default') answered++;
+      });
+      var pct = (answered / total) * 100;
+      // 轴线左右各留 6px 给首尾节点容纳，宽度按比例在节点中心间分配
+      // 简单处理：直接用百分比（视觉上够用，节点 9px + 间距 0.4em 误差可忽略）
+      dots.style.setProperty('--quiz-progress-width', pct + '%');
+    }
+    slides.forEach(function(slide) {
+      var quiz = slide.querySelector('.quiz');
+      if (!quiz) return;
+      quiz.addEventListener('quiz:answered', function(e) {
+        slide.setAttribute('data-slide-status', e.detail.status);
+        setProgress();
+        if (hooks && hooks.onAllAnswered) hooks.onAllAnswered();
+      });
+      quiz.addEventListener('quiz:reset', function() {
+        slide.setAttribute('data-slide-status', 'default');
+        setProgress();
+        if (hooks && hooks.onReset) hooks.onReset();
+      });
+    });
+  }
+
+  function allAnswered(carousel) {
+    var slides = carousel.querySelectorAll('.quiz-carousel-slide');
+    for (var i = 0; i < slides.length; i++) {
+      if (slides[i].getAttribute('data-slide-status') === 'default') return false;
+    }
+    return true;
+  }
+
+  function showSummary(carousel) {
+    var slides = carousel.querySelectorAll('.quiz-carousel-slide');
+    var c = 0, p = 0, w = 0;
+    slides.forEach(function(s) {
+      var st = s.getAttribute('data-slide-status');
+      if (st === 'correct') c++;
+      else if (st === 'partial') p++;
+      else if (st === 'wrong') w++;
+    });
+    var correctEl = carousel.querySelector('[data-summary-correct]');
+    var partialEl = carousel.querySelector('[data-summary-partial]');
+    var wrongEl = carousel.querySelector('[data-summary-wrong]');
+    if (correctEl) correctEl.textContent = c;
+    if (partialEl) partialEl.textContent = p;
+    if (wrongEl) wrongEl.textContent = w;
+    var summary = carousel.querySelector('.quiz-carousel-summary');
+    if (summary) summary.hidden = false;
+    carousel.setAttribute('data-summary-state', 'visible');
+  }
+
+  function resetCarousel(carousel, total) {
+    var slides = carousel.querySelectorAll('.quiz-carousel-slide');
+    slides.forEach(function(s) {
+      s.setAttribute('data-slide-status', 'default');
+      var resetBtn = s.querySelector('.quiz-reset');
+      if (resetBtn) resetBtn.click();
+    });
+    var summary = carousel.querySelector('.quiz-carousel-summary');
+    if (summary) summary.hidden = true;
+    carousel.setAttribute('data-summary-state', 'hidden');
+  }
 })();
 `;
 

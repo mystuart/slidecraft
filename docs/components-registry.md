@@ -131,10 +131,18 @@ related:
 - **借鉴**：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」
 - **方向**：题型分类标签（概念题 / 计算题 / 应用题）—— 给 quiz 加 `category` 字段？· 多选状态机（未选 / 部分选 / 全选错 / 全选对 / 提交后）的颜色规范 · feedback 折叠/展开默认决策。
 
-#### 3. quiz-track
-- **当前**：题组 carousel，孤立圆点表示进度。
-- **借鉴**：S11 Horizontal Timeline「顶部 headline + 中部 hairline 轴 + 等距节点」
-- **方向**：进度点用 hairline 轴连成 timeline，不要孤立圆点 · 答对/答错用 hairline 颜色变化（不用填色）· 全部完成时的「总结」是 callout 内嵌还是 modal 浮层？
+#### 3. quiz-track  *(v0.2.0 已打磨)*
+- **当前**：题组 carousel，dots 容器加 hairline 时间轴 + 4 态答题进度节点（default/correct/partial/wrong），完成时 callout 内嵌总结（4 stat：总题数/全对/部分对/答错），next 按钮 3 态分发（下一题 / 完成 / 重新开始）。
+- **借鉴落地**：S11 Horizontal Timeline「顶部 hairline 轴 + 等距节点」已实现，节点靠 `border-color` 切换（不用填色）；轴线 `::before` 是灰 hairline，`::after` 是已答段（绿 hairline，宽度由 `--quiz-progress-width` CSS 变量驱动）。
+- **顺手修复**：原 quiz 单题交互有 `if (quiz.closest('.quiz-carousel')) return;` 跳过逻辑，导致 carousel 内的 quiz 点提交按钮不响应。已删掉，carousel 内 quiz 同样走单题交互 + 派发 `quiz:answered` 事件，carousel 块监听后同步 slide status。
+- **判断记录**：
+  - 总结选 callout 内嵌而非 modal：课件阅读心流优先，modal 太重；总结在 carousel 末尾「嵌」一块，按钮变「重新开始」让用户能立刻重做，比弹层关闭更顺手。
+  - next 按钮文字动态切换（"下一题 →" / "完成 ✓" / "↺ 重新开始"），不动 DOM 结构，靠 textContent + disabled 切换。
+  - 节点 4 状态映射：default（灰描边）/ correct（绿描边）/ partial（琥珀描边）/ wrong（红描边）。已答对 + 当前题用 `box-shadow: 0 0 0 2px primary` 叠加，让 active 仍可被识别。
+- **可继续打磨**（v0.3.0 候选）：
+  - 答对自动跳下一题（流畅感 vs 允许回头看，有争议）
+  - 移动端/窄屏 prev/next 按钮文字可能挤（"← 上一题" "下一题 →" 在窄屏可改纯箭头）
+  - 进度 hairline 当前按"已答总数"算，若想表达"连续答对"需要换算法
 
 #### 4. fill-blank
 - **当前**：单空 / 多答案 `|` 分隔。

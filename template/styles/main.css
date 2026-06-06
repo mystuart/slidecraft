@@ -430,21 +430,70 @@ details summary { cursor: pointer; font-weight: 600; }
   font-weight: 500;
 }
 .quiz-carousel-dots {
+  position: relative;
   display: flex;
   gap: 0.4em;
+  align-items: center;
+  padding: 4px 2px;  /* 给 ::before 留垂直空间，hairline 不会被节点挡住 */
+}
+/* hairline 时间轴：底部贯穿细线 */
+.quiz-carousel-dots::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  height: 1px;
+  background: var(--color-border);
+  z-index: 0;
+}
+/* 已答段 hairline（叠加在灰轴上，用 --quiz-progress-width 由 JS 维护） */
+.quiz-carousel-dots::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  height: 1px;
+  width: var(--quiz-progress-width, 0%);
+  background: var(--color-success);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
 }
 .quiz-carousel-dot {
-  width: 8px;
-  height: 8px;
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: var(--color-border);
+  background: var(--color-surface);  /* 盖住 hairline 制造「节点在轴上」的中空感 */
+  border: 2px solid var(--color-border);
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
+  transition: border-color 0.2s, transform 0.2s;
 }
-.quiz-carousel-dot:hover { background: var(--color-text-muted); }
+.quiz-carousel-dot:hover { border-color: var(--color-text-muted); }
 .quiz-carousel-dot.is-active {
-  background: var(--color-primary);
+  border-color: var(--color-primary);
   transform: scale(1.3);
+}
+/* 答题状态：只用 hairline 描边色变化（components-registry 方向：不用填色） */
+.quiz-carousel-slide[data-slide-status="correct"] .quiz-carousel-dot {
+  border-color: var(--color-success);
+}
+.quiz-carousel-slide[data-slide-status="correct"] .quiz-carousel-dot.is-active {
+  /* 已答对 + 当前：描边色叠加 primary，让 active 仍可被识别 */
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+.quiz-carousel-slide[data-slide-status="partial"] .quiz-carousel-dot {
+  border-color: var(--color-warning);
+}
+.quiz-carousel-slide[data-slide-status="partial"] .quiz-carousel-dot.is-active {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+.quiz-carousel-slide[data-slide-status="wrong"] .quiz-carousel-dot {
+  border-color: var(--color-danger);
+}
+.quiz-carousel-slide[data-slide-status="wrong"] .quiz-carousel-dot.is-active {
+  box-shadow: 0 0 0 2px var(--color-primary);
 }
 /* 裁剪视口：负责 overflow: hidden 切掉相邻 slide。
    注意：contain: paint 没用，Chrome 合成层会穿透它（实测发现），
@@ -482,6 +531,63 @@ details summary { cursor: pointer; font-weight: 600; }
   padding: 0;
   margin: 0;
   box-shadow: none;
+}
+/* 题组完成态总结（callout 内嵌，参考 components-registry 方向） */
+.quiz-carousel-summary {
+  margin: 1em -1.4em -1em;  /* 扩到 carousel 边，视觉上是一块独立「完成带」 */
+  padding: 1em 1.4em;
+  background: var(--color-primary-bg);
+  border-top: 1px solid var(--color-border);
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+  animation: quiz-summary-in 0.35s ease-out;
+}
+.quiz-carousel-summary[hidden] { display: none; }
+.quiz-carousel-summary-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 0.6em;
+  letter-spacing: 0.02em;
+}
+.quiz-carousel-summary-stats {
+  display: flex;
+  gap: 1.2em;
+  flex-wrap: wrap;
+}
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 56px;
+  padding: 0.4em 0.8em;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+.summary-stat--total { border-left-color: var(--color-text-muted); }
+.summary-stat--correct { border-left-color: var(--color-success); }
+.summary-stat--partial { border-left-color: var(--color-warning); }
+.summary-stat--wrong { border-left-color: var(--color-danger); }
+.summary-num {
+  font-size: 1.4rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+.summary-stat--correct .summary-num { color: var(--color-success); }
+.summary-stat--partial .summary-num { color: var(--color-warning); }
+.summary-stat--wrong .summary-num { color: var(--color-danger); }
+.summary-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.2em;
+}
+@keyframes quiz-summary-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .quiz-carousel-nav {
   display: flex;
