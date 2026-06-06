@@ -27,7 +27,7 @@ related:
 | 3 | quiz-track | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 1 (数组) |
 | 4 | fill-blank | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 6 |
 | 5 | step-guide | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 3 |
-| 6 | compare | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 6 |
+| 6 | compare | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 9 |
 | 7 | concept-card | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 4 |
 | 8 | callout | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 3 |
 | 9 | formula | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 5 |
@@ -146,10 +146,11 @@ related:
 - **借鉴**：S11 Horizontal Timeline（顶部 headline + 节点 + 步骤名）。
 - **方向**：tab 视觉从「按钮组」改为「timeline 节点」· `example` 字段的展示形式（折叠 / 展开 / 代码高亮）· 键盘左右切换 + 当前 step 序号角标。
 
-#### 6. compare
-- **当前**：左右两列 + tag 颜色。
-- **借鉴**：S08 Duo Compare「垂直分割线；左 Before / 右 After」
-- **方向**：中间分割线风格（实线 / 虚线 / 留白）· tag 颜色映射约定（good 绿 / bad 红 / warn 黄 / neutral 灰）是否对齐到 callout 5 种 type？· points 数量上限（多了要折叠）。
+#### 6. compare（v0.2.0 已打磨）
+- **当前**：左右两列 + 4 tag 颜色 + `mode` 字段控制语义（good-bad / before-after / neutral）+ "vs" 圆牌 + warn 加边框增强对比。
+- **借鉴**：S08 Duo Compare「垂直分割线；左 Before / 右 After」已落地为中间 "vs" 圆牌
+- **已完成**：4 tag 调色审视（对齐 callout 变量，warn 加边框）· 中间分隔线（"vs" 圆牌 + 居中虚线定位）· 左右排序约定文档化。
+- **下一步可选**：points 数量上限折叠（> 6 项时折叠）· 横向响应式（移动端两列改纵向）· "vs" 圆牌可换成箭头/方向指示。
 
 #### 7. concept-card
 - **当前**：网格 + emoji + 标题 + 描述。
@@ -351,7 +352,7 @@ related:
 
 ## 6. compare
 
-**作用**：左右对比。两组要点对照展示。
+**作用**：左右对比。两组要点对照展示。v0.2.0 起支持 `mode` 字段（good-bad / before-after / neutral），标题下出现语义标签、两列中间放 "vs" 圆牌。
 
 **字段契约**：
 
@@ -359,27 +360,35 @@ related:
 |---|---|---|---|
 | `id` | string | ✅ | 唯一标识 |
 | `title` | string | ✅ | 对比标题 |
+| `mode` | `'good-bad' \| 'before-after' \| 'neutral'` | — | v0.2.0 新增：对比语义（默认 `neutral`） |
 | `left` | `{label, tag, points[]}` | ✅ | 左侧 |
 | `right` | `{label, tag, points[]}` | ✅ | 右侧 |
-| `label` | string | ✅ | 列标题 |
+| `label` | string | ✅ | 列标题（走 processInline） |
 | `tag` | `'good' \| 'bad' \| 'warn' \| 'neutral'` | — | 颜色标签（默认 neutral） |
 | `points` | `string[]` | ✅ | 要点列表（走 processInline） |
 
-**状态**：🟡 v0.1.0 待打磨
+**状态**：🟢 v0.2.0 打磨完成
 
 **依赖**：main.css `.compare` 系列
 
-**已知问题**：
-- 4 种 tag 颜色是否够用待验证
-- 左右排序的"好/坏"约定未文档化
+**v0.2.0 行为细节**：
+- `mode: "good-bad"`：标题下出现胶囊形标签 "优劣对比"，两列中间放 "vs" 圆牌
+- `mode: "before-after"`：标题下出现 "改进前 → 改进后" 标签 + "vs" 圆牌
+- `mode: "neutral"`（默认）：不显示标签和 "vs" 圆牌，纯并列对比
+- 4 tag 调色已对齐 callout 变量；`warn` 标签额外加 1px 边框增强在浅背景上的对比度
+- "vs" 圆牌使用 `position: absolute` 居中于 grid 中央，z-index: 2
 
-**待打磨方向**：
-- [ ] 4 种 tag 颜色微调
-- [ ] 是否要加「正确 vs 错误」二色版（对比更强烈）
-- [ ] points 数量上限（多了要折叠？）
-- [ ] `points` 里的 `$...$` 渲染（系统级问题 #1）
+**左右排序约定**（v0.2.0 起文档化，不强制代码约束，作者自觉遵守）：
+| 场景 | mode | 左侧 tag | 右侧 tag |
+|---|---|---|---|
+| 方案 A vs 方案 B | `neutral` | neutral / tag 任选 | neutral / tag 任选 |
+| 优劣对比 | `good-bad` | `good` | `bad` |
+| 时序改进 | `before-after` | `bad` | `good` |
+
+**示例**：见 `content/components-showcase.md` #section-6（3 个示例：good-bad 透镜成像、neutral 化学反应、before-after 排序算法）
 
 **更新日志**：
+- 2026-06-06 v0.2.0 打磨完成：新增 `mode` 字段（good-bad / before-after / neutral）+ "vs" 圆牌 + mode 标签胶囊 + warn 标签加边框；4 tag 调色对齐 callout 变量；左右排序约定文档化；showcase 段从 2 扩到 3 个示例
 - 2026-06-05 v0.1.0 首次登记
 
 ---
@@ -532,7 +541,7 @@ related:
 - [x] **hero** — 杂志海报风两列布局（v0.2.0）· 锚点规范待办
 - [x] **callout** — 5 种 type 调色板审视
 - [x] **formula** — 块级/行内默认值 + 编号系统（v0.2.0）
-- [ ] **compare** — 4 种 tag 调色 + 排序约定
+- [x] **compare** — 4 种 tag 调色 + 排序约定（v0.2.0）
 - [ ] **concept-card** — emoji → SVG 图标迁移
 - [ ] **quiz** — 多选视觉 + LaTeX 支持决策
 - [ ] **quiz-track** — 进度反馈 + 总结弹窗

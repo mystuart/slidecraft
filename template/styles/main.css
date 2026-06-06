@@ -837,6 +837,42 @@ details summary { cursor: pointer; font-weight: 600; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1em;
+  position: relative;
+}
+/* v0.2.0：mode != neutral 时，grid 中间放一个 "vs" 圆牌
+   突出"对比"语义，视觉上把两列切开 */
+.compare[data-mode="good-bad"] .compare-grid::before,
+.compare[data-mode="before-after"] .compare-grid::before {
+  content: "vs";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 2.6em;
+  height: 2.6em;
+  line-height: 2.6em;
+  text-align: center;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  z-index: 2;
+  text-transform: uppercase;
+}
+/* v0.2.0：mode 标签（标题下方的小胶囊） */
+.compare-mode-label {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-code-bg);
+  padding: 0.2em 0.8em;
+  border-radius: 999px;
+  margin-bottom: 0.7em;
+  letter-spacing: 0.02em;
 }
 .compare-col {
   background: var(--color-surface);
@@ -858,7 +894,7 @@ details summary { cursor: pointer; font-weight: 600; }
 }
 .compare-tag-good { background: var(--color-success-bg); color: #2e6b50; }
 .compare-tag-bad { background: var(--color-danger-bg); color: #8a3a3a; }
-.compare-tag-warn { background: var(--color-warning-bg); color: #8a6a30; }
+.compare-tag-warn { background: var(--color-warning-bg); color: #8a6a30; border: 1px solid #d4a73a; }
 .compare-tag-neutral { background: var(--color-primary-bg); color: var(--color-primary-dark); }
 .compare-col[data-tag="good"] { border-top: 3px solid var(--color-success); }
 .compare-col[data-tag="bad"] { border-top: 3px solid var(--color-danger); }

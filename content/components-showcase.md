@@ -285,10 +285,13 @@ sections:
 
 ## 6. compare · 对比
 
+> **v0.2.0 新能力**：`mode` 字段（`good-bad` / `before-after` / `neutral`）控制标题下方的语义标签 + 两列中间的「vs」圆牌。
+
 ```compare
 {
   "id": "cmp-lens",
   "title": "凸透镜成像规律",
+  "mode": "good-bad",
   "left": {
     "label": "物距 $u \\gt 2f$",
     "tag": "good",
@@ -332,6 +335,32 @@ sections:
       "反应物能量**低于**生成物",
       "**吸收**热量，需要持续加热",
       "例：碳酸钙分解"
+    ]
+  }
+}
+```
+
+```compare
+{
+  "id": "cmp-sort",
+  "title": "排序算法效率",
+  "mode": "before-after",
+  "left": {
+    "label": "冒泡排序 $O(n^2)$",
+    "tag": "bad",
+    "points": [
+      "**时间复杂度**高",
+      "数据量大时**显著**变慢",
+      "10000 个元素 ≈ 0.1 秒"
+    ]
+  },
+  "right": {
+    "label": "快速排序 $O(n \\log n)$",
+    "tag": "good",
+    "points": [
+      "**时间复杂度**低",
+      "分治策略**高效**",
+      "10000 个元素 ≈ 0.001 秒"
     ]
   }
 }
