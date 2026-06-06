@@ -24,13 +24,13 @@ related:
 |---|---|---|---|---|---|---|
 | 1 | hero | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 6 |
 | 2 | quiz | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 7 |
-| 3 | quiz-track | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 1 (数组) |
+| 3 | quiz-track | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 1 (数组) |
 | 4 | fill-blank | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 6 |
 | 5 | step-guide | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 3 |
 | 6 | compare | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 6 |
 | 7 | concept-card | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 4 |
 | 8 | callout | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 3 |
-| 9 | formula | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 4 |
+| 9 | formula | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 5 |
 | 10 | math-step | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 7+ |
 
 状态图例：🟢 打磨完成 · 🟡 待打磨 · 🔴 打磨中 · ⚪ 弃用
@@ -132,17 +132,9 @@ related:
 - **方向**：题型分类标签（概念题 / 计算题 / 应用题）—— 给 quiz 加 `category` 字段？· 多选状态机（未选 / 部分选 / 全选错 / 全选对 / 提交后）的颜色规范 · feedback 折叠/展开默认决策。
 
 #### 3. quiz-track  *(v0.2.0 已打磨)*
-- **当前**：题组 carousel，dots 容器加 hairline 时间轴 + 4 态答题进度节点（default/correct/partial/wrong），完成时 callout 内嵌总结（4 stat：总题数/全对/部分对/答错），next 按钮 3 态分发（下一题 / 完成 / 重新开始）。
-- **借鉴落地**：S11 Horizontal Timeline「顶部 hairline 轴 + 等距节点」已实现，节点靠 `border-color` 切换（不用填色）；轴线 `::before` 是灰 hairline，`::after` 是已答段（绿 hairline，宽度由 `--quiz-progress-width` CSS 变量驱动）。
-- **顺手修复**：原 quiz 单题交互有 `if (quiz.closest('.quiz-carousel')) return;` 跳过逻辑，导致 carousel 内的 quiz 点提交按钮不响应。已删掉，carousel 内 quiz 同样走单题交互 + 派发 `quiz:answered` 事件，carousel 块监听后同步 slide status。
-- **判断记录**：
-  - 总结选 callout 内嵌而非 modal：课件阅读心流优先，modal 太重；总结在 carousel 末尾「嵌」一块，按钮变「重新开始」让用户能立刻重做，比弹层关闭更顺手。
-  - next 按钮文字动态切换（"下一题 →" / "完成 ✓" / "↺ 重新开始"），不动 DOM 结构，靠 textContent + disabled 切换。
-  - 节点 4 状态映射：default（灰描边）/ correct（绿描边）/ partial（琥珀描边）/ wrong（红描边）。已答对 + 当前题用 `box-shadow: 0 0 0 2px primary` 叠加，让 active 仍可被识别。
-- **可继续打磨**（v0.3.0 候选）：
-  - 答对自动跳下一题（流畅感 vs 允许回头看，有争议）
-  - 移动端/窄屏 prev/next 按钮文字可能挤（"← 上一题" "下一题 →" 在窄屏可改纯箭头）
-  - 进度 hairline 当前按"已答总数"算，若想表达"连续答对"需要换算法
+- **当前**：题组 carousel，dots 容器加 hairline 时间轴（`::before` 灰轴 + `::after` 已答段绿 hairline，宽度由 `--quiz-progress-width` 变量驱动），节点 hairline 描边 4 态（default/correct/partial/wrong），完成时 callout 内嵌 4 stat 总结（总题数/全对/部分对/答错），next 按钮 3 态分发（下一题 / 完成 / 重新开始）。
+- **借鉴**：S11 Horizontal Timeline「顶部 hairline 轴 + 等距节点」已实现。
+- **方向**：答对自动跳下一题（流畅感 vs 允许回头看）· 移动端/窄屏 prev/next 文字可改纯箭头 · 进度 hairline 当前按「已答总数」算，若想表达「连续答对」需换算法。
 
 #### 4. fill-blank
 - **当前**：单空 / 多答案 `|` 分隔。
@@ -169,10 +161,11 @@ related:
 - **借鉴**：parchment「tag 用 solid hex 背景方块 + 1px ink 描边」（callout 本来就是这种思路，但还可以更克制）
 - **方向**：✅ 调色板定型（tip/warning/info/danger/note 5 色相 0 撞色，2026-06-05）· 每个 type 配一个 SVG icon 统一视觉签名 · 内容超过 N 行默认折叠？
 
-#### 9. formula
-- **当前**：KaTeX 编译时 + caption。
-- **借鉴**：parchment「文字层级靠衬线对比 + 字号 + 留白，不靠颜色」（公式块不要花哨背景，纯白底 + 居中 + 大留白）
-- **方向**：块级 / 行内默认值决策（display 默认 `true` 还是 `false`？行内用 `display: inline` + 中等 padding？）· `showExpr` 教学场景（折叠 / 悬浮 tooltip / 始终展开）· 编号系统（要不要「公式 1.1」自动编号）。
+#### 9. formula（v0.2.0 已打磨）
+- **当前**：KaTeX 编译时 + caption 走 processInline + showExpr 折叠按钮 + 块级公式自动编号。
+- **借鉴**：parchment「文字层级靠衬线对比 + 字号 + 留白，不靠颜色」（公式块纯白底 + 居中 + 大留白已实现）
+- **已完成**：块级/行内默认值（display=true 块级默认）· showExpr 折叠（默认隐藏，胶囊形按钮）· 编号系统（按 h2 分组 "公式 N.M"）· caption 内联语法。
+- **下一步可选**：编号字体（当前用 0.88em italic，可调大或换字重）/ 公式引用（"由公式 1.1 得..." 跨公式引用方案）/ 公式锚点（点击编号跳到公式）。
 
 #### 10. math-step
 - **当前**：题面 / 步骤 / 答案 / 4 种折叠区。
@@ -457,31 +450,33 @@ related:
 
 ## 9. formula
 
-**作用**：数学公式块。块级或行内展示，KaTeX 编译时渲染。
+**作用**：数学公式块。块级或行内展示，KaTeX 编译时渲染。v0.2.0 起支持自动编号、源码折叠、caption 内联语法。
 
 **字段契约**：
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `expr` | string | ✅ | LaTeX 表达式 |
-| `display` | `boolean` | — | `true` 块级 / `false` 行内（待确认默认值） |
-| `caption` | string | — | 公式说明文字 |
-| `showExpr` | `boolean` | — | 是否同时显示 LaTeX 源码（教学用） |
+| `display` | `boolean` | — | `true` 块级（默认）/ `false` 行内 |
+| `caption` | string | — | 公式说明文字（v0.2.0 起走 processInline，支持 `**bold**` / `[link]()` / `code`） |
+| `showExpr` | `boolean` | — | 是否允许展开 LaTeX 源码（v0.2.0 默认折叠，需 `true` 才显示"显示源码"按钮） |
+| `numbered` | `boolean` | — | 是否参与自动编号（v0.2.0 新增，默认 true，仅块级公式生效） |
 
-**状态**：🟡 v0.1.0 待打磨
+**状态**：🟢 v0.2.0 打磨完成
 
-**依赖**：KaTeX 编译时
+**依赖**：KaTeX 编译时 + 客户端 JS（编号 + 源码折叠）
 
-**已知问题**：
-- 块级 / 行内的默认值未明确
-- `showExpr` 教学场景的展示形式未定
+**v0.2.0 行为细节**：
+- 块级公式自动获得 "公式 N.M" 编号（N = h2 章节号，1-based；M = 当前节内顺序号）；第一个 h2 之前的公式归到 section 1
+- `numbered: false` 的块级公式不显示编号
+- `showExpr: true` 时 caption 右侧出现胶囊形按钮 "显示源码 / 隐藏源码"
+- 源码 pre 块默认 `hidden`，折叠状态由 `aria-expanded` 反映
+- caption 走 processInline：支持 `**bold**` → `<strong>`、`[text](url)` → `<a>`、`` `code` `` → `<code>`、`$...$` → KaTeX
 
-**待打磨方向**：
-- [ ] 块级 vs 行内的判断标准
-- [ ] `showExpr` 的展示形式（折叠？悬浮？始终展开？）
-- [ ] 编号/标签系统（"公式 1.1"）是否需要
+**示例**：见 `content/components-showcase.md` #section-9（5 个示例覆盖编号/折叠/内联语法/不编号）
 
 **更新日志**：
+- 2026-06-06 v0.2.0 打磨完成：自动编号（DOM 端按 h2 分组）+ showExpr 可折叠 + caption 走 processInline + 新增 numbered 字段；同步更新 showcase 段（5 个示例）与 formula-test 段（新增 3 个用例）
 - 2026-06-05 v0.1.0 首次登记
 
 ---
@@ -535,8 +530,8 @@ related:
 按"先易后难"原则排序：
 
 - [x] **hero** — 杂志海报风两列布局（v0.2.0）· 锚点规范待办
-- [ ] **callout** — 5 种 type 调色板审视
-- [ ] **formula** — 块级/行内默认值 + 编号系统
+- [x] **callout** — 5 种 type 调色板审视
+- [x] **formula** — 块级/行内默认值 + 编号系统（v0.2.0）
 - [ ] **compare** — 4 种 tag 调色 + 排序约定
 - [ ] **concept-card** — emoji → SVG 图标迁移
 - [ ] **quiz** — 多选视觉 + LaTeX 支持决策

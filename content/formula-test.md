@@ -90,3 +90,32 @@ sections:
   "expr": ""
 }
 ```
+
+## v0.2.0 新增能力
+
+```formula
+{
+  "expr": "F = G\\frac{m_1 m_2}{r^2}",
+  "display": true,
+  "caption": "**万有引力定律** — 任意两物体间的吸引力公式。源码可展开查看。",
+  "showExpr": true
+}
+```
+
+```formula
+{
+  "expr": "e = mc^2",
+  "display": true,
+  "caption": "不参与自动编号的公式（numbered=false）",
+  "numbered": false
+}
+```
+
+```formula
+{
+  "expr": "\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}",
+  "display": true,
+  "caption": "高斯求和公式，参考 `code` 风格的源码",
+  "showExpr": true
+}
+```

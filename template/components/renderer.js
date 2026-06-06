@@ -143,6 +143,7 @@ function collectClientScript() {
     fillBlank.clientJs,
     stepGuide.clientJs,
     mathStep.clientJs,
+    formula.clientJs,
     initSideNavScript(),
   ].filter(Boolean).join('\n\n');
 }

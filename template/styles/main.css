@@ -982,15 +982,58 @@ details summary { cursor: pointer; font-weight: 600; }
   color: var(--color-text-muted);
   font-style: italic;
   line-height: 1.4;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  flex-wrap: wrap;
+}
+.formula-caption-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.formula-num {
+  font-weight: 600;
+  color: var(--color-accent, #5b4b8a);
+  font-style: normal;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+.formula-source-toggle {
+  font-size: 0.78em;
+  font-style: normal;
+  padding: 0.15em 0.6em;
+  background: var(--color-code-bg, #f3f1f9);
+  border: 1px solid var(--color-border, #e3e0ee);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.formula-source-toggle:hover {
+  background: var(--color-accent-soft, #ece6fa);
+  color: var(--color-accent, #5b4b8a);
+  border-color: var(--color-accent, #5b4b8a);
 }
 .formula-source {
-  font-style: normal;
+  margin: 0.6em 0 0;
+  padding: 0.7em 0.9em;
   background: var(--color-code-bg, #f3f1f9);
-  padding: 0.1em 0.4em;
-  border-radius: 3px;
-  font-size: 0.85em;
+  border-radius: var(--radius-md, 6px);
+  font-size: 0.82em;
   color: var(--color-text-muted);
-  margin-left: 0.4em;
+  text-align: left;
+  overflow-x: auto;
+}
+.formula-source[hidden] { display: none; }
+.formula-source code {
+  background: transparent;
+  padding: 0;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 1em;
+  color: inherit;
+  word-break: break-all;
 }
 .formula-error {
   margin: 1.5em 5%;

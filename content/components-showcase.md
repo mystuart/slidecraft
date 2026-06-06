@@ -404,10 +404,12 @@ sections:
 
 ## 9. formula · 公式
 
+> **v0.2.0 新能力**：块级公式自动编号（"公式 1.1 / 1.2 / 2.1..."，按 h2 章节分组），`showExpr` 默认折叠（点击"显示源码"按钮展开），caption 支持 `**bold**` / `[link]()` / `code` 内联语法。
+
 ```formula
 {
   "expr": "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}",
-  "caption": "一元二次方程求根公式",
+  "caption": "一元二次方程求根公式（[维基百科](https://zh.wikipedia.org/wiki/%E4%B8%80%E5%85%83%E4%BA%8C%E6%AC%A1%E6%96%B9%E7%A8%8B)）",
   "showExpr": true
 }
 ```
@@ -416,7 +418,33 @@ sections:
 {
   "expr": "E = mc^2",
   "display": true,
-  "caption": "质能方程（爱因斯坦 1905）"
+  "caption": "**质能方程**（爱因斯坦 1905）— 能量等于质量乘以光速的平方。"
+}
+```
+
+```formula
+{
+  "expr": "F = G\\frac{m_1 m_2}{r^2}",
+  "display": true,
+  "caption": "**万有引力定律** — 任意两物体间的吸引力公式。源码可展开查看。",
+  "showExpr": true
+}
+```
+
+```formula
+{
+  "expr": "a^2 + b^2 = c^2",
+  "display": true,
+  "caption": "不参与自动编号的公式（`numbered: false`）",
+  "numbered": false
+}
+```
+
+```formula
+{
+  "expr": "\\int_a^b f(x)\\,dx = F(b) - F(a)",
+  "display": true,
+  "caption": "**牛顿-莱布尼茨公式** — 连续函数在闭区间上的定积分等于其原函数在端点的差值。"
 }
 ```
 
