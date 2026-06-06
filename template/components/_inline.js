@@ -30,9 +30,12 @@ function isSafeUrl(url) {
 function processInline(s) {
   const raw = String(s == null ? '' : s);
 
-  // 0) LaTeX inline math $...$ — 先在 raw 上提取到占位符，escapeHtml 后还原
+  // 0.1) JSON 字面 \n / \t 转真实字符（content 字段写 \\n 时被解析为字面 \n，line 5 再转 <br>）
+  const rawDecoded = raw.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+
+  // 0) LaTeX inline math $...$ — 先在 rawDecoded 上提取到占位符，escapeHtml 后还原
   const mathSegments = [];
-  const rawWithMath = raw.replace(/\$([^$\n]+)\$/g, (m, content) => {
+  const rawWithMath = rawDecoded.replace(/\$([^$\n]+)\$/g, (m, content) => {
     try {
       const html = katex.renderToString(content, { throwOnError: false, displayMode: false });
       const idx = mathSegments.length;

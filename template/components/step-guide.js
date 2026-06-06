@@ -1,5 +1,7 @@
 // Step-guide 步骤引导组件
 // 数据：{ id, title, steps: [{title, content, example?}] }
+// title v0.2.0 起走 processInline
+// example v0.2.0 起默认展开 + 可折叠（用 <details> 原生元素）
 
 const { processInline, escapeHtml } = require('./_inline.js');
 
@@ -9,19 +11,26 @@ function render(data) {
   const steps = Array.isArray(data.steps) ? data.steps : [];
 
   const tabsHtml = steps.map((s, i) => `
-    <button class="step-guide-tab${i === 0 ? ' is-active' : ''}" data-step-idx="${i}" data-step-num="${i + 1}">${escapeHtml(s.title || s.label || ('步骤 ' + (i + 1)))}</button>
+    <button class="step-guide-tab${i === 0 ? ' is-active' : ''}" data-step-idx="${i}" data-step-num="${i + 1}">${processInline(s.title || s.label || ('步骤 ' + (i + 1)))}</button>
   `).join('');
 
-  const panelsHtml = steps.map((s, i) => `
+  const panelsHtml = steps.map((s, i) => {
+    const exampleHtml = s.example
+      ? `<details class="step-guide-example" open>
+           <summary>示例</summary>
+           <div class="step-guide-example-body">${processInline(s.example)}</div>
+         </details>`
+      : '';
+    return `
     <div class="step-guide-panel${i === 0 ? ' is-active' : ''}" data-step-idx="${i}">
-      <h4 class="step-guide-step-title">第 ${i + 1} 步：${escapeHtml(s.title || s.label || '')}</h4>
+      <h4 class="step-guide-step-title">第 ${i + 1} 步：${processInline(s.title || s.label || '')}</h4>
       <div class="step-guide-content">${processInline(s.content || '')}</div>
-      ${s.example ? `<div class="step-guide-example">${processInline(s.example)}</div>` : ''}
-    </div>
-  `).join('');
+      ${exampleHtml}
+    </div>`;
+  }).join('');
 
   return `<div class="step-guide" data-step-guide-id="${escapeHtml(id)}">
-  ${title ? `<div class="step-guide-title">${escapeHtml(title)}</div>` : ''}
+  ${title ? `<div class="step-guide-title">${processInline(title)}</div>` : ''}
   <div class="step-guide-tabs">${tabsHtml}</div>
   <div class="step-guide-panels">${panelsHtml}</div>
   <div class="step-guide-nav">

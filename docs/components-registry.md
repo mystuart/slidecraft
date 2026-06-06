@@ -26,7 +26,7 @@ related:
 | 2 | quiz | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 7 |
 | 3 | quiz-track | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 1 (数组) |
 | 4 | fill-blank | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 6 |
-| 5 | step-guide | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 3 |
+| 5 | step-guide | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 3 |
 | 6 | compare | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 9 |
 | 7 | concept-card | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 5 |
 | 8 | callout | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 3 |
@@ -64,6 +64,7 @@ related:
 6. **build.js 的 marked.setOptions 是全局副作用** — 当前串行编译没问题，但 future 想做并行编译时会冲突（多文件共享 setOptions 状态互相覆盖）。优先级：低，等真有并行需求再重构 loader。
 7. ✅ **concept-card 的 desc 走 escapeHtml 而非 processInline**（GLM 5.1 评估 · 2026-06-05，v0.2.0 已修）— 概念卡片的描述不支持 `**粗体**` / `[链接]()` 等内联语法，和其他组件（callout / quiz）不一致。修复：把 desc 字段也走 processInline。
 8. **compare 的 good/bad 左右排序约定未文档化**（GLM 5.1 评估 · 2026-06-05）— compare 有 4 种 tag（good / bad / warn / neutral），但 good/bad 哪个放左没明确规则，导致跨 .md 复用时左右顺序不一致。优先级：低，先定约定（建议 good 在左 / bad 在右 / warn 居中）。
+9. ✅ **`processInline` 不处理 JSON 字面 `\n` / `\t`**（已修 2026-06-06）— `_inline.js` 只把真实 newline 字符（0x0A）转 `<br>`，对 YAML/JSON 双引号字符串里的字面 `\n` 字符串（反斜杠 + n）不处理，导致 binary-card-trick / components-showcase / how-to-create-skill / math-step-test 4 个 .md 里 `\\n\\n` 写法渲染成字面字符（视觉上"如：\n\nFe"不会换行）。修复：`_inline.js` 在 escapeHtml 之前加 `rawDecoded = raw.replace(/\\n/g, '\n').replace(/\\t/g, '\t')`，把 JSON 字面 `\n` / `\t` 解码为真实字符再交给后续处理。**约定**：content 字段换行统一用 `\\n\\n`（YAML/JSON 标准转义），不要写真实换行字符（JSON 解析器会报 Bad control character）。
 
 ---
 
@@ -141,10 +142,11 @@ related:
 - **借鉴**：parchment 风格的填空「被填进纸里」（hairline 描边输入框，不用浮起的 box-shadow 输入框）。
 - **方向**：等价答案规则（大小写 / unicode 标准化 / 去空格）· 多空场景字段设计（一题多个 `____`，按顺序 `answer[0]` `answer[1]` 还是命名 `answers.q1` `answers.q2`）· 判分粒度（全对 vs 部分得分）· mode 字段文档同步：SPEC 写了 reveal vs practice 的语义，但 template/README 没完全同步。
 
-#### 5. step-guide
-- **当前**：tab 切换，按钮组形式。
-- **借鉴**：S11 Horizontal Timeline（顶部 headline + 节点 + 步骤名）。
-- **方向**：tab 视觉从「按钮组」改为「timeline 节点」· `example` 字段的展示形式（折叠 / 展开 / 代码高亮）· 键盘左右切换 + 当前 step 序号角标。
+#### 5. step-guide（v0.2.0 已打磨）
+- **当前**：tab 切换，按钮组形式。`title` 走 processInline；`example` 字段默认展开 + 可折叠（HTML `<details>` 原生，零 JS）。
+- **借鉴**：S11 Horizontal Timeline（顶部 headline + 节点 + 步骤名）—— v0.3.0 视觉签名再考虑
+- **已完成**：`example` 折叠/展开（HTML 原生 `<details>`，accessibility 友好，键盘 Enter/Space 可切换）· `title` 改走 processInline（与 `content` / `example` 对齐）· panel 标题加「第 N 步」前缀 · 系统级问题 #9（processInline 不处理 JSON 字面 `\n` / `\t`）已修。
+- **下一步可选**：tab 视觉从「按钮组」改为「timeline 节点」· 当前 step 序号角标 · 移动端 tab 横滑 · example 代码高亮（hljs 集成）。
 
 #### 6. compare（v0.2.0 已打磨）
 - **当前**：左右两列 + 4 tag 颜色 + `mode` 字段控制语义（good-bad / before-after / neutral）+ "vs" 圆牌 + warn 加边框增强对比。
@@ -320,33 +322,34 @@ related:
 
 ## 5. step-guide
 
-**作用**：分步引导，tab 切换。展示一个流程的多个步骤。
+**作用**：分步引导，tab 切换。展示一个流程的多个步骤。v0.2.0 起 `example` 字段默认展开 + 可折叠（HTML 原生 `<details>`），`title` 字段也走 processInline。
 
 **字段契约**：
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `id` | string | ✅ | 唯一标识 |
-| `title` | string | ✅ | 步骤组标题 |
-| `steps` | `Array<{title, content, example}>` | ✅ | 步骤列表 |
-| `steps[].title` | string | ✅ | 步骤标题 |
+| `title` | string | ✅ | 步骤组标题（v0.2.0 起走 processInline） |
+| `steps` | `Array<{title, content, example?}>` | ✅ | 步骤列表 |
+| `steps[].title` | string | ✅ | 步骤标题（v0.2.0 起走 processInline） |
 | `steps[].content` | string | ✅ | 步骤正文（走 processInline） |
-| `steps[].example` | string | — | 示例代码或说明 |
+| `steps[].example` | string | — | 示例代码或说明（v0.2.0 起默认展开，可折叠；走 processInline） |
 
-**状态**：🟡 v0.1.0 待打磨
+**状态**：🟢 v0.2.0 打磨完成
 
 **依赖**：main.css `.step-guide` 系列 + tab 切换 JS
 
-**已知问题**：
-- `example` 字段是否默认折叠没定
-- `step.content` 里的 `$...$` 不被渲染（系统级问题 #1）
+**v0.2.0 行为细节**：
+- `example` 字段用 HTML 原生 `<details>` 元素实现折叠，**零 JS**：默认展开（`<details open>`），点击 summary 切换
+- accessibility 友好：键盘 Enter / Space 可切换折叠，aria-expanded 自动管理
+- `title` 字段从 escapeHtml 改为 processInline，支持 `**bold**` / `[link]()`
+- panel 标题自动加"第 N 步："前缀（基于 steps 数组下标）
+- 折叠箭头：CSS 三角形 ▼，`[open]` 状态旋转 -90°
 
-**待打磨方向**：
-- [ ] tab 视觉（当前选中态、过渡动画）
-- [ ] `example` 字段的展示形式（折叠？展开？代码高亮？）
-- [ ] 是否支持键盘左右切换
+**示例**：见 `content/components-showcase.md` #section-5（sg-balance 3 步 / sg-force 5 步，都有 example 字段，验证折叠行为）
 
 **更新日志**：
+- 2026-06-06 v0.2.0 打磨完成：`example` 字段用 `<details>` 实现折叠（零 JS）· `title` 走 processInline · panel 标题加「第 N 步」前缀 · 折叠箭头 CSS 动画；showcase 段开头加 v0.2.0 callout 说明
 - 2026-06-05 v0.1.0 首次登记
 
 ---
@@ -550,7 +553,7 @@ related:
 - [x] **concept-card** — emoji → SVG 图标迁移（v0.2.0，提供 iconType 折中方案）
 - [ ] **quiz** — 多选视觉 + LaTeX 支持决策
 - [ ] **quiz-track** — 进度反馈 + 总结弹窗
-- [ ] **step-guide** — example 折叠/展开 + 键盘支持
+- [x] **step-guide** — example 折叠/展开 + 键盘支持（v0.2.0：example 用 `<details>` 折叠已做 + title 走 processInline；键盘切换已砍，不做）
 - [ ] **fill-blank** — 等价答案规则 + 多空支持
 - [ ] **math-step** — 4 折叠区配色 + answer 展开决策
 

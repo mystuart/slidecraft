@@ -778,23 +778,44 @@ details summary { cursor: pointer; font-weight: 600; }
 .step-guide-content { line-height: 1.7; }
 .step-guide-example {
   margin-top: 1em;
-  padding: 0.8em 1em;
+  padding: 0;
   background: var(--color-primary-bg);
   border-radius: var(--radius-sm);
   border-left: 3px solid var(--color-primary);
   font-size: 0.95rem;
+  overflow: hidden;
 }
-.step-guide-example::before {
-  content: "示例";
-  display: inline-block;
-  font-size: 0.75rem;
+.step-guide-example > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.55em 1em;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--color-primary-dark);
-  background: white;
-  padding: 0.15em 0.5em;
-  border-radius: var(--radius-sm);
-  margin-right: 0.6em;
-  vertical-align: middle;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.5);
+}
+.step-guide-example > summary::-webkit-details-marker { display: none; }
+.step-guide-example > summary::before {
+  content: "▼";
+  font-size: 0.7em;
+  transition: transform 0.18s;
+  display: inline-block;
+  width: 0.9em;
+  text-align: center;
+}
+.step-guide-example:not([open]) > summary::before {
+  transform: rotate(-90deg);
+}
+.step-guide-example-body {
+  padding: 0.6em 1em 0.8em 1em;
+  line-height: 1.6;
+}
+.step-guide-example > summary:hover {
+  background: rgba(255, 255, 255, 0.75);
 }
 .step-guide-nav {
   display: flex;

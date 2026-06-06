@@ -225,6 +225,8 @@ sections:
 
 ## 5. step-guide · 步骤引导（tab 切换）
 
+> **v0.2.0 新能力**：`example` 字段默认展开 + 可折叠（点击"示例"标题切换，HTML 原生 `<details>` 实现，零 JS）；`title` 走 processInline 支持 `**bold**` / `[link]()`。
+
 ```step-guide
 {
   "id": "sg-balance",
