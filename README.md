@@ -5,13 +5,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-blue.svg)](./CHANGELOG.md)
 [![Components: 10](https://img.shields.io/badge/components-10-green.svg)](./template/README.md)
-[![Size: ~60KB](https://img.shields.io/badge/size-~60KB-lightgrey.svg)](./dist)
+[![Size: ~150KB](https://img.shields.io/badge/size-~150KB-lightgrey.svg)](./dist)
 
 ## 特性
 
 - **零运行时依赖** —— 编译后是单个 HTML 文件，所有 JS/CSS 内联，双击就能打开
 - **Markdown 即源** —— 写课件就是写 markdown，互动组件用 fenced code block 嵌入
-- **7 个互动组件** —— 选择题、填空、步骤引导、前后对比、概念卡片、高亮块、封面
+- **10 个互动组件** —— 封面、选择题、题组、填空、步骤引导、前后对比、概念卡片、高亮块、数学公式、分步解题
 - **主题可换** —— CSS 变量驱动，lavender / 默认 / 自定义，换一行就行
 - **打印友好** —— 内置 `@media print` 样式，侧栏自动隐藏、答案展开、每章新页
 - **响应式** —— 桌面端优先，移动端可读
@@ -33,7 +33,7 @@ courseware/
 │   └── how-to-create-skill.md
 ├── template/            # 框架（写一次永久复用）
 │   ├── index.html.tpl   # HTML 骨架
-│   ├── components/      # 7 个组件 + _inline 公共工具
+│   ├── components/      # 10 个组件 + _inline 公共工具
 │   ├── styles/main.css  # CSS 变量驱动主题（含 @media print 打印样式）
 │   └── README.md        # 组件 API 详细文档
 ├── build.js             # 编译脚本
@@ -114,6 +114,9 @@ node build.js
 | `compare` | 前后对比 | `{"left": {...}, "right": {...}}` |
 | `concept-card` | 概念卡片网格 | `{"cards": [{"icon": "🎯", "title": "...", "desc": "..."}]}` |
 | `callout` | 高亮块 | `{"type": "tip", "content": "..."}` |
+| `formula` | 数学公式块 | `{"expr": "E = mc^2", "caption": "质能方程"}` |
+| `math-step` | 分步解题 | `{"question": "...", "steps": [{"title": "...", "content": "..."}]}` |
+| `quiz-track` | 题组（quiz 数组） | `[{"question": "?", "type": "single", "options": [...], "correct": ["a"]}, ...]` |
 
 类型：`tip` / `warning` / `info` / `danger` / `note`，五种配色。
 
@@ -139,8 +142,12 @@ node build.js
 
 ## 演示
 
-- `EXAMPLE.md` — 7 个组件各用一次的最小示例
+- `EXAMPLE.md` — 10 个组件各用一次的最小示例
 - `content/how-to-create-skill.md` — 完整 6 章节课件（《如何创作 SKILL》）
+- `content/components-showcase.md` — 10 个组件 × 20+ 变体的大型 showcase
+- `content/binary-card-trick.md` — 二进制与纸牌魔术的 6 章节课件
+- `content/formula-test.md` — 公式组件（formula）的数学/化学/物理场景
+- `content/math-step-test.md` — 分步解题组件（math-step）的展示
 
 ## 设计文档
 
@@ -149,7 +156,7 @@ node build.js
 
 ## 后续可扩展
 
-MVP 7 个组件之外的候选：
+MVP 10 个组件之外的候选：
 - `tabs`（选项卡）—— 当前用普通 markdown 小标题替代
 - `accordion`（折叠列表）—— 当前用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 适合讲代码评审的课件

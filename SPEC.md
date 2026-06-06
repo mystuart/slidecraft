@@ -32,6 +32,8 @@ courseware/
 │   │   ├── compare.js
 │   │   ├── concept-card.js
 │   │   ├── callout.js
+│   │   ├── formula.js
+│   │   ├── math-step.js
 │   │   └── renderer.js
 │   └── styles/
 │       └── main.css
@@ -248,7 +250,7 @@ sections:
 
 ### 4.10 组件清单
 
-**MVP 8 个组件**（进入本次实现）：
+**MVP 10 个组件**（进入本次实现）：
 - `hero` — 开篇封面
 - `quiz` — 选择题（单选/多选，含即时反馈）
 - `quiz-track` — 多题轮播（quiz 数组，carousel 切换）
@@ -257,6 +259,8 @@ sections:
 - `compare` — 前后对比
 - `concept-card` — 概念卡片网格
 - `callout` — 高亮块（tip/warning/info/danger/note）
+- `formula` — 数学公式块（KaTeX 编译时渲染，含编号 / caption / 分类）
+- `math-step` — 分步解题（题面 / 步骤 / 答案 / 折叠区）
 
 侧边导航由 frontmatter 的 `sections` 字段自动生成（无独立组件）。
 

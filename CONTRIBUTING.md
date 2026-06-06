@@ -25,11 +25,14 @@
 
 ### 加新组件
 
-1. 在 `template/components/` 下新建 `my-component.js`，导出 `render(json) => htmlString`
-2. 在 `template/components/renderer.js` 里注册：`renderer.register('my-component', require('./my-component').render)`
+1. 在 `template/components/` 下新建 `my-component.js`，导出 `render(json) => htmlString`（如需支持数组模式如 `quiz-track`，再导出一个 `renderTrack(json[]) => htmlString`）
+2. 在 `template/components/renderer.js` 里**两处**注册：
+   - 顶部 `require` 块加一行：`const myComponent = require('./my-component.js');`
+   - `COMPONENT_MAP` 加一条：`'my-component': myComponent,`（可顺手加 `mycomponent` / `my_component` 别名，写法参见同文件其他组件）
 3. 在 `template/styles/main.css` 加 `.my-component` 相关样式
 4. 在 `template/README.md` 组件清单小节补充 API 文档
 5. 在 `EXAMPLE.md` 加一个最小使用示例
+6. 如果有客户端 JS，在组件模块里导出 `clientJs` 字符串，并在 `renderer.js` 的 `collectClientScript()` 里加进拼接数组
 
 如果新组件需要复杂内联渲染（不只是 escape 后插文本），考虑复用 `template/components/_inline.js` 的 `processInline` 函数，避免重写 markdown 处理逻辑。
 

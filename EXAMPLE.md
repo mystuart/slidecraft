@@ -79,7 +79,7 @@ sections:
 ```quiz
 {
   "id": "q-demo-2",
-  "question": "以下哪些是 MVP 的 7 个组件？",
+  "question": "以下哪些是 MVP 的 10 个组件？",
   "type": "multi",
   "options": [
     { "id": "a", "text": "hero" },
@@ -91,7 +91,7 @@ sections:
   ],
   "correct": ["a", "b", "d", "f"],
   "feedback": {
-    "correct": "对！MVP 是 hero / quiz / fill-blank / step-guide / compare / concept-card / callout。tabs 和 accordion 留到后续扩展。",
+    "correct": "对！MVP 是 hero / quiz / quiz-track / fill-blank / step-guide / compare / concept-card / callout / formula / math-step。tabs 和 accordion 留到后续扩展。",
     "wrong": "注意：tabs 和 accordion 已被砍掉，可改用普通 markdown 或 <details> 替代。"
   }
 }
