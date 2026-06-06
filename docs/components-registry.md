@@ -28,7 +28,7 @@ related:
 | 4 | fill-blank | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 6 |
 | 5 | step-guide | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 3 |
 | 6 | compare | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 9 |
-| 7 | concept-card | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 4 |
+| 7 | concept-card | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 5 |
 | 8 | callout | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 | 3 |
 | 9 | formula | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 | 5 |
 | 10 | math-step | v0.1.0 | 🟡 待打磨 | 2026-06-05 | 2026-06-05 | 7+ |
@@ -62,7 +62,7 @@ related:
 4. ✅ **sidebar 渲染依赖 frontmatter.sections**（已修 2026-06-05）— markdown 没写 `sections` 字段时 sidebar 是空 ol。修复：① 写 `template/fm-template.md` reference 模板列必填字段；② 改 `build.js` 加 warning 兜底（缺 sections 但正文有 h2 时 console.warn 提示）；③ 顺手修 `renderSideNav` 兼容对象格式 sections（formula-test.md 之前吐 [object Object]）。
 5. ✅ **escapeHtml 在 7 个文件重复定义**（已修 2026-06-05）— `_inline.js` 已经导出 escapeHtml，但 build.js / renderer.js / hero / quiz / concept-card / fill-blank / formula 各自重写了一份，违反 DRY。修复：7 个文件改为 `import { escapeHtml } from './_inline.js'`，删除本地副本。GLM 5.1 评估漏数了 fill-blank.js / formula.js，实际是 7 个副本不是 6 个。
 6. **build.js 的 marked.setOptions 是全局副作用** — 当前串行编译没问题，但 future 想做并行编译时会冲突（多文件共享 setOptions 状态互相覆盖）。优先级：低，等真有并行需求再重构 loader。
-7. **concept-card 的 desc 走 escapeHtml 而非 processInline**（GLM 5.1 评估 · 2026-06-05）— 概念卡片的描述不支持 `**粗体**` / `[链接]()` 等内联语法，和其他组件（callout / quiz）不一致。修复：把 desc 字段也走 processInline。
+7. ✅ **concept-card 的 desc 走 escapeHtml 而非 processInline**（GLM 5.1 评估 · 2026-06-05，v0.2.0 已修）— 概念卡片的描述不支持 `**粗体**` / `[链接]()` 等内联语法，和其他组件（callout / quiz）不一致。修复：把 desc 字段也走 processInline。
 8. **compare 的 good/bad 左右排序约定未文档化**（GLM 5.1 评估 · 2026-06-05）— compare 有 4 种 tag（good / bad / warn / neutral），但 good/bad 哪个放左没明确规则，导致跨 .md 复用时左右顺序不一致。优先级：低，先定约定（建议 good 在左 / bad 在右 / warn 居中）。
 
 ---
@@ -152,10 +152,11 @@ related:
 - **已完成**：4 tag 调色审视（对齐 callout 变量，warn 加边框）· 中间分隔线（"vs" 圆牌 + 居中虚线定位）· 左右排序约定文档化。
 - **下一步可选**：points 数量上限折叠（> 6 项时折叠）· 横向响应式（移动端两列改纵向）· "vs" 圆牌可换成箭头/方向指示。
 
-#### 7. concept-card
-- **当前**：网格 + emoji + 标题 + 描述。
-- **借鉴**：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」
-- **方向**：卡片 hover 效果（hairline 加粗 + 微 translateY？还是要不要 hover？）· emoji 决策：保留 / 切到 lucide SVG / 接受跨平台差异 · 响应式（移动端 4 列降级到 2 列 / 1 列的断点）。
+#### 7. concept-card（v0.2.0 已打磨）
+- **当前**：网格 + icon + 标题 + 描述。`title` 走 processInline；`iconType` 字段路由 emoji/svg/image 三种 icon 写法；hover 效果（translateY -2px + shadow）已做完。
+- **借鉴**：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」已落地
+- **已完成**：hover 效果（translateY -2px + box-shadow）· `iconType` 路由 3 种 icon 写法（emoji / svg / image）· `title` 改走 processInline（与 `desc` 对齐）· icon 排版微调（line-height 1 / inline-block）· 系统级问题 #7（desc 走 escapeHtml）已修。
+- **下一步可选**：响应式（移动端 4 列降级到 2 列 / 1 列的断点）· 是否切到统一 SVG 图标库（保留 emoji 默认，提供 SVG 选项的折中方案已落地）。
 
 #### 8. callout
 - **当前**：5 种 type（tip / warning / info / danger / note），调色板：tip 绿 / warning 琥珀 / info 蓝 / danger 红 / note 紫（5 色相全分开，复用 success 变量零新增）。
@@ -395,33 +396,37 @@ related:
 
 ## 7. concept-card
 
-**作用**：概念卡片网格。多张卡片并列展示。
+**作用**：概念卡片网格。多张卡片并列展示。v0.2.0 起支持 `iconType` 字段路由 emoji/svg/image 三种 icon 写法，`title` 字段也走 processInline。
 
 **字段契约**：
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `id` | string | ✅ | 唯一标识 |
-| `title` | string | ✅ | 卡片组标题 |
+| `title` | string | ✅ | 卡片组标题（v0.2.0 起走 processInline） |
 | `columns` | `1 \| 2 \| 3 \| 4` | — | 列数（默认 3） |
-| `cards` | `Array<{icon, title, desc}>` | ✅ | 卡片列表 |
-| `cards[].icon` | string | — | 卡片图标（emoji） |
-| `cards[].title` | string | ✅ | 卡片标题 |
+| `cards` | `Array<{icon, iconType, title, desc}>` | ✅ | 卡片列表 |
+| `cards[].icon` | string | — | 图标：emoji 字符 / `<svg>` 字符串 / image URL（按 iconType 路由） |
+| `cards[].iconType` | `'emoji' \| 'svg' \| 'image'` | — | v0.2.0 新增：icon 类型（默认 emoji） |
+| `cards[].title` | string | ✅ | 卡片标题（走 processInline） |
 | `cards[].desc` | string | ✅ | 卡片描述（走 processInline） |
 
-**状态**：🟡 v0.1.0 待打磨
+**状态**：🟢 v0.2.0 打磨完成
 
 **依赖**：main.css `.concept-card` 系列
 
-**已知问题**：
-- emoji 跨平台渲染不一致（系统级问题 #3）
+**v0.2.0 行为细节**：
+- `iconType: "emoji"`（默认）：`icon` 字段原样输出，可写 emoji 字符
+- `iconType: "svg"`：`icon` 字段原样输出，作者写 `<svg>...</svg>` 字符串（**不**转义）
+- `iconType: "image"`：`icon` 字段视为 URL，自动包成 `<img src="..." alt="" loading="lazy" />`
+- `title` 字段从 escapeHtml 改为 processInline，跟 `desc` 对齐，支持 `**bold**` / `[link]()`
+- icon 排版：`.concept-card-icon` 加 `line-height: 1` + `display: inline-block`，解决 emoji 字形撑高行高问题
+- hover 效果：`.concept-card-item:hover` 已有 `translateY(-2px) + box-shadow` 增强
 
-**待打磨方向**：
-- [ ] 是否切到 SVG 图标库（lucide / heroicons）
-- [ ] 卡片 hover 效果
-- [ ] 响应式（移动端列数降级）
+**示例**：见 `content/components-showcase.md` #section-7（cc-newton 用粗体 title；cc-icons 演示 emoji / svg / image 三种 iconType）
 
 **更新日志**：
+- 2026-06-06 v0.2.0 打磨完成：新增 `iconType` 字段（emoji/svg/image）+ `title` 走 processInline + icon 排版微调（line-height 1 / inline-block）；showcase 段加 cc-icons 示例（3 种 iconType 验证）
 - 2026-06-05 v0.1.0 首次登记
 
 ---
@@ -542,7 +547,7 @@ related:
 - [x] **callout** — 5 种 type 调色板审视
 - [x] **formula** — 块级/行内默认值 + 编号系统（v0.2.0）
 - [x] **compare** — 4 种 tag 调色 + 排序约定（v0.2.0）
-- [ ] **concept-card** — emoji → SVG 图标迁移
+- [x] **concept-card** — emoji → SVG 图标迁移（v0.2.0，提供 iconType 折中方案）
 - [ ] **quiz** — 多选视觉 + LaTeX 支持决策
 - [ ] **quiz-track** — 进度反馈 + 总结弹窗
 - [ ] **step-guide** — example 折叠/展开 + 键盘支持

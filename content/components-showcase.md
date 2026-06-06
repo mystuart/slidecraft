@@ -370,10 +370,14 @@ sections:
 
 ## 7. concept-card · 概念卡片网格
 
+## 7. concept-card · 概念卡片网格
+
+> **v0.2.0 新能力**：`iconType` 字段（`emoji` / `svg` / `image`）路由 3 种 icon 写法；`title` 走 processInline 支持 `**bold**` / `[link]()`。
+
 ```concept-card
 {
   "id": "cc-newton",
-  "title": "牛顿三定律",
+  "title": "**牛顿三定律**",
   "columns": 3,
   "cards": [
     {
@@ -405,6 +409,33 @@ sections:
     {"icon": "🟡", "title": "细胞质", "desc": "细胞代谢的主要场所"},
     {"icon": "🟤", "title": "细胞核", "desc": "遗传信息库"},
     {"icon": "🟢", "title": "线粒体", "desc": "有氧呼吸产生 ATP"}
+  ]
+}
+```
+
+```concept-card
+{
+  "id": "cc-icons",
+  "title": "**三种** icon 用法",
+  "columns": 3,
+  "cards": [
+    {
+      "icon": "🟢",
+      "title": "emoji",
+      "desc": "直接写 emoji 字符（默认 iconType）"
+    },
+    {
+      "icon": "<svg width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><circle cx='12' cy='12' r='10'/><path d='M12 6v6l4 2'/></svg>",
+      "iconType": "svg",
+      "title": "svg",
+      "desc": "写内联 **SVG**，**不**转义"
+    },
+    {
+      "icon": "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/325/atom-symbol_269b.png",
+      "iconType": "image",
+      "title": "image",
+      "desc": "URL 自动用 `<img>` 包裹，加 `loading=\"lazy\"`"
+    }
   ]
 }
 ```

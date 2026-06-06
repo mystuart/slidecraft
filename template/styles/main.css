@@ -976,7 +976,8 @@ details summary { cursor: pointer; font-weight: 600; }
 .concept-card-icon {
   font-size: 2.2rem;
   margin-bottom: 0.3em;
-  display: block;
+  display: inline-block; /* v0.2.0：emoji 字形不撑高行高，inline-block 更稳 */
+  line-height: 1; /* v0.2.0：emoji 单独行高归 1 */
 }
 .concept-card-item-title {
   font-weight: 700;
