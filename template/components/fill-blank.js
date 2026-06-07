@@ -1,8 +1,24 @@
-const { escapeHtml } = require('./_inline.js');
-
-// Fill-blank 填空题组件
-// 数据：{ id, question, answer, hint, placeholder }
-// 比对规则：不区分大小写、忽略首尾空格、多个答案用 | 分隔
+/**
+ * @component fill-blank
+ * @version 0.1.0
+ * @status 待打磨
+ *
+ * 填空题组件（单空）
+ *
+ * 字段：
+ *   - id          {string}   必填 · 题目 ID
+ *   - question    {string}   必填 · 题面（不含填空格本身）
+ *   - answer      {string}   必填 · 答案，多个等价答案用 | 分隔
+ *   - hint        {string}   可选 · 提示文案
+ *   - placeholder {string}   可选 · 输入框占位符（默认"____"）
+ *
+ * 比对规则：不区分大小写、忽略首尾空格
+ *
+ * 待打磨：等价答案规则（unicode 标准化 / 去空格范围）/ 多空场景字段设计 / 判分粒度（全对 vs 部分得分）
+ * 详见 [COMPONENTS.md](../../COMPONENTS.md) § fill-blank
+ *
+ * 已知问题：单空设计，不支持一道题多个空。
+ */
 
 
 

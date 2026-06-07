@@ -11,11 +11,12 @@
 | `template/styles/main.css` | 所有样式 | 中（调主题/加组件样式） |
 | `template/index.html.tpl` | HTML 骨架 | 低 |
 | `build.js` | 编译脚本 | 低 |
-| `SPEC.md` | 设计规范（语法约定、组件清单） | 低 |
+| `SPEC.md` | 设计规范（语法约定、组件清单、决策日志） | 低 |
 | `README.md` | 项目说明 | 低 |
-| `EXAMPLE.md` | 演示 markdown | 低 |
+| `CONTRIBUTING.md` | 本文档 | 低 |
+| `COMPONENTS.md` | 组件登记簿（v0.x.x 状态、打磨参考、决策依据） | 低 |
 
-完整组件 API 见 [template/README.md](./template/README.md)，设计理念见 [SPEC.md](./SPEC.md)。
+完整设计理念见 [SPEC.md](./SPEC.md)，组件状态见 [COMPONENTS.md](./COMPONENTS.md)。
 
 ## 常见改动场景
 
@@ -30,8 +31,8 @@
    - 顶部 `require` 块加一行：`const myComponent = require('./my-component.js');`
    - `COMPONENT_MAP` 加一条：`'my-component': myComponent,`（可顺手加 `mycomponent` / `my_component` 别名，写法参见同文件其他组件）
 3. 在 `template/styles/main.css` 加 `.my-component` 相关样式
-4. 在 `template/README.md` 组件清单小节补充 API 文档
-5. 在 `EXAMPLE.md` 加一个最小使用示例
+4. 在 `template/components/my-component.js` **顶部 JSDoc 块**写字段表 + v0.x.x 版本号（信息源唯一化，避免再开一份散落文档）
+5. 在 [COMPONENTS.md](./COMPONENTS.md) 概览表加一条登记
 6. 如果有客户端 JS，在组件模块里导出 `clientJs` 字符串，并在 `renderer.js` 的 `collectClientScript()` 里加进拼接数组
 
 如果新组件需要复杂内联渲染（不只是 escape 后插文本），考虑复用 `template/components/_inline.js` 的 `processInline` 函数，避免重写 markdown 处理逻辑。
@@ -66,7 +67,7 @@ docs: update README for new hero.ctaHref field
 
 1. fork → 新建分支（`feat/timeline-component` / `fix/xxx`）
 2. 改完后 `node build.js` 跑通，确保 `dist/<name>.html` 能正常打开
-3. 如果是新组件 / 新字段，更新 `template/README.md` 和 `SPEC.md`
+3. 如果是新组件 / 新字段，更新 `template/components/<name>.js` 顶部 JSDoc + [COMPONENTS.md](./COMPONENTS.md) 概览表 + [SPEC.md](./SPEC.md) 组件清单
 4. 提 PR，描述里说清楚改了什么、为什么改
 
 ## 行为准则

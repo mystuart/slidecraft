@@ -1,10 +1,25 @@
-const { escapeHtml } = require('./_inline.js');
-
-// Hero 封面组件（杂志海报风 · 两列布局）
-// 数据：{ title, subtitle, emoji, cta?, ctaHref?, visual? }
-// visual: { value, rotated } 存在时渲染右列装饰（22rem 放大 emoji）
-// cta 为空时按钮不渲染
-// ctaHref 默认跳 #section-1
+/**
+ * @component hero
+ * @version 0.2.0
+ * @status 打磨完成
+ *
+ * 封面组件（杂志海报风 · 两列布局）
+ *
+ * 字段：
+ *   - title        {string}           必填 · 主标题
+ *   - subtitle     {string}           可选 · 副标题
+ *   - emoji        {string}           可选 · 装饰 emoji
+ *   - cta          {string}           可选 · CTA 按钮文案（空字符串则不渲染）
+ *   - ctaHref      {string}           可选 · CTA 跳转锚点（默认 #section-1）
+ *   - visual       {object}           可选 · 右列装饰 { value, rotated }
+ *   - visual.value {string}           右列装饰文本（通常是大号 emoji）
+ *   - visual.rotated {number}         旋转角度（deg），默认 0
+ *
+ * 借鉴方向：S01 Cover「accent 全屏 + ASCII 呼吸点阵 + 反白标题 + 元数据 chrome（date / № / topic）」
+ * 详见 [COMPONENTS.md](../../COMPONENTS.md) § hero
+ *
+ * 已知问题：CTA 锚点 `#sec-xxx` 与 renderer 自动生成的 anchor 规则未文档化（系统级问题 #2）。
+ */
 
 
 

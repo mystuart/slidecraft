@@ -1,14 +1,29 @@
-const { escapeHtml } = require('./_inline.js');
-
-// renderer.js — 组件主调度器
-// 职责：
-//   1. 扫描 markdown 文本，提取所有 fenced code block
-//   2. 把语言标记为组件名的代码块，调用对应组件渲染 → 替换为 HTML 注释占位符
-//   3. 把渲染后的 HTML 收集到数组
-//   4. 让外部把剩余 markdown 交给 marked 渲染
-//   5. 让外部把占位符替换回组件 HTML
-//   6. 提供 collectClientScript() 把所有组件的客户端 JS 拼起来
-//   7. 提供 renderSideNav(sections) 渲染侧边导航 HTML
+/**
+ * @component renderer
+ * @version 0.2.0
+ * @status 内部调度器，不参与组件登记
+ *
+ * 组件主调度器。
+ *
+ * 职责：
+ *   1. 扫描 markdown 文本，提取所有 fenced code block
+ *   2. 把语言标记为组件名的代码块，调用对应组件渲染 → 替换为 HTML 注释占位符
+ *   3. 把渲染后的 HTML 收集到数组
+ *   4. 让外部把剩余 markdown 交给 marked 渲染
+ *   5. 让外部把占位符替换回组件 HTML
+ *   6. 提供 collectClientScript() 把所有组件的客户端 JS 拼起来
+ *   7. 提供 renderSideNav(sections) 渲染侧边导航 HTML
+ *
+ * 对外 API：
+ *   - processMarkdown(md) — 预扫 markdown，返回 { html, components, sections } 三元组
+ *   - mergeComponents(mdHtml, components) — 把占位符替换回组件 HTML
+ *   - collectClientScript() — 拼接所有组件的 clientJs 字符串
+ *   - renderSideNav(sections) — 渲染侧边导航 HTML
+ *
+ * 字段契约：内部调度器，无字段。
+ *
+ * 已知问题：marked.setOptions 是全局副作用（系统级问题 #5），未来要做并行编译时需重构 loader。
+ */
 
 const hero = require('./hero.js');
 const quiz = require('./quiz.js');

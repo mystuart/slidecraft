@@ -1,7 +1,25 @@
-// Step-guide 步骤引导组件
-// 数据：{ id, title, steps: [{title, content, example?}] }
-// title v0.2.0 起走 processInline
-// example v0.2.0 起默认展开 + 可折叠（用 <details> 原生元素）
+/**
+ * @component step-guide
+ * @version 0.2.0
+ * @status 打磨完成
+ *
+ * 步骤引导组件（tab 切换形式）
+ *
+ * 字段：
+ *   - id      {string}                可选 · 组件根元素 ID（默认自动生成）
+ *   - title   {string}                可选 · 组件标题
+ *   - steps   [{title, content, example?}]  必填 · 步骤数组
+ *   - steps[].title   {string}        步骤标题（tab 文案，走 processInline）
+ *   - steps[].content {string}        步骤正文（走 processInline）
+ *   - steps[].example {string}        可选 · 代码示例，默认展开 + 可折叠
+ *
+ * v0.2.0 变更：title 走 processInline · example 默认展开 + 用 HTML 原生 <details> 折叠
+ *
+ * 借鉴方向：tab 视觉可改 timeline 节点 / 当前 step 序号角标 / 移动端横滑
+ * 详见 [COMPONENTS.md](../../COMPONENTS.md) § step-guide
+ *
+ * 已知问题：example 代码无语法高亮（决策：不集成 hljs，保持零依赖）。
+ */
 
 const { processInline, escapeHtml } = require('./_inline.js');
 

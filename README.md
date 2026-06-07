@@ -3,8 +3,8 @@
 > 一套「内容与框架解耦」的课件系统：Markdown 是源、HTML 是产物，**换话题只改一个 markdown 文件**。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-blue.svg)](./CHANGELOG.md)
-[![Components: 10](https://img.shields.io/badge/components-10-green.svg)](./template/README.md)
+[![Version: 1.1.0](https://img.shields.io/badge/version-1.1.0-blue.svg)](./COMPONENTS.md)
+[![Components: 10](https://img.shields.io/badge/components-10-green.svg)](./COMPONENTS.md)
 [![Size: ~150KB](https://img.shields.io/badge/size-~150KB-lightgrey.svg)](./dist)
 
 ## 特性
@@ -37,7 +37,7 @@ courseware/
 │   ├── styles/main.css  # CSS 变量驱动主题（含 @media print 打印样式）
 │   └── README.md        # 组件 API 详细文档
 ├── build.js             # 编译脚本
-├── EXAMPLE.md           # 演示用 markdown
+├── COMPONENTS.md        # 组件登记簿（v0.x.x 状态、打磨参考、决策依据）
 ├── SPEC.md              # 设计规范
 ├── package.json
 └── dist/                # 编译产物（每个 .md 独立一份，分发这些）
@@ -103,7 +103,7 @@ node build.js
 
 ## 组件速查
 
-完整 API 见 [template/README.md](./template/README.md)，下面是速查表。
+完整 API 见 [template/components/*.js](./template/components/) 顶部 JSDoc，下面是速查表。
 
 | 组件 | 用途 | 最小示例 |
 |------|------|----------|
@@ -134,7 +134,7 @@ node build.js
 3. 在 `template/styles/main.css` 加 `.my-component` 样式
 4. 在 markdown 里用 ` ```my-component ` fenced code block 触发
 
-完整流程见 [template/README.md](./template/README.md#扩展指南)。
+完整流程见 [CONTRIBUTING.md](./CONTRIBUTING.md#扩展指南)。
 
 ### 普通 Markdown 怎么用
 
@@ -142,7 +142,6 @@ node build.js
 
 ## 演示
 
-- `EXAMPLE.md` — 10 个组件各用一次的最小示例
 - `content/how-to-create-skill.md` — 完整 6 章节课件（《如何创作 SKILL》）
 - `content/components-showcase.md` — 10 个组件 × 20+ 变体的大型 showcase
 - `content/binary-card-trick.md` — 二进制与纸牌魔术的 6 章节课件
@@ -152,16 +151,14 @@ node build.js
 ## 设计文档
 
 - [SPEC.md](./SPEC.md) — 完整设计规范（理念、语法约定、内容大纲）
-- [template/README.md](./template/README.md) — 组件 API 详细文档
+- [template/components/*.js](./template/components/) — 组件源码，字段契约在文件顶部 JSDoc
 
 ## 后续可扩展
 
-MVP 10 个组件之外的候选：
-- `tabs`（选项卡）—— 当前用普通 markdown 小标题替代
+MVP 10 个组件之外的候选（与 [SPEC.md §4.10](./SPEC.md#410-组件清单) 同步）：
 - `accordion`（折叠列表）—— 当前用 `<details>` 替代
-- `code-reviewer`（代码对比+高亮）—— 适合讲代码评审的课件
+- `code-reviewer`（代码对比+高亮）—— 内容量大时再加
 - `timeline`（时间线）—— 适合讲发展史
-- `progress`（顶部阅读进度条）—— 之前留了空壳已删除，需要时重新设计再实现
 
 需要时按"加新组件"流程扩展即可。
 

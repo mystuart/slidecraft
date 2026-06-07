@@ -1,11 +1,32 @@
-// Concept-card 概念卡片网格
-// 数据：{ id, title, columns, cards: [{icon, iconType, title, desc}] }
-// icon: emoji 字符 / <svg> 代码 / image URL（按 iconType 路由）
-// iconType: 'emoji' | 'svg' | 'image'（v0.2.0 新增，默认 emoji）
-//   - emoji: 原样输出 icon 字符串
-//   - svg: 原样输出 icon 字符串（作者写 <svg>...</svg>，**不**转义）
-//   - image: icon 是 URL，自动包成 <img src="..."> + loading="lazy"
-// title / desc 都走 processInline（v0.2.0 起 title 也支持内联 markdown）
+/**
+ * @component concept-card
+ * @version 0.2.0
+ * @status 打磨完成
+ *
+ * 概念卡片网格
+ *
+ * 字段：
+ *   - id        {string}                        可选 · 组件根 ID
+ *   - title     {string}                        可选 · 组件标题
+ *   - columns   {number}                        可选 · 网格列数（默认 auto-fit 250px）
+ *   - cards     [{icon, iconType, title, desc}] 必填 · 卡片数组
+ *   - cards[].icon     {string}                图标内容（按 iconType 路由）
+ *   - cards[].iconType 'emoji'|'svg'|'image'   图标类型（v0.2.0 新增，默认 emoji）
+ *   - cards[].title    {string}                卡片标题（走 processInline）
+ *   - cards[].desc     {string}                卡片描述（走 processInline）
+ *
+ * iconType 行为：
+ *   - emoji  原样输出 icon 字符串
+ *   - svg    原样输出 icon 字符串（**不**转义）
+ *   - image  icon 是 URL，自动包成 <img src="..."> + loading="lazy"
+ *
+ * v0.2.0 变更：iconType 字段路由 · title 走 processInline
+ *
+ * 借鉴方向：响应式断点（移动端降级列数）/ 统一 SVG 图标库替换 emoji
+ * 详见 [COMPONENTS.md](../../COMPONENTS.md) § concept-card
+ *
+ * 已知问题：emoji 跨平台渲染不一致（系统级问题 #3）。
+ */
 
 const { processInline, escapeHtml } = require('./_inline.js');
 

@@ -1,11 +1,26 @@
-const { escapeHtml, processInline } = require('./_inline.js');
-
-// formula.js — 公式组件（数学/化学/物理）
-// 编译时用 KaTeX 服务端渲染成 HTML，客户端无需 katex JS 即可看到公式
-// KaTeX CSS 由 build.js 注入到产物 <style> 里
-//
-// 编号规则（v0.2.0）：客户端 JS 按 h2 章节分组计数，块级公式自动获得
-// "1.1 / 1.2 / 2.1 ..." 风格编号（formula-num span 由 clientJs 填入）。
+/**
+ * @component formula
+ * @version 0.2.0
+ * @status 打磨完成
+ *
+ * 公式组件（数学/化学/物理）
+ *
+ * 字段：
+ *   - expr        {string}    必填 · 公式表达式（KaTeX 语法）
+ *   - display     'block'|'inline'  可选 · 块级/行内（默认 block）
+ *   - caption     {string}    可选 · 公式说明（走 processInline）
+ *   - showExpr    {boolean}   可选 · 是否显示源表达式（默认 true）
+ *
+ * 渲染机制：编译时用 KaTeX 服务端渲染成 HTML，客户端无需 katex JS 即可看到公式。
+ * KaTeX CSS 由 build.js 注入到产物 <style> 里。
+ *
+ * v0.2.0 变更：caption 走 processInline · 加 showExpr 折叠按钮 · 块级公式自动编号（按 h2 分组，1.1 / 1.2 / 2.1）
+ *
+ * 借鉴方向：编号字体（0.88em italic 可调）/ 公式引用（跨公式引用方案）/ 公式锚点（点击编号跳公式）
+ * 详见 [COMPONENTS.md](../../COMPONENTS.md) § formula
+ *
+ * 已知问题：expr 字段写数学公式走 KaTeX，caption 走 processInline 不支持 $...$ LaTeX（系统级问题 #1）。
+ */
 // 行内公式不参与编号。numbered=false 可关闭单个公式的编号。
 
 const katex = require('katex');

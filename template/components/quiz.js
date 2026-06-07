@@ -1,9 +1,29 @@
-const { escapeHtml, processInline } = require('./_inline.js');
-
-// Quiz 选择题组件
-// 单题数据：{ id, question, type: 'single'|'multi', options: [{id,text}], correct: [id,...], feedback: {correct, wrong}, hint, category }
-// category: 'concept'|'calc'|'apply'|'review'，加题干前 chip；不填不显示
-// 题组（quiz-track）数据：[单题1, 单题2, ...] — 数组，渲染为 carousel
+/**
+ * @component quiz / quiz-track
+ * @version 0.2.0
+ * @status 打磨完成
+ *
+ * Quiz 选择题组件（含题组 quiz-track 模式）
+ *
+ * 模式判断：data 是数组 → quiz-track（carousel 题组），data 是对象 → quiz（单题）
+ *
+ * 单题字段（quiz）：
+ *   - id        {string}            必填 · 题目 ID
+ *   - question  {string}            必填 · 题干
+ *   - type      'single'|'multi'    必填 · 单选/多选
+ *   - options   [{id, text}]        必填 · 选项数组
+ *   - correct   [id, ...]           必填 · 正确答案 ID 数组
+ *   - feedback  {correct, wrong}    可选 · 反馈文案（correct/wrong 二选一时也允许是 string）
+ *   - hint      {string}            可选 · 提示
+ *   - category  'concept'|'calc'|'apply'|'review'  可选 · 题型分类标签
+ *
+ * 题组字段（quiz-track）：直接传 [单题1, 单题2, ...] 数组
+ *
+ * 借鉴方向：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」
+ * 详见 [COMPONENTS.md](../../COMPONENTS.md) § quiz / quiz-track
+ *
+ * 已知问题：options[].text、feedback.content、hint 不支持内联 LaTeX（系统级问题 #1）。
+ */
 
 const CATEGORY_LABELS = {
   concept: '💡 概念题',

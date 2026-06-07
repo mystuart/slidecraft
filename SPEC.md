@@ -18,15 +18,22 @@
 
 ```
 courseware/
-├── SPEC.md                       # 本文档
+├── SPEC.md                       # 本文档（设计规范）
+├── README.md                     # 使用说明
+├── COMPONENTS.md                 # 组件登记簿（v0.x.x 状态、打磨参考、决策依据）
 ├── content/                      # 源内容（要换话题时只改这里）
-│   └── how-to-create-skill.md
+│   ├── how-to-create-skill.md
+│   ├── binary-card-trick.md
+│   ├── components-showcase.md
+│   ├── formula-test.md
+│   ├── math-step-test.md
+│   └── fm-template.md            # 空白模板，复制此文件开始写新课件
 ├── template/                     # 框架层（写一次永久复用）
 │   ├── index.html.tpl            # HTML 骨架模板
 │   ├── components/               # 各互动组件的渲染函数
 │   │   ├── _inline.js            # 公共：内联 markdown 处理（processInline）
 │   │   ├── hero.js
-│   │   ├── quiz.js
+│   │   ├── quiz.js               # 含 quiz-track（数组模式）
 │   │   ├── fill-blank.js
 │   │   ├── step-guide.js
 │   │   ├── compare.js
@@ -34,13 +41,15 @@ courseware/
 │   │   ├── callout.js
 │   │   ├── formula.js
 │   │   ├── math-step.js
-│   │   └── renderer.js
+│   │   └── renderer.js           # 组件调度器（processMarkdown / mergeComponents / collectClientScript）
 │   └── styles/
-│       └── main.css
+│       └── main.css              # CSS 变量驱动主题（含 @media print 打印样式）
+├── docs/                         # 设计/打磨记录
+│   ├── README.md                 # docs/ 目录说明
+│   └── components-registry.md    # 10 个组件的 v0.x.x 状态 / 字段 / 打磨时间线
 ├── build.js                      # 编译脚本：md → HTML
-├── dist/                         # 编译产物（最终分发，每个 .md 独立一份）
-│   └── <name>.html
-└── README.md                     # 使用说明
+└── dist/                         # 编译产物（最终分发，每个 .md 独立一份）
+    └── <name>.html
 ```
 
 ---

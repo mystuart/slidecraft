@@ -1,11 +1,33 @@
-// Compare 对比组件
-// 数据：{ id, title, mode, left: {label, tag, points[]}, right: {label, tag, points[]} }
-// tag: good | bad | warn | neutral
-// mode: good-bad | before-after | neutral（v0.2.0 新增）
-//   - good-bad: 左对/右错（"vs" 圆牌 + 标签 "优劣对比"）
-//   - before-after: 左前/右后（"vs" 圆牌 + 标签 "改进前 → 改进后"）
-//   - neutral: 默认，纯并列（不显示标签和"vs"圆牌）
-// points 每一项支持内联 markdown：**bold** / *italic* / `code` / [link](url) / $LaTeX$
+/**
+ * @component compare
+ * @version 0.2.0
+ * @status 打磨完成
+ *
+ * 对比组件（左右两列 + 4 tag 颜色）
+ *
+ * 字段：
+ *   - id              {string}                              可选 · 组件根 ID
+ *   - title           {string}                              可选 · 组件标题
+ *   - mode            'good-bad'|'before-after'|'neutral'  必填 · 语义模式
+ *   - left            {label, tag, points[]}               必填 · 左列
+ *   - right           {label, tag, points[]}               必填 · 右列
+ *   - left.label      {string}                              左列标题
+ *   - left.tag        'good'|'bad'|'warn'|'neutral'         左列标签颜色
+ *   - left.points     [string]                              左列要点（支持内联 markdown）
+ *   - right.*         {同 left}                             右列
+ *
+ * mode 行为：
+ *   - good-bad      "vs" 圆牌 + 标签 "优劣对比"
+ *   - before-after  "vs" 圆牌 + 标签 "改进前 → 改进后"
+ *   - neutral       纯并列，不显示"vs"圆牌和标签
+ *
+ * v0.2.0 变更：新增 mode 字段 · warn tag 视觉增强（边框）
+ *
+ * 借鉴方向：points 数量上限折叠 / 移动端纵向堆叠
+ * 详见 [COMPONENTS.md](../../COMPONENTS.md) § compare
+ *
+ * 已知问题：good/bad 左右排序约定未文档化（系统级问题 #4 · 建议 good 在左 / bad 在右 / warn 居中）。
+ */
 
 const { processInline, escapeHtml } = require('./_inline.js');
 

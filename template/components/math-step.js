@@ -1,7 +1,32 @@
-// math-step.js — 分步解题组件
-// 用途：数学/物理/化学等学科的分步骤演示
-// 形态：纵向展开，所有步骤同时可见，每步有"完成"勾选和折叠式 hint/explanation
-// 公式：编译时用 KaTeX 渲染成 HTML（不依赖客户端 katex JS）
+/**
+ * @component math-step
+ * @version 0.1.0
+ * @status 待打磨
+ *
+ * 分步解题组件（数学/物理/化学）
+ *
+ * 字段：
+ *   - id              {string}                       可选 · 组件根 ID
+ *   - question        {string}                       必填 · 题面（兼容 problem）
+ *   - questionFormula {string}                       可选 · 题面公式（兼容 problemFormula，KaTeX 编译时渲染）
+ *   - steps           [{content, formula?, answer?, hint?, explanation?, warning?, insight?}]  必填 · 步骤数组
+ *   - steps[].content      {string}                  步骤正文（走 processInline）
+ *   - steps[].formula      {string}                  可选 · 步骤公式（KaTeX）
+ *   - steps[].answer       {string}                  可选 · 该步最终答案（默认展开，绿色块）
+ *   - steps[].hint         {string}                  可选 · 提示（折叠）
+ *   - steps[].explanation  {string}                  可选 · 详解（折叠）
+ *   - steps[].warning      {string}                  可选 · 易错点（折叠）
+ *   - steps[].insight      {string}                  可选 · 拓展（折叠）
+ *
+ * 形态：纵向展开，所有步骤同时可见，每步有"完成"勾选和折叠式 hint/explanation/warning/insight。
+ *
+ * v0.1.0 变更：首次可用，兼容 problem/question 两种字段名。
+ *
+ * 待打磨：4 折叠区配色（是否对齐到 callout 5 种 type）/ answer 默认展开 vs 全部默认折叠的决策 / 全部完成时"全卡片变绿"是否保留
+ * 详见 [COMPONENTS.md](../../COMPONENTS.md) § math-step
+ *
+ * 已知问题：step.content 不支持内联 LaTeX（系统级问题 #1）。
+ */
 
 'use strict';
 
