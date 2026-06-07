@@ -1219,7 +1219,7 @@ details summary { cursor: pointer; font-weight: 600; }
   /* 题组 carousel 打印时展开为纵向列表 */
   .quiz-carousel { padding: 1em 0; border-left: none; box-shadow: none; }
   .quiz-carousel-viewport { overflow: visible; margin: 0; padding: 0; }
-  .quiz-carousel-track { display: block; transform: none !important; }
+  .quiz-carousel-track { display: block; }
   .quiz-carousel-slide { margin-bottom: 1.2em; overflow: visible; }
   .quiz-carousel-slide:last-child { margin-bottom: 0; }
 

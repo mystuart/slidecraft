@@ -54,7 +54,7 @@ function injectSectionIds(html) {
     counter += 1;
     // 去掉内层可能的标签，只留纯文本做 title
     const titleText = content.replace(/<[^>]+>/g, '').trim();
-    return `<h2${sp} id="section-${counter}" data-section-title="${escapeHtml(titleText)}">${content}</h2>`;
+    return `<h2${sp} id="section-${counter}">${content}</h2>`;
   });
 }
 

@@ -99,7 +99,7 @@ node build.js
 | `subtitle` | 否 | 副标题、meta description |
 | `author` | 否 | 作者名 |
 | `theme` | 否 | 主题名（默认 lavender，未来支持多主题） |
-| `sections` | 是 | 章节标题列表，自动生成侧边导航 |
+| `sections` | 是 | 章节标题列表，自动生成侧边导航。`string[]`（`['一、xxx', '二、xxx']`）或 `[{id, title}]` 对象数组 |
 
 ## 组件速查
 
