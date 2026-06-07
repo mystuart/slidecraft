@@ -25,6 +25,8 @@
  * 已知问题：marked.setOptions 是全局副作用（系统级问题 #5），未来要做并行编译时需重构 loader。
  */
 
+const { escapeHtml } = require('./_inline.js');
+
 const hero = require('./hero.js');
 const quiz = require('./quiz.js');
 const fillBlank = require('./fill-blank.js');

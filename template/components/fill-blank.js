@@ -20,6 +20,8 @@
  * 已知问题：单空设计，不支持一道题多个空。
  */
 
+const { escapeHtml } = require('./_inline.js');
+
 
 
 function render(data) {

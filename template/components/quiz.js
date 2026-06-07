@@ -25,6 +25,8 @@
  * 已知问题：options[].text、feedback.content、hint 不支持内联 LaTeX（系统级问题 #1）。
  */
 
+const { escapeHtml, processInline } = require('./_inline.js');
+
 const CATEGORY_LABELS = {
   concept: '💡 概念题',
   calc: '🧮 计算题',

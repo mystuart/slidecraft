@@ -21,6 +21,8 @@
  * 已知问题：CTA 锚点 `#sec-xxx` 与 renderer 自动生成的 anchor 规则未文档化（系统级问题 #2）。
  */
 
+const { escapeHtml } = require('./_inline.js');
+
 
 
 function render(data) {

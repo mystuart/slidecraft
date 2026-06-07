@@ -21,6 +21,8 @@
  *
  * 已知问题：expr 字段写数学公式走 KaTeX，caption 走 processInline 不支持 $...$ LaTeX（系统级问题 #1）。
  */
+
+const { escapeHtml, processInline } = require('./_inline.js');
 // 行内公式不参与编号。numbered=false 可关闭单个公式的编号。
 
 const katex = require('katex');
