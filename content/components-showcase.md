@@ -203,11 +203,13 @@ sections:
 
 ## 4. fill-blank · 填空
 
+> **v0.2.0 新能力**：多空支持（{{1}} {{2}} 占位 + answers 数组）+ 每空独立等价集合（`[["x","X"], ["3.14","π"]]`）+ 多空进度条 + 旧 `answer: "H|O"` 写法兼容。
+
 ```fill-blank
 {
   "id": "fb-element",
-  "question": "请填入元素符号：氢的化学符号是 ____，氧的化学符号是 ____。",
-  "answer": "H|O",
+  "question": "请填入元素符号：氢的化学符号是 {{1}}，氧的化学符号是 {{2}}。",
+  "answers": [["H"], ["O"]],
   "hint": "取元素拉丁名首字母（Hydrogen → H，Oxygen → O）。"
 }
 ```
@@ -215,9 +217,28 @@ sections:
 ```fill-blank
 {
   "id": "fb-water",
-  "question": "水的化学式是 ____。",
-  "answer": "H2O|H₂O",
+  "question": "水的化学式是 {{1}}。",
+  "answers": [["H2O", "H₂O"]],
   "hint": "两个氢原子与一个氧原子结合。"
+}
+```
+
+```fill-blank
+{
+  "id": "fb-equation",
+  "question": "解方程 {{1}} + {{2}} = {{3}}，求 x 的值（按顺序填）。",
+  "answers": [["2", "二"], ["3"], ["5", "五"]],
+  "hint": "先把 {2} 移到右边，{1} 移过来即可。"
+}
+```
+
+```fill-blank
+{
+  "id": "fb-practice",
+  "mode": "practice",
+  "question": "中国第一个皇帝是 {{1}}（朝代名）。",
+  "answers": [["秦", "秦朝"]],
+  "hint": "公元前 221 年统一六国。"
 }
 ```
 

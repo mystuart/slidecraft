@@ -1,0 +1,12 @@
+feat(fill-blank): 打磨至 v0.2.0 — 多空 + 等价 + 进度条 + practice
+
+- 字段：新增 `answers` 数组（推荐），兼容旧 `answer: "H|O"` 字符串
+- 题面：用 `{{1}} {{2}}` 占位标记多空位置（显式，不与正文下划线撞）
+- 等价：每空独立等价集合，例 `answers: [["x","X"], ["3.14","π"]]`
+- 判分：按位置独立判 ✓ / ✗；多空显示进度条 + "3/3 ✓" / "2/3 部分对"
+- 兼容：旧 `answer: "H|O"` 写法自动转（`"H|O"` → `answers: [["H"], ["O"]]`）
+- 样式：复用 math-step 进度条 hairline 样式，输入框 hairline 描边
+- 同步：components-showcase 加 2 个新案例（fb-equation 3空 / fb-practice practice 模式）
+- 同步：COMPONENTS.md fill-blank 升 v0.2.0 🟢 + 待办划掉
+
+build 验证：dist/components-showcase.html 包含 4 个 fill-blank 实例，progress-bar / data-answers / data-mode 全部正确，无 {{n}} 残留。
