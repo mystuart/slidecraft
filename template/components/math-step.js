@@ -1,7 +1,7 @@
 /**
  * @component math-step
- * @version 0.1.0
- * @status 待打磨
+ * @version 0.2.0
+ * @status 打磨完成
  *
  * 分步解题组件（数学/物理/化学）
  *
@@ -9,23 +9,25 @@
  *   - id              {string}                       可选 · 组件根 ID
  *   - question        {string}                       必填 · 题面（兼容 problem）
  *   - questionFormula {string}                       可选 · 题面公式（兼容 problemFormula，KaTeX 编译时渲染）
+ *   - celebrate       {boolean}                      可选 · 默认 true · 全部勾选后根卡片变绿；false 时关闭庆祝效果
  *   - steps           [{content, formula?, answer?, hint?, explanation?, warning?, insight?}]  必填 · 步骤数组
  *   - steps[].content      {string}                  步骤正文（走 processInline）
  *   - steps[].formula      {string}                  可选 · 步骤公式（KaTeX）
  *   - steps[].answer       {string}                  可选 · 该步最终答案（默认展开，绿色块）
- *   - steps[].hint         {string}                  可选 · 提示（折叠）
- *   - steps[].explanation  {string}                  可选 · 详解（折叠）
- *   - steps[].warning      {string}                  可选 · 易错点（折叠）
- *   - steps[].insight      {string}                  可选 · 拓展（折叠）
+ *   - steps[].hint         {string}                  可选 · 提示（默认展开）
+ *   - steps[].explanation  {string}                  可选 · 详解（默认展开）
+ *   - steps[].warning      {string}                  可选 · 易错点（默认展开）
+ *   - steps[].insight      {string}                  可选 · 拓展（默认展开）
  *
  * 形态：纵向展开，所有步骤同时可见，每步有"完成"勾选和折叠式 hint/explanation/warning/insight。
  *
- * v0.1.0 变更：首次可用，兼容 problem/question 两种字段名。
+ * v0.2.0 变更：
+ *   - 4 折叠区（hint/explanation/warning/insight）统一琥珀色，视觉降噪
+ *   - answer / 4 折叠区全部默认展开（教学感 > 探索感）
+ *   - 加 hairline 进度条 + 文字 "已完成 X / N"（替代原纯文字）
+ *   - 加 `celebrate: false` 字段，关闭全卡片变绿效果
  *
- * 待打磨：4 折叠区配色（是否对齐到 callout 5 种 type）/ answer 默认展开 vs 全部默认折叠的决策 / 全部完成时"全卡片变绿"是否保留
- * 详见 [COMPONENTS.md](../../COMPONENTS.md) § math-step
- *
- * 已知问题：step.content 不支持内联 LaTeX（系统级问题 #1）。
+ * 已知问题：step.content 不支持内联 LaTeX（系统级问题 #1，待 processInline 升级后解决）。
  */
 
 'use strict';
@@ -34,10 +36,10 @@ const { processInline, escapeHtml } = require('./_inline');
 const katex = require('katex');
 
 const TYPE_META = {
-  hint:        { icon: '💡', label: '提示',       className: 'math-step-hint' },
-  explanation: { icon: '📖', label: '详细解析',   className: 'math-step-explanation' },
-  warning:     { icon: '⚠️', label: '易错点',     className: 'math-step-warning' },
-  insight:     { icon: '🌟', label: '关键洞察',   className: 'math-step-insight' },
+  hint:        { icon: '💡', label: '提示' },
+  explanation: { icon: '📖', label: '详细解析' },
+  warning:     { icon: '⚠️', label: '易错点' },
+  insight:     { icon: '🌟', label: '关键洞察' },
 };
 
 /**
@@ -88,6 +90,7 @@ function render(data) {
   const title = data.title || '';
   const problem = data.question || data.problem || '';
   const problemFormula = data.questionFormula || data.problemFormula || '';
+  const celebrate = data.celebrate !== false; // 默认 true
   const steps = Array.isArray(data.steps) ? data.steps : [];
 
   if (!problem || steps.length === 0) {
@@ -115,13 +118,13 @@ function render(data) {
       ? `<div class="math-step-step-formula">${renderFormula(step.formula, true)}</div>`
       : '';
 
-    // 折叠区：hint / explanation / warning / insight
+    // 折叠区：hint / explanation / warning / insight（v0.2.0 起 4 种统一琥珀色）
     const expandables = [];
     for (const key of ['hint', 'explanation', 'warning', 'insight']) {
       if (step[key]) {
         const meta = TYPE_META[key];
         expandables.push(`
-          <details class="math-step-expandable ${meta.className}">
+          <details class="math-step-expandable" open>
             <summary><span class="math-step-expandable-icon">${meta.icon}</span>${meta.label}</summary>
             <div class="math-step-expandable-body">${processInline(step[key])}</div>
           </details>
@@ -161,13 +164,16 @@ function render(data) {
   const totalSteps = steps.length;
   const progressHtml = `
     <div class="math-step-progress">
-      <span class="math-step-progress-text">完成度</span>
+      <span class="math-step-progress-text">已完成</span>
+      <div class="math-step-progress-track">
+        <div class="math-step-progress-bar" data-progress="0"></div>
+      </div>
       <span class="math-step-progress-count" data-done="0" data-total="${totalSteps}">0 / ${totalSteps}</span>
     </div>
   `;
 
   return `
-    <section class="math-step" id="${escapeHtml(id)}" data-component="math-step" data-step-count="${totalSteps}">
+    <section class="math-step" id="${escapeHtml(id)}" data-component="math-step" data-step-count="${totalSteps}" data-celebrate="${celebrate ? 'true' : 'false'}">
       ${titleHtml}
       <div class="math-step-problem-box">
         ${problemHtml}
@@ -182,7 +188,9 @@ function render(data) {
 const clientJs = `
 document.querySelectorAll('[data-component="math-step"]').forEach(function(root) {
   var total = parseInt(root.dataset.stepCount, 10) || 0;
+  var celebrate = root.dataset.celebrate !== 'false';
   var countEl = root.querySelector('.math-step-progress-count');
+  var barEl = root.querySelector('.math-step-progress-bar');
   var checkboxes = root.querySelectorAll('.math-step-done');
 
   function updateProgress() {
@@ -190,7 +198,9 @@ document.querySelectorAll('[data-component="math-step"]').forEach(function(root)
     checkboxes.forEach(function(cb) { if (cb.checked) done++; });
     if (countEl) countEl.textContent = done + ' / ' + total;
     if (countEl) countEl.dataset.done = String(done);
-    if (done === total && total > 0) {
+    if (barEl) barEl.style.width = (total > 0 ? (done / total * 100) : 0) + '%';
+    if (barEl) barEl.dataset.progress = String(done);
+    if (done === total && total > 0 && celebrate) {
       root.classList.add('math-step-all-done');
     } else {
       root.classList.remove('math-step-all-done');
