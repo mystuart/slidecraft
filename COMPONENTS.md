@@ -119,11 +119,19 @@ related:
 
 > 标"待打磨"前先看这里——这些是跨组件的、应该一起改的。
 
-1. **`processInline` 不处理 `$...$` 行内 LaTeX** — 导致 quiz 的 `options[].text`、`feedback.content`、callout 的 `content`、math-step 的 `step.content` 里写数学公式都渲染不出来。要么升级 `_inline.js` 支持 LaTeX，要么这些字段继续走组件字段（`formula` / `problemFormula`）绕过。
-2. **CTA 锚点 `#sec-xxx` 与 renderer 自动生成的 anchor 未对齐** — hero 的 `ctaHref` 跳到 `#sec-quiz-track` 这种，但 renderer 自动生成 anchor 的规则没文档化，跨 .md 复用时容易断。
-3. **emoji 跨平台渲染不一致** — concept-card 的 `icon`、hero 的 `emoji`、callout 的图标都受此影响。
-4. **compare 的 good/bad 左右排序约定未文档化**（GLM 5.1 评估 · 2026-06-05）— compare 有 4 种 tag，但 good/bad 哪个放左没明确规则。优先级：低，先定约定（建议 good 在左 / bad 在右 / warn 居中）。
-5. **build.js 的 marked.setOptions 是全局副作用** — 当前串行编译没问题，但 future 想做并行编译时会冲突。优先级：低，等真有并行需求再重构 loader。
+1. **`processInline` 已支持 `$...$` 行内 LaTeX**（`_inline.js:30-44`）— 现状：quiz / callout / math-step 的 `content` 字段内 `$x^2$` 会被 KaTeX 编译。
+   - **升级目标**（不是 bug）：(a) 支持多行 LaTeX（`$$...$$`）— 当前正则 `\$([^$\n]+)\$` 排除换行。(b) 兼容 `\(...\)` / `\[...\]` 标准语法。(c) 解析失败时给出**编译期**提示（目前 throwOnError:false 静默降级到 `<code>`，学员看不到"哪里写错了"）。
+2. **架构债 #1：`_inline.js` 顶层硬 `require('katex')` 跟组件零依赖约束矛盾**（优先级 P2）— 现状：5 个组件在 `renderer.js` 模块树顶层被加载的副作用下"共享"闭包变量（ce129f7 注释承认）。升级路径：把 `katex` 导入下沉到 `processInline` 内部 lazy require，或拆 `_inline-math.js` 子模块按需加载。
+3. **架构债 #2：`build` 静默降级**（优先级 P1）— marked.parse / katex.renderToString 失败时 throwOnError:false / catch 吞掉异常，产物能跑但**学员看不到公式**。需要：(a) 编译期收集所有解析失败的位置 + 源 .md 行号。(b) 写到一个 build 报告文件，build exit code 在有未解析项时非 0。
+4. **架构债 #3：frontmatter `sections` ↔ 正文 `## h2` 不同步**（优先级 P1 · 教学链路）— 现状 3 个 .md 中招：
+   - `binary-card-trick.md`：sections 声明 6 章，正文 h2 7 章（"## 魔术前的准备"在 sections 之外）
+   - `math-step-test.md`：sections 4 个"x、"题号，正文是 4 个 `## 1、` 编号但格式不对齐（"## 三题总结"没在 sections 里）
+   - `how-to-create-skill.md`：sections 6 章，正文 h2 14 个（差 8 个孤儿 h2）
+   - 影响：sections 是 hero 卡片下方的"章节目录"，学员点 `## xxx` 不会出现在目录里 = 教学链路断。需要：(a) build 时校验 sections 与 h2 数量一致 + 文本一致。(b) 给出"加入 sections"或"删除 h2"建议。
+5. **CTA 锚点 `#sec-xxx` 与 renderer 自动生成的 anchor 未对齐** — hero 的 `ctaHref` 跳到 `#sec-quiz-track` 这种，但 renderer 自动生成 anchor 的规则没文档化，跨 .md 复用时容易断。
+6. **emoji 跨平台渲染不一致** — concept-card 的 `icon`、hero 的 `emoji`、callout 的图标都受此影响。
+7. **compare 的 good/bad 左右排序约定未文档化**（GLM 5.1 评估 · 2026-06-05）— compare 有 4 种 tag，但 good/bad 哪个放左没明确规则。优先级：低，先定约定（建议 good 在左 / bad 在右 / warn 居中）。
+8. **build.js 的 marked.setOptions 是全局副作用** — 当前串行编译没问题，但 future 想做并行编译时会冲突。优先级：低，等真有并行需求再重构 loader。
 
 ---
 
