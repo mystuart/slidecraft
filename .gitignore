@@ -26,3 +26,6 @@ npm-debug.log*
 
 # Alice 工具自动生成的临时文件
 *.alice-buffer-*.tmp
+.commit-msg.tmp
+
+# 临时 commit message 文件（用 git commit -F 时会写）
