@@ -152,17 +152,22 @@ function processInlineFormulas(html) {
 
 /**
  * 收集所有组件的客户端 JS
+ * 自动遍历 COMPONENT_MAP，按注册顺序拼接，dedupe 同一组件对象引用。
+ * 新增组件时无需再手动维护这个列表。
  * @returns {string}
  */
 function collectClientScript() {
-  return [
-    quiz.clientJs,
-    fillBlank.clientJs,
-    stepGuide.clientJs,
-    mathStep.clientJs,
-    formula.clientJs,
-    initSideNavScript(),
-  ].filter(Boolean).join('\n\n');
+  const seen = new Set();
+  return Object.values(COMPONENT_MAP)
+    .filter(c => {
+      if (seen.has(c)) return false;
+      seen.add(c);
+      return true;
+    })
+    .map(c => c.clientJs)
+    .filter(Boolean)
+    .concat([initSideNavScript()])
+    .join('\n\n');
 }
 
 /**

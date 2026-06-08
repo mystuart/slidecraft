@@ -25,7 +25,9 @@
  */
 //
 // 所有输入先 escapeHtml，再做替换，保证 XSS 安全。
-const katex = require('katex');
+// katex 改为按需加载：未安装时 processInline 的 LaTeX 处理降级为 no-op，
+// 与 renderer.js:117 processInlineFormulas() 保持一致策略，
+// 避免 katex 变成项目级硬依赖。
 
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
@@ -50,17 +52,23 @@ function processInline(s) {
   const rawDecoded = raw.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
 
   // 0) LaTeX inline math $...$ — 先在 rawDecoded 上提取到占位符，escapeHtml 后还原
+  // katex 按需加载：未安装时整段 LaTeX 处理降级为 no-op（占位符替换为原文本，不影响其他语法）
+  let katex;
+  try { katex = require('katex'); } catch (e) { katex = null; }
+
   const mathSegments = [];
-  const rawWithMath = rawDecoded.replace(/\$([^$\n]+)\$/g, (m, content) => {
-    try {
-      const html = katex.renderToString(content, { throwOnError: false, displayMode: false });
-      const idx = mathSegments.length;
-      mathSegments.push(html);
-      return `\x00MATH${idx}\x00`;
-    } catch (e) {
-      return m; // KaTeX 解析失败时保持原样
-    }
-  });
+  const rawWithMath = katex
+    ? rawDecoded.replace(/\$([^$\n]+)\$/g, (m, content) => {
+        try {
+          const html = katex.renderToString(content, { throwOnError: false, displayMode: false });
+          const idx = mathSegments.length;
+          mathSegments.push(html);
+          return `\x00MATH${idx}\x00`;
+        } catch (e) {
+          return m; // KaTeX 解析失败时保持原样
+        }
+      })
+    : rawDecoded; // katex 未安装：保留原文，让 $...$ 进 escapeHtml 后变成普通文本
 
   let out = escapeHtml(rawWithMath);
 
