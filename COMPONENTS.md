@@ -35,6 +35,7 @@ related:
 | 8 | callout | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 |
 | 9 | formula | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
 | 10 | math-step | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-07 |
+| 11 | geometry-3d | v0.1.0 | 🟡 首次可用 | 2026-06-08 | 2026-06-08 |
 
 **状态图例**：🟢 打磨完成 · 🟡 待打磨 · 🔴 打磨中 · ⚪ 弃用
 
@@ -107,7 +108,18 @@ related:
 - **当前**：题面 / 步骤 / 答案 / 4 种折叠区（统一琥珀色，默认展开）/ hairline 进度条 + 文字 / `celebrate: false` 可关全卡片变绿。
 - **下一步可选**：单 step 内进度（"看完了提示"不算"完成"，是不是要二级进度？）· 折叠区支持折叠回默认（现在 `open` 是硬编码的，不支持 step 级"教学节奏"）· 进度条完成态加点动效（避免太干）。
 
-### 待你拍板的关键决策（影响多个组件）
+#### 11. geometry-3d *(v0.1.0 首次可用)*
+- **当前**：WebGL/Three.js 立体几何组件，3D 拖动旋转 / 滚轮缩放 / 右键平移；CSS2DRenderer 标签 DOM 形式；双击几何体 = 局部重置、双击空白 = 全局重置。
+- **支持几何体**（v0.1）：box / sphere / cylinder / cone / tetrahedron / octahedron / icosahedron。
+- **字段契约**：[`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)（4 类 23 字段，全部带默认值；含 4 个示例：正方体带顶点标签 / 圆柱剖切 / 三视图 / 三棱锥展开）。
+- **体积影响**：约 720KB（Three.js + OrbitControls + CSS2DRenderer，esbuild 打 IIFE）。build.js 检测到 `.geom-3d` class 才注入。
+- **借鉴方向**（v0.2 路线图）：
+  - **几何体改 JSON 数据表** —— 当前是写死的 `case` 分支，新增形状要改代码。借鉴 Mathigon `PolyhedronData`，用 `{vertex, edge, face}` 纯数据结构描述任意多面体，新形状追加一项。
+  - **mode 状态机 + Raycaster 命中高亮** —— `mode: "vertex"|"edge"|"face"|"all"` 切换，讲"二面角"必须能高亮棱 / 面。
+  - **剖切面（slice）** —— Three.js `ClippingPlane`，初高中立体几何讲截面全靠它。
+  - **三视图同步（`views: "three"`）** —— 三个 canvas 共享场景数据，每帧渲染不同相机角度。
+  - **展开动画（unfold）** —— 正多面体展开图。
+- **待办**：v0.2 空白区识别区扩大（双击空白命中率对正方体/圆锥偏小，加 padding / 5% 边界保护区）。
 
 - **emoji 命运**：保留 / 切到 lucide SVG / 用 ASCII 几何。影响 hero / concept-card / callout。
 - **圆角策略**：dark 保持 8-12px / 全部切到 0 直角 / 大元素 0 + 小元素 4px 混合。影响全部组件。

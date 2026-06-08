@@ -36,6 +36,7 @@ const conceptCard = require('./concept-card.js');
 const callout = require('./callout.js');
 const formula = require('./formula.js');
 const mathStep = require('./math-step.js');
+const geometry3d = require('./geometry-3d.js');
 
 // 语言标记 → 组件渲染器
 const COMPONENT_MAP = {
@@ -59,6 +60,9 @@ const COMPONENT_MAP = {
   'math-step': mathStep,
   'mathstep': mathStep,
   'math_step': mathStep,
+  'geometry-3d': geometry3d,
+  'geometry3d': geometry3d,
+  'geometry_3d': geometry3d,
 };
 
 const PLACEHOLDER_RE = /<!--\s*CW-COMPONENT-(\d+)\s*-->/g;

@@ -121,6 +121,17 @@ async function buildFile(inputPath) {
   // 8) 收集客户端 JS
   const clientJs = renderer.collectClientScript();
 
+  // 8.5) 内联 Three.js 包（如果 content 里有 geometry-3d 组件）
+  // 仅当输出文件用到了 geometry-3d 组件时才注入，避免给不需要 3D 的课件也增加 730KB
+  const threeBundlePath = path.join(ROOT, 'cw-three-bundle.iife.js');
+  let threeBundleJs = '';
+  if (bodyHtml.includes('class="geom-3d"') && fs.existsSync(threeBundlePath)) {
+    threeBundleJs = fs.readFileSync(threeBundlePath, 'utf8');
+  } else if (bodyHtml.includes('class="geom-3d"') && !fs.existsSync(threeBundlePath)) {
+    console.error('! 警告：检测到 geometry-3d 组件但未找到 cw-three-bundle.iife.js');
+    console.error('  运行: node_modules/.bin/esbuild cw-three-bundle.js --bundle --format=iife --target=es2020 --minify --outfile=cw-three-bundle.iife.js');
+  }
+
   // 9) 注入模板
   const out = tpl
     .replace(/\{\{TITLE\}\}/g, () => nav.titleTag)
@@ -131,7 +142,7 @@ async function buildFile(inputPath) {
     .replace(/\{\{NAV_ITEMS\}\}/g, () => nav.items)
     .replace(/\{\{CONTENT\}\}/g, () => bodyHtml)
     .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss)
-    .replace(/\{\{CLIENT_JS\}\}/g, () => clientJs);
+    .replace(/\{\{CLIENT_JS\}\}/g, () => threeBundleJs + '\n' + clientJs);
 
   // 10) 写文件
   // 每个 markdown 编译成独立的 dist/<name>.html，避免多文件互相覆盖

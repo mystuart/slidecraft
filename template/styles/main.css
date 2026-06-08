@@ -1534,3 +1534,70 @@ details summary { cursor: pointer; font-weight: 600; }
   }
   .math-step-step { break-inside: avoid; page-break-inside: avoid; }
 }
+
+/* ===== geometry-3d 组件 ===== */
+.geom-3d {
+  margin: 1.5em 0;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+
+.geom-3d-title {
+  padding: 0.7em 1em;
+  font-size: 1.05em;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.geom-3d-stage {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  background: #fdfdfd;
+}
+
+.geom-3d-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.geom-3d-label {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  cursor: default;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
+  user-select: none;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 0 2px rgba(255,255,255,0.6);
+}
+
+.geom-3d-caption {
+  padding: 0.6em 1em;
+  font-size: 0.9em;
+  color: #555;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  line-height: 1.5;
+}
+
+@media print {
+  .geom-3d-stage {
+    height: 280px;
+    page-break-inside: avoid;
+  }
+  .geom-3d-label { color: #000; }
+}

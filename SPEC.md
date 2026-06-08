@@ -41,12 +41,14 @@ courseware/
 │   │   ├── callout.js
 │   │   ├── formula.js
 │   │   ├── math-step.js
+│   │   ├── geometry-3d.js        # 3D 几何（WebGL/Three.js，立体几何教学）
 │   │   └── renderer.js           # 组件调度器（processMarkdown / mergeComponents / collectClientScript）
 │   └── styles/
 │       └── main.css              # CSS 变量驱动主题（含 @media print 打印样式）
 ├── docs/                         # 设计/打磨记录
 │   ├── README.md                 # docs/ 目录说明
-│   └── components-registry.md    # 10 个组件的 v0.x.x 状态 / 字段 / 打磨时间线
+│   ├── components-registry.md    # 10 个组件的 v0.x.x 状态 / 字段 / 打磨时间线
+│   └── geometry-3d-schema.md     # geometry-3d 组件字段契约（v0.1，4 个示例）
 ├── build.js                      # 编译脚本：md → HTML
 └── dist/                         # 编译产物（最终分发，每个 .md 独立一份）
     └── <name>.html
@@ -118,24 +120,47 @@ sections:
 
 ### 4.3 Fill-blank（填空题）
 
-> **使用限制（重要）**：fill-blank **只用于有明确单一答案的场景**。判分走**trim + 大小写不敏感**——忽略首尾空格、忽略大小写，多等价答案用 `|` 分隔命中其一即对。
+> **使用限制（重要）**：fill-blank **只用于有明确单一答案的场景**。判分走**trim + 大小写不敏感**——忽略首尾空格、忽略大小写，命中每个空对应的等价集合任一项即对。
 > 
 > **不做** Unicode 归一化、不去中间空格、不支持模糊匹配（"近似即可"场景不应使用 fill-blank）。
 > 
 > 适合的：单词拼写、公式、专有名词、化学元素、文件名、命令
-> 不适合的：开放性填空（"用一句话总结..."）、多解答案（"可以是 X 也可以是 Y"）、自然语言句子
-> 
-> 需要同义答案用 `|` 分隔多个：`"answer": "USA | United States | 美国"`——但也只是**精确字符串匹配**多个候选之一。
-> 
-> 大小写敏感、首尾空格敏感（用户输入会被 trim 一遍）
+> 不适合的：开放性填空（"用一句话总结..."）、自然语言句子
+
+**字段**（v0.2.0+）：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `id` | string | ✓ | 题目 ID |
+| `question` | string | ✓ | 题面。多空用 `{{1}} {{2}} {{3}} ...` 显式占位（单空可省占位，整题一空） |
+| `answers` | `Array<string \| string[]>` | 推荐 | 多空答案数组，位置 i 对应题面 `{{i+1}}`。每项是 string（唯一答案）或 string[]（等价集合） |
+| `answer` | string | 兼容 | 旧字段：`"H\|O"` 自动转 `[["H"], ["O"]]`（多空时复制该等价集合到所有空） |
+| `hint` | string | 可选 | 提示文案 |
+| `placeholder` | string | 可选 | 输入框占位符（默认"在此输入答案"） |
+| `mode` | `"reveal" \| "practice"` | 可选 | 答错时是否显示 hint/答案。`"practice"` 时答错只显示对错 |
+
+**占位编号约束（v0.2.1+，build 硬校验）**：
+
+- 必须从 `{{1}}` 开始连续递增：`{{1}} {{2}} {{3}}` ✓，`{{1}} {{3}}` ✗，`{{2}} {{1}}` ✗
+- 同一编号不能重复：`{{1}} {{2}} {{2}}` ✗
+- 违反任一约束 → render 时 throw 自描述错误："发现 `{{3}}`（出现在第 2 个空）。请改用 `{{1}} {{2}} {{3}}` ... 顺序编写。"
+
+**等价集合示例**：
+```json
+"answers": [["x", "X"], ["3.14", "π"], ["5"]]
+```
+第 1 空 `x` 或 `X` 算对；第 2 空 `3.14` 或 `π` 算对；第 3 空只 `5` 算对。
+
+**多空判分粒度**：按位置独立判 ✓ / ✗。全空全对显示进度条 + "3 / 3 ✓"；部分对显示 "2 / 3" + 标 ✗ 的空。
 
 ````markdown
 ```fill-blank
 {
   "id": "f1",
-  "question": "一个 SKILL 文件通常以 ____ 命名。",
+  "question": "一个 SKILL 文件通常以 {{1}} 命名（{{2}} 扩展名）。",
+  "answers": [["skill", "SKILL"], [".md", ".MD"]],
   "hint": "文件名小写，用连字符分隔。",
-  "answer": "SKILL.md"
+  "mode": "reveal"
 }
 ```
 ````
@@ -309,6 +334,20 @@ sections:
 - 题组模式：carousel + dots 进度由 quiz.js clientJs `renderTrack` 自动管理。
 - 实现：单题 quiz 走静态渲染；数组入参时进 quiz-track 模式，由 clientJs 注入 carousel 状态。
 
+### 4.13 Geometry-3D（3D 几何体）
+
+**用途**：立体几何 / 空间向量 / 解析几何的交互式 3D 演示。鼠标拖动旋转、滚轮缩放、右键平移；标签用 DOM（CSS2DRenderer）跟随几何体。
+
+**详细字段契约、数据示例、v0.2 路线图见** [`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)。
+
+**关键点速览**（v0.1）：
+- 字段契约：4 类 23 字段（`geometry` / `display` / `labels` / `camera`），全部带默认值
+- 支持几何体：box / sphere / cylinder / cone / tetrahedron / octahedron / icosahedron
+- 体积影响：单 HTML 注入约 720KB（Three.js + OrbitControls + CSS2DRenderer），**仅在课件包含此组件时内联**
+- 交互：拖动旋转 / 滚轮缩放 / 右键平移 / 双击几何体 = 以该几何体为中心重置 / 双击空白 = 全局重置
+- 标签：DOM 形式（CSS2DRenderer），可与 KaTeX 混排、a11y 友好
+- 待办（v0.2）：剖切面（slice）/ 模式切换（mode）/ 三视图同步（views: "three"）/ 几何体改 JSON 数据表
+
 ---
 
 ## 5. 内容大纲：《如何创作 SKILL》
@@ -406,7 +445,7 @@ sections:
 
 - [ ] **考察点 = 概念**：题目问的是"格式约定"还是"具体例子"？二选一，不能模糊。
 - [ ] **答案对应考察点**：如果问"格式约定"，答案应该是约定本身（如"kebab-case"），不是具体例子（如"meeting-notes"）。
-- [ ] **答案的可接受范围明确**：多答案用 `|` 分隔（fill-blank 支持），写清楚是否区分大小写、是否允许同义词。
+- [ ] **答案的可接受范围明确**：多空用 `answers` 数组 + `{{1}} {{2}} {{3}}` 显式占位，每空可写等价集合（fill-blank v0.2.0+）；旧 `answer: "A|B"` 写法仍兼容。写清楚是否区分大小写、是否允许同义词。
 - [ ] **错答反馈**有教学价值：不是"答错了，再想想"，而是给出正确答案 + 一句"为什么这样"的解释。
 
 ### 9.4 编译前最后一次核查
