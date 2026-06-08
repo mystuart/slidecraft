@@ -1,6 +1,6 @@
 /**
  * @component fill-blank
- * @version 0.2.0
+ * @version 0.2.1
  * @status 打磨完成
  *
  * 填空题组件（单空 / 多空）
@@ -17,6 +17,9 @@
  *
  * 比对规则：不区分大小写、忽略首尾空格；按位置独立判 ✓ / ✗。
  *
+ * v0.2.1 变更：
+ *   - 修复占位编号乱序/跳号/重复时 input 索引错位的 bug：render 时校验编号必须 1, 2, 3 ... 连续且唯一，违反则 throw 自描述错误
+ *
  * v0.2.0 变更：
  *   - 支持多空（{{1}} {{2}} 占位 + answers 数组）
  *   - 每空独立等价集合（answers: [["x","X"], ["3.14","π"]]）
@@ -30,17 +33,35 @@ const { escapeHtml } = require('./_inline.js');
 
 
 function normalizeBlanksSpec(question, answers) {
-  // 找题面里所有 {{1}} {{2}} ...
-  const placeholders = [];
+  // 找题面里所有 {{1}} {{2}} ... 按出现顺序
   const re = /\{\{(\d+)\}\}/g;
+  const numbers = [];
   let m;
   while ((m = re.exec(question)) !== null) {
-    const n = parseInt(m[1], 10);
-    if (n > placeholders.length) placeholders.push(n);
+    numbers.push(parseInt(m[1], 10));
   }
-  // 排序去重
-  const unique = Array.from(new Set(placeholders)).sort((a, b) => a - b);
-  const blankCount = unique.length;
+  const blankCount = numbers.length;
+
+  // 校验 1：编号必须从 1 开始连续（{{1}} {{2}} {{3}} ...）
+  for (let i = 0; i < numbers.length; i++) {
+    if (numbers[i] !== i + 1) {
+      throw new Error(
+        `[fill-blank] 占位编号必须从 1 开始连续递增，发现 {{${numbers[i]}}}` +
+        `（出现在第 ${i + 1} 个空）。请改用 {{1}} {{2}} {{3}} ... 顺序编写。`
+      );
+    }
+  }
+  // 校验 2：同一编号不能重复出现
+  const seen = new Set();
+  for (let i = 0; i < numbers.length; i++) {
+    if (seen.has(numbers[i])) {
+      throw new Error(
+        `[fill-blank] 占位编号 {{${numbers[i]}}} 重复出现在第 ${i + 1} 个空。` +
+        `每个空必须用唯一编号（{{1}} {{2}} {{3}} ...）。`
+      );
+    }
+    seen.add(numbers[i]);
+  }
 
   // answers 数组归一化：每项是 string[]（等价集合）
   let normAnswers;
