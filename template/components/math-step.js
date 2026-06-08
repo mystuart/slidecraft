@@ -91,6 +91,10 @@ function render(data) {
   const problem = data.question || data.problem || '';
   const problemFormula = data.questionFormula || data.problemFormula || '';
   const celebrate = data.celebrate !== false; // 默认 true
+  // 步骤联动：把每步的 highlight + geometry3dId 透传到客户端
+  // - 顶层 geometry3dId：默认目标（每步可单独覆盖）
+  // - 每步 highlight: { edges: [[a,b],...], planes: ["AB1C",...] }
+  const defaultGeomId = data.geometry3dId || '';
   const steps = Array.isArray(data.steps) ? data.steps : [];
 
   if (!problem || steps.length === 0) {
@@ -137,6 +141,12 @@ function render(data) {
       ? `<div class="math-step-answer"><span class="math-step-answer-label">✓ 答案</span><div class="math-step-answer-body">${processInline(step.answer)}</div></div>`
       : '';
 
+    // 步骤联动：透传 highlight 到 data-attr（客户端读取后调 window.__cwGeom3D[id].setHighlight）
+    const stepGeomId = step.geometry3dId || defaultGeomId;
+    const highlightAttr = step.highlight
+      ? ` data-highlight='${escapeHtml(JSON.stringify(step.highlight))}' data-geometry-3d-id="${escapeHtml(stepGeomId)}"`
+      : '';
+
     // 完成勾选
     const checkboxHtml = `
       <label class="math-step-done-label">
@@ -146,7 +156,7 @@ function render(data) {
     `;
 
     return `
-      <div class="math-step-step" data-step-number="${stepNumber}">
+      <div class="math-step-step" data-step-number="${stepNumber}"${highlightAttr}>
         <div class="math-step-step-header">
           ${stepTitle}
           ${checkboxHtml}
@@ -173,7 +183,7 @@ function render(data) {
   `;
 
   return `
-    <section class="math-step" id="${escapeHtml(id)}" data-component="math-step" data-step-count="${totalSteps}" data-celebrate="${celebrate ? 'true' : 'false'}">
+    <section class="math-step" id="${escapeHtml(id)}" data-component="math-step" data-step-count="${totalSteps}" data-celebrate="${celebrate ? 'true' : 'false'}" data-geometry-3d-id="${escapeHtml(defaultGeomId)}">
       ${titleHtml}
       <div class="math-step-problem-box">
         ${problemHtml}
