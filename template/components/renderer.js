@@ -1,7 +1,13 @@
 /**
  * @component renderer
- * @version 0.2.0
+ * @version 0.2.2
  * @status 内部调度器，不参与组件登记
+ *
+ * v0.2.2 变更：
+ *   - 注册 cut-anim 组件（v0.3 剖切动画）
+ *
+ * v0.2.1 变更：
+ *   - 注册 slider + tetra-equiv 两个新组件（v0.3 联动能力）
  *
  * 组件主调度器。
  *
@@ -38,6 +44,8 @@ const formula = require('./formula.js');
 const mathStep = require('./math-step.js');
 const geometry3d = require('./geometry-3d.js');
 const slider = require('./slider.js');
+const tetraEquiv = require('./tetra-equiv.js');
+const cutAnim = require('./cut-anim.js');
 
 // 语言标记 → 组件渲染器
 const COMPONENT_MAP = {
@@ -65,6 +73,12 @@ const COMPONENT_MAP = {
   'geometry3d': geometry3d,
   'geometry_3d': geometry3d,
   'slider': slider,
+  'tetra-equiv': tetraEquiv,
+  'tetraequiv': tetraEquiv,
+  'tetra_equiv': tetraEquiv,
+  'cut-anim': cutAnim,
+  'cutanim': cutAnim,
+  'cut_anim': cutAnim,
 };
 
 const PLACEHOLDER_RE = /<!--\s*CW-COMPONENT-(\d+)\s*-->/g;

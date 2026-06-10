@@ -217,6 +217,38 @@ sections:
 }
 ```
 
+```tetra-equiv
+{
+  "id": "tetra-equiv-b1apc",
+  "title": "同一个三棱锥 B₁-APC 的 4 种摆法（等体积法）",
+  "linkedGeometry3d": "prism-2024-xianyang-q2",
+  "vertexLabels": ["A", "P", "C", "B₁"],
+  "showAs": [
+    { "base": ["A", "P", "C"],  "apex": "B₁", "color": "#ff6b6b", "label": "B₁-APC（题面底）" },
+    { "base": ["A", "B₁", "C₁"], "apex": "P",  "color": "#4ecdc4", "label": "P-AB₁C₁（P 锥顶）" },
+    { "base": ["P", "B₁", "C"],  "apex": "A",  "color": "#ffe66d", "label": "A-PB₁C（A 锥顶）" },
+    { "base": ["A", "P", "B₁"],  "apex": "C",  "color": "#a8e6cf", "label": "C-APB₁（C 锥顶）" }
+  ],
+  "caption": "4 个三棱锥形状不同 / 顶点不同 / 体积完全相等。拖动上面滑块改变 P 位置，4 个锥同步变形，但体积校验永远相等。"
+}
+```
+
+```cut-anim
+{
+  "id": "cut-b1apc",
+  "title": "剖切动画：从三棱柱切出三棱锥 B₁-APC",
+  "linkedGeometry3d": "prism-2024-xianyang-q2",
+  "keepVertices": ["A", "P", "C", "B₁"],
+  "cutPlane": {
+    "type": "plane-through-points",
+    "points": ["A", "P", "C"]
+  },
+  "duration": 1800,
+  "easing": "easeInOutQuad",
+  "caption": "切下部分 = 三棱锥 B₁-APC（橙色高亮）；剩余部分 = 三棱柱 APC-A₁B₁C₁ 减去切下部分（淡蓝）。点播放看剖切过程；拖动上面滑块改 P 位置，切面跟着转，比例不变。"
+}
+```
+
 ```math-step
 {
   "id": "step-q2",
