@@ -35,6 +35,17 @@
  *   - 双击几何体 = 以该几何体包围盒中心重置视角
  *   - 双击空白区 = 全局复位到 schema 里 camera.position 初始视角
  *
+ * 顶点 / 派生顶点（v0.3）：
+ *   - labels 中声明的 label 文本（如 "P"）即「命名顶点」——slider 拖动时通过
+ *     setLabelPos(name, [x,y,z]) 改其位置，CSS2D 文字同步移动，引用此 label 的
+ *     半透面（planes）法线 / 中心自动重算。
+ *   - derivedVertices: [{label, formula}] —— 声明派生顶点。formula 取值：
+ *       "midpoint(a, b)"       取两点中点
+ *       "centroid(a, b, c)"    取三点重心
+ *       "linear(a, b, t)"      沿 a→b 线性插值，t ∈ [0,1]（t 通过 slider 的 drives[].param 控制）
+ *     任意命名顶点变化（手动 setLabelPos 或其他 derived 重算）都会触发整组 derived 重算，
+ *     公式顺序按声明顺序排在前面的先算，引用后算的 label 视为依赖。
+ *
  * 客户端全局约定（由 build.js 注入）：
  *   - window.__cwThree         : THREE 命名空间
  *   - window.__cwOrbitControls : OrbitControls 构造器
@@ -208,30 +219,40 @@ const clientJs = `
         // params = [baseSize, height] （data.size 也支持 [base, height] 写法）
         // 6 顶点：A/B/C（底面），A'B'C'（顶面）
         // 顶点排布：底面 z=0 平面，顶面 z=height 平面，y 轴上下
+        // v0.3：支持 data.vertices 显式顶点表（6 个 3D 坐标），用于直角三角形底面等非等边场景
         (function () {
-          var base = params[0];
-          var h = params[1];
-          // 等边三角形底面在 XY 平面（重心在原点），z 轴是"高"方向
-          // 底面：A(左下) B(右) C(上)，顶面沿 z 抬升 h
-          var r = (base * Math.sqrt(3)) / 3; // 重心到顶点的距离
-          var vA = [-base / 2, -r / 2, 0];
-          var vB = [base / 2, -r / 2, 0];
-          var vC = [0, r, 0];
-          var vAp = [vA[0], vA[1], h];
-          var vBp = [vB[0], vB[1], h];
-          var vCp = [vC[0], vC[1], h];
-          // 5 个面（顶点索引数组）
-          var faces = [
-            [0, 1, 2],     // 底面 ABC
-            [3, 5, 4],     // 顶面 A'B'C'（法线反向）
-            [0, 3, 4, 1],  // 侧面 ABB'A'
-            [1, 4, 5, 2],  // 侧面 BCC'B'
-            [2, 5, 3, 0],  // 侧面 CAA'C'
-          ];
-          geometry = buildPolyhedronFromVerts(
-            [vA, vB, vC, vAp, vBp, vCp],
-            faces
-          );
+          var verts, faces;
+          if (data.vertices && Array.isArray(data.vertices) && data.vertices.length >= 6) {
+            // 显式顶点表模式：顺序 [A, B, C, A', B', C']
+            verts = data.vertices.slice(0, 6);
+            faces = [
+              [0, 1, 2],     // 底面 ABC
+              [3, 5, 4],     // 顶面 A'B'C'（法线反向）
+              [0, 3, 4, 1],  // 侧面 ABB'A'
+              [1, 4, 5, 2],  // 侧面 BCC'B'
+              [2, 5, 3, 0],  // 侧面 CAA'C'
+            ];
+          } else {
+            var base = params[0];
+            var h = params[1];
+            var r = (base * Math.sqrt(3)) / 3;
+            verts = [
+              [-base / 2, -r / 2, 0],
+              [base / 2, -r / 2, 0],
+              [0, r, 0],
+              [-base / 2, -r / 2, h],
+              [base / 2, -r / 2, h],
+              [0, r, h],
+            ];
+            faces = [
+              [0, 1, 2],
+              [3, 5, 4],
+              [0, 3, 4, 1],
+              [1, 4, 5, 2],
+              [2, 5, 3, 0],
+            ];
+          }
+          geometry = buildPolyhedronFromVerts(verts, faces);
         })();
         break;
       case 'pyramid':
@@ -289,7 +310,7 @@ const clientJs = `
     if (data.showVertices !== false) {
       var sphereGeom = new THREE.SphereGeometry(0.06, 16, 12);
       var sphereMat = new THREE.MeshBasicMaterial({ color: data.vertexColor || '#ff6b35' });
-      extractVertices(geomType, data.size).forEach(function(v) {
+      extractVertices(geomType, data.size, data.vertices).forEach(function(v) {
         var dot = new THREE.Mesh(sphereGeom, sphereMat);
         dot.position.set(v[0], v[1], v[2]);
         root.add(dot);
@@ -321,7 +342,9 @@ const clientJs = `
     // planes: [{ id, vertices: ["A","B","C"], opacity }]
     // - 用 3 个命名顶点（labelNameToPos 查坐标）算 Plane 法线 + 原点
     // - 单独放在 layer 1，hover raycaster 限定 layer 0（双击复位时不会被半透面阻挡）
+    // - 当任一 vertices 中的 label 位置变化时，调用 repositionPlane 重新计算中心 + 法线
     var planeObjects = {}; // id → Mesh
+    var planeMeta = {};    // id → { vertices: [...], color, opacity }（重定位时查）
     if (Array.isArray(data.planes) && data.planes.length > 0) {
       data.planes.forEach(function(pl) {
         if (!pl || !pl.id || !Array.isArray(pl.vertices) || pl.vertices.length < 3) return;
@@ -352,6 +375,123 @@ const clientJs = `
         planeMesh.renderOrder = 2; // 在实体几何体之后渲染
         root.add(planeMesh);
         planeObjects[pl.id] = planeMesh;
+        planeMeta[pl.id] = {
+          vertices: pl.vertices.slice(),
+          color: pl.color || '#ffd166',
+          opacity: typeof pl.opacity === 'number' ? pl.opacity : 0.4,
+        };
+      });
+    }
+
+    // 重算单个 plane 的中心 + 法线（基于最新的 labelNameToPos）
+    function repositionPlane(planeId) {
+      var m = planeObjects[planeId];
+      var meta = planeMeta[planeId];
+      if (!m || !meta) return;
+      var positions = meta.vertices.map(function(n) { return labelNameToPos[n]; }).filter(Boolean);
+      if (positions.length < 3) return;
+      var p0 = positions[0], p1 = positions[1], p2 = positions[2];
+      var v1 = new THREE.Vector3().subVectors(p1, p0);
+      var v2 = new THREE.Vector3().subVectors(p2, p0);
+      var normal = new THREE.Vector3().crossVectors(v1, v2).normalize();
+      var center = new THREE.Vector3().add(p0).add(p1).add(p2).multiplyScalar(1 / 3);
+      m.position.copy(center);
+      var quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+      m.quaternion.copy(quat);
+    }
+
+    // 找出所有引用了某个 label 的 plane id，返回 id 列表
+    function planesUsingLabel(labelName) {
+      var ids = [];
+      Object.keys(planeMeta).forEach(function(pid) {
+        if (planeMeta[pid].vertices.indexOf(labelName) >= 0) ids.push(pid);
+      });
+      return ids;
+    }
+
+    // ---- 6.55) 派生顶点（v0.3）----
+    // derivedVertices: [{ label, formula }]
+    //   - formula 形如 "midpoint(P, C)" / "centroid(A, B, C)" / "linear(A1, C1, 0.5)"
+    //   - "linear" 公式当前只支持常数 t（v0.3 不支持滑块值注入；t 通过 schema 显式给定）
+    //   - 注意：slider 联动顶点（如 P）走 drives 字段，不通过 derivedVertices。
+    //     derivedVertices 只用于"由其它命名顶点算出的新顶点"（D = mid(P, C)）。
+    //   - 重算顺序：按 schema 声明顺序排，依赖前一个就把它写在前面。
+    function parseFormula(formula) {
+      var f = String(formula || '').trim();
+      var m = f.match(/^(\w+)\s*\(([^)]*)\)\s*$/);
+      if (!m) return null;
+      var fn = m[1];
+      var args = m[2].split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+      return { fn: fn, args: args };
+    }
+
+    function applyDerivedFormula(parsed) {
+      if (!parsed) return null;
+      var args = parsed.args.map(function(a) {
+        // 数字字面 → 直接返回
+        var n = parseFloat(a);
+        if (!isNaN(n) && isFinite(n) && /^-?\d+(\.\d+)?$/.test(a)) return n;
+        // 否则视为 label 名
+        var v = labelNameToPos[a];
+        return v ? [v.x, v.y, v.z] : null;
+      });
+      if (args.some(function(x) { return x === null; })) return null;
+      // 必须全是坐标（三元组）才能用 midpoint/centroid；linear 允许 t 为数字
+      if (parsed.fn === 'midpoint' && args.length === 2) {
+        var a = args[0], b = args[1];
+        return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
+      }
+      if (parsed.fn === 'centroid' && args.length === 3) {
+        var p = args[0], q = args[1], r = args[2];
+        return [(p[0] + q[0] + r[0]) / 3, (p[1] + q[1] + r[1]) / 3, (p[2] + q[2] + r[2]) / 3];
+      }
+      if (parsed.fn === 'linear' && args.length === 3) {
+        var u = args[0], v = args[1], t = args[2];
+        if (typeof t !== 'number') return null;
+        return [u[0] + t * (v[0] - u[0]), u[1] + t * (v[1] - u[1]), u[2] + t * (v[2] - u[2])];
+      }
+      return null;
+    }
+
+    // 派生顶点声明解析 + 初始计算
+    var derivedList = []; // [{label, parsed}]
+    if (Array.isArray(data.derivedVertices) && data.derivedVertices.length > 0) {
+      data.derivedVertices.forEach(function(d) {
+        if (!d || !d.label) return;
+        var parsed = parseFormula(d.formula);
+        if (!parsed) {
+          console.warn('[geometry-3d] derivedVertices 公式无法解析:', d);
+          return;
+        }
+        derivedList.push({ label: String(d.label), parsed: parsed });
+      });
+      // 初始重算一次
+      derivedList.forEach(function(item) {
+        var pos = applyDerivedFormula(item.parsed);
+        if (pos) {
+          labelNameToPos[item.label] = new THREE.Vector3(pos[0], pos[1], pos[2]);
+          // 同步到已存在的 CSS2DObject（如果 labels 里也声明了这个 label，会被同步到正确位置）
+          root.children.forEach(function(child) {
+            if (child.isCSS2DObject && child.element && child.element.textContent === item.label) {
+              child.position.set(pos[0], pos[1], pos[2]);
+            }
+          });
+        }
+      });
+    }
+
+    // 整组 derived 重算（按声明顺序）
+    function recomputeDerived() {
+      derivedList.forEach(function(item) {
+        var pos = applyDerivedFormula(item.parsed);
+        if (pos) {
+          labelNameToPos[item.label] = new THREE.Vector3(pos[0], pos[1], pos[2]);
+          root.children.forEach(function(child) {
+            if (child.isCSS2DObject && child.element && child.element.textContent === item.label) {
+              child.position.set(pos[0], pos[1], pos[2]);
+            }
+          });
+        }
       });
     }
 
@@ -364,7 +504,7 @@ const clientJs = `
     highlightGroup.layers.set(HIGHLIGHT_LAYER);
     root.add(highlightGroup);
 
-    var defaultVertexPositions = extractVertices(geomType, data.size);
+    var defaultVertexPositions = extractVertices(geomType, data.size, data.vertices);
 
     function drawHighlightEdges(edgePairs) {
       // 清理旧高亮
@@ -422,7 +562,7 @@ const clientJs = `
       });
     }
 
-    // ---- 6.8) 对外 API：setHighlight / resetHighlight ----
+    // ---- 6.8) 对外 API：setHighlight / resetHighlight / setLabelPos / getLabelPos ----
     // math-step / slider 调这里，不需要 DOM 查询
     var stageId = container.id;
     var api = {
@@ -440,24 +580,34 @@ const clientJs = `
         return v ? [v.x, v.y, v.z] : null;
       },
       setLabelPos: function(name, pos) {
-        // slider 拖动 P 时用：在 root 局部坐标下移动一个 label 和对应顶点球
-        // 找已存在的 CSS2D label（按 textContent 匹配）
+        // slider 拖动 P 时用：把命名顶点移到新位置。
+        // 1) 更新 labelNameToPos
+        // 2) 同步所有同名 CSS2D 文字标签位置
+        // 3) 重新计算引用了此 label 的 plane（中心 + 法线）
+        // 4) 触发整组 derivedVertices 重算
+        // 5) 衍生 label 变化时也连带触发引用它的 plane 重新定位
+        if (!Array.isArray(pos) || pos.length < 3) return;
         var newPos = new THREE.Vector3(pos[0], pos[1], pos[2]);
         labelNameToPos[name] = newPos;
-        // 同步 root 下所有同名的 CSS2DObject 位置
+        // 同步 CSS2D 文字
         root.children.forEach(function(child) {
           if (child.isCSS2DObject && child.element && child.element.textContent === name) {
             child.position.copy(newPos);
           }
         });
-        // 同步顶点球位置（如果有）
-        root.children.forEach(function(child) {
-          if (child.isMesh && child.geometry && child.geometry.type === 'SphereGeometry' && child.userData && child.userData.labelName === name) {
-            child.position.copy(newPos);
-          }
-        });
-        // 同步绑定到该 label 的 planes（如有 PAB → 重新计算法线 — 简化为保留旧 plane 位置）
-        // 简化：调用方负责 planes 的更新
+        // 重新定位引用了此 label 的 plane
+        var affectedPlaneIds = planesUsingLabel(name);
+        affectedPlaneIds.forEach(function(pid) { repositionPlane(pid); });
+        // 重算 derived vertices（按声明顺序，可能产生新位置 → 同样需要更新 CSS2D + 受影响的 plane）
+        if (derivedList.length > 0) {
+          recomputeDerived();
+          // derived 的 label 变化也连带触发 plane 重新定位
+          // （每个 derived label 都要查它出现在哪些 plane 里）
+          derivedList.forEach(function(item) {
+            var ids = planesUsingLabel(item.label);
+            ids.forEach(function(pid) { repositionPlane(pid); });
+          });
+        }
       },
       root: root,
       scene: scene,
@@ -572,7 +722,10 @@ const clientJs = `
     }
   }
 
-  function extractVertices(geomType, size) {
+  function extractVertices(geomType, size, explicitVertices) {
+    if (explicitVertices && Array.isArray(explicitVertices) && explicitVertices.length >= 6) {
+      return explicitVertices.slice(0, 6);
+    }
     var s = Array.isArray(size) && size.length > 0 ? size : [1, 1, 1];
     if (geomType === 'box') {
       var sx = s[0] / 2, sy = s[1] / 2, sz = s[2] / 2;

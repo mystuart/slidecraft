@@ -34,3 +34,6 @@ npm-debug.log*
 .commit-msg.tmp
 
 # 临时 commit message 文件（用 git commit -F 时会写）
+
+# OpenCode runtime 临时目录
+.opencode/
