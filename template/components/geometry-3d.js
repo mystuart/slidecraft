@@ -1,6 +1,6 @@
 /**
  * @component geometry-3d
- * @version 0.1.0
+ * @version 0.1.1
  * @status 最小可用版
  *
  * 立体几何 3D 组件（Three.js）
@@ -50,6 +50,11 @@
  *   - window.__cwThree         : THREE 命名空间
  *   - window.__cwOrbitControls : OrbitControls 构造器
  *   - window.__cwCSS2D         : { CSS2DRenderer, CSS2DObject }
+ *
+ * v0.1.1 变更（A2 · per-instance 闭包改造）：
+ *   - API 同时挂到 DOM 元素（container.__cwApi）和 window.__cwGeom3D[stageId]（向后兼容）
+ *   - 其他组件优先用 document.getElementById(id).__cwApi 找 API，无全局冲突
+ *   - 多课件同页 / 多 iframe / 多 worker session 各自闭包独立
  */
 
 const { escapeHtml } = require('./_inline.js');
@@ -416,9 +421,19 @@ const clientJs = `
     //   - 注意：slider 联动顶点（如 P）走 drives 字段，不通过 derivedVertices。
     //     derivedVertices 只用于"由其它命名顶点算出的新顶点"（D = mid(P, C)）。
     //   - 重算顺序：按 schema 声明顺序排，依赖前一个就把它写在前面。
+    //
+    // v0.1.1 修复（A1 改造副作用 · 模板字符串反斜杠陷阱）：
+    //   clientJs 本身是 JS 字符串字面量，里头再写 /regex/ literal 时，
+    //   \w / \s 会被 JS 字符串解析阶段丢弃反斜杠 → 实际跑到浏览器的正则变成 /(w+)/，
+    //   之前 slider 联动 P 时 parseFormula 必然 fail，console.warn 刷屏。
+    //   解决：用 new RegExp('pattern', 'flags') 构造正则，绕开字符串字面量转义。
     function parseFormula(formula) {
       var f = String(formula || '').trim();
-      var m = f.match(/^(\w+)\s*\(([^)]*)\)\s*$/);
+      // 匹配 <funcName>(<args>) —— 用字符串构造避免 clientJs 模板字符串转义陷阱
+      // 注意：clientJs 是模板字符串，里面的反斜杠会被吃一层
+      // 源代码写 4 个反斜杠 \\\\s → 模板字符串解析为 \\s（2 字符）→ JS 字符串字面量解析为 \s（1 字符，元字符）
+      var re = new RegExp('^([A-Za-z_][A-Za-z0-9_]*)\\\\s*\\\\(([^)]*)\\\\)\\\\s*$');
+      var m = f.match(re);
       if (!m) return null;
       var fn = m[1];
       var args = m[2].split(',').map(function(s) { return s.trim(); }).filter(Boolean);
@@ -430,7 +445,7 @@ const clientJs = `
       var args = parsed.args.map(function(a) {
         // 数字字面 → 直接返回
         var n = parseFloat(a);
-        if (!isNaN(n) && isFinite(n) && /^-?\d+(\.\d+)?$/.test(a)) return n;
+        if (!isNaN(n) && isFinite(n) && /^-?\\d+(\\.\\d+)?$/.test(a)) return n;
         // 否则视为 label 名
         var v = labelNameToPos[a];
         return v ? [v.x, v.y, v.z] : null;
@@ -563,7 +578,9 @@ const clientJs = `
     }
 
     // ---- 6.8) 对外 API：setHighlight / resetHighlight / setLabelPos / getLabelPos ----
-    // math-step / slider 调这里，不需要 DOM 查询
+    // math-step / slider 调这里，**优先**走 DOM 元素上的 __cwApi（per-instance 闭包），
+    // 不再依赖 window.__cwGeom3D 全局字典 —— 避免多课件同页 / 多 iframe / 多 worker session 冲突。
+    // 老代码（找 window.__cwGeom3D[id]）仍兼容：兜底也挂一份到全局。
     var stageId = container.id;
     var api = {
       setHighlight: function(spec) {
@@ -612,7 +629,12 @@ const clientJs = `
       root: root,
       scene: scene,
     };
+
+    // 主：API 挂到 DOM 元素本身（per-instance，无全局污染）
+    container.__cwApi = api;
+    // 兜底：挂到全局字典（兼容老代码 + 一些跑在 DOM 之外的脚本）
     if (stageId) {
+      if (!window.__cwGeom3D) window.__cwGeom3D = {};
       window.__cwGeom3D[stageId] = api;
     }
 

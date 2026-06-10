@@ -18,6 +18,7 @@ const { escapeHtml } = require('./template/components/_inline.js');
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const matter = require('gray-matter');
 const renderer = require('./template/components/renderer.js');
 
@@ -29,6 +30,10 @@ async function loadMarked() {
   }
   return markedModule;
 }
+
+// CLI 标志：A1 · Three.js 内联模式（--inline-three 启用）
+// 默认 false = 拆外链 + 缓存破坏
+let INLINE_THREE = false;
 
 // ============================================================
 // 配置
@@ -121,15 +126,36 @@ async function buildFile(inputPath) {
   // 8) 收集客户端 JS
   const clientJs = renderer.collectClientScript();
 
-  // 8.5) 内联 Three.js 包（如果 content 里有 geometry-3d 组件）
+  // 8.5) Three.js 包处理（A1 · 拆外链 + 缓存破坏）
   // 仅当输出文件用到了 geometry-3d 组件时才注入，避免给不需要 3D 的课件也增加 730KB
+  // 两种模式：
+  //   a) 默认（externalThree=true）：Three.js 拆为外链 <script src="three-bundle.<hash>.iife.js"></script>
+  //      同一站点多个课件共享同一份 Three.js（浏览器缓存命中，CDN 流量减半）
+  //   b) --inline-three：Three.js 内联进 HTML，单文件离线部署（Alice 内网部署场景）
   const threeBundlePath = path.join(ROOT, 'cw-three-bundle.iife.js');
   let threeBundleJs = '';
-  if (bodyHtml.includes('class="geom-3d"') && fs.existsSync(threeBundlePath)) {
-    threeBundleJs = fs.readFileSync(threeBundlePath, 'utf8');
-  } else if (bodyHtml.includes('class="geom-3d"') && !fs.existsSync(threeBundlePath)) {
-    console.error('! 警告：检测到 geometry-3d 组件但未找到 cw-three-bundle.iife.js');
-    console.error('  运行: node_modules/.bin/esbuild cw-three-bundle.js --bundle --format=iife --target=es2020 --minify --outfile=cw-three-bundle.iife.js');
+  let threeBundleTag = '';
+  if (bodyHtml.includes('class="geom-3d"')) {
+    if (fs.existsSync(threeBundlePath)) {
+      if (INLINE_THREE) {
+        // 模式 b：内联
+        threeBundleJs = fs.readFileSync(threeBundlePath, 'utf8');
+      } else {
+        // 模式 a：外链 + hash 缓存破坏
+        const bundle = fs.readFileSync(threeBundlePath);
+        const hash = crypto.createHash('sha256').update(bundle).digest('hex').slice(0, 8);
+        const hashedName = `three-bundle.${hash}.iife.js`;
+        const hashedPath = path.join(DIST_DIR, hashedName);
+        // 复制到 dist/（如果 hash 变了 = 重新复制；hash 不变 = 复用同名文件）
+        if (!fs.existsSync(hashedPath)) {
+          fs.writeFileSync(hashedPath, bundle);
+        }
+        threeBundleTag = `<script src="${hashedName}"></script>`;
+      }
+    } else {
+      console.error('! 警告：检测到 geometry-3d 组件但未找到 cw-three-bundle.iife.js');
+      console.error('  运行: node_modules/.bin/esbuild cw-three-bundle.js --bundle --format=iife --target=es2020 --minify --outfile=cw-three-bundle.iife.js');
+    }
   }
 
   // 9) 注入模板
@@ -142,6 +168,7 @@ async function buildFile(inputPath) {
     .replace(/\{\{NAV_ITEMS\}\}/g, () => nav.items)
     .replace(/\{\{CONTENT\}\}/g, () => bodyHtml)
     .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss)
+    .replace(/\{\{THREE_SCRIPT\}\}/g, () => threeBundleTag)
     .replace(/\{\{CLIENT_JS\}\}/g, () => threeBundleJs + '\n' + clientJs);
 
   // 10) 写文件
@@ -157,23 +184,35 @@ async function buildFile(inputPath) {
 }
 
 // ============================================================
-// CLI 入口
-// ============================================================
-async function main() {
-  const args = process.argv.slice(2);
-
-  // 默认：编译 content/ 目录下所有 .md
-  let targets;
-  if (args.length === 0) {
-    const contentDir = path.join(ROOT, 'content');
-    if (fs.existsSync(contentDir)) {
-      targets = fs.readdirSync(contentDir)
-        .filter(f => f.endsWith('.md'))
-        .map(f => path.join(contentDir, f));
-    } else {
-      targets = [];
+  // CLI 入口
+  // ============================================================
+  async function main() {
+    const rawArgs = process.argv.slice(2);
+    const args = [];
+    for (const a of rawArgs) {
+      if (a === '--inline-three') {
+        INLINE_THREE = true;
+        console.log('[build] 模式：Three.js 内联（单文件离线部署）');
+      } else if (a === '--watch') {
+        // 占位 —— 真正的 --watch 留给后续实现
+        console.warn('[build] --watch 暂未实现，使用 `node build.js` 手动重跑');
+      } else {
+        args.push(a);
+      }
     }
-  } else {
+
+    // 默认：编译 content/ 目录下所有 .md
+    let targets;
+    if (args.length === 0) {
+      const contentDir = path.join(ROOT, 'content');
+      if (fs.existsSync(contentDir)) {
+        targets = fs.readdirSync(contentDir)
+          .filter(f => f.endsWith('.md'))
+          .map(f => path.join(contentDir, f));
+      } else {
+        targets = [];
+      }
+    } else {
     // 解析所有参数（支持 glob-like 简单展开 *.md）
     targets = [];
     for (const arg of args) {

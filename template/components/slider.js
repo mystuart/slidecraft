@@ -1,6 +1,6 @@
 /**
  * @component slider
- * @version 0.1.0
+ * @version 0.1.1
  * @status 最小可用版
  *
  * 滑块组件（拖动实时改值，可联动 geometry-3d 顶点）
@@ -125,9 +125,17 @@ document.querySelectorAll('.slider').forEach(function(s) {
   }
 
   // 把 t 应用到所有 drives（驱动 geometry-3d 顶点）
+  // v0.1.1：优先走 DOM 元素的 __cwApi（per-instance 闭包，A2 改造），
+  // 兜底用 window.__cwGeom3D[id]（兼容老代码 + 跑在 DOM 之外的脚本）
   function applyDrives(t) {
     if (!linkedId || drives.length === 0) return;
-    var api = (window.__cwGeom3D || {})[linkedId];
+    var api = null;
+    var linkedEl = document.getElementById(linkedId);
+    if (linkedEl && linkedEl.__cwApi && linkedEl.__cwApi.setLabelPos) {
+      api = linkedEl.__cwApi;
+    } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
+      api = window.__cwGeom3D[linkedId];
+    }
     if (!api || !api.setLabelPos) return;
     drives.forEach(function(d) {
       if (!d || !d.vertex) return;

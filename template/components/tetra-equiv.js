@@ -1,6 +1,6 @@
 /**
  * @component tetra-equiv
- * @version 0.1.0
+ * @version 0.1.1
  * @status 最小可用版
  *
  * 同体异构四面体组件 —— 同时显示「同一个四面体的 4 种不同摆法」
@@ -250,9 +250,17 @@ const clientJs = `
 
     /**
      * 拉取最新顶点位置 + 重画 4 个四面体 + 计算体积
+     * v0.1.1：优先走 DOM 元素的 __cwApi（per-instance 闭包，A2 改造），
+     * 兜底用 window.__cwGeom3D[id]（兼容老代码）
      */
     function pullAndRender() {
-      var api = (window.__cwGeom3D || {})[linkedId];
+      var api = null;
+      var linkedEl = document.getElementById(linkedId);
+      if (linkedEl && linkedEl.__cwApi && typeof linkedEl.__cwApi.getLabelPos === 'function') {
+        api = linkedEl.__cwApi;
+      } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
+        api = window.__cwGeom3D[linkedId];
+      }
       if (!api || typeof api.getLabelPos !== 'function') {
         // 没联动源：所有顶点用 [0,0,0]，4 个四面体重叠在一起 —— 静默 fallback
         return;

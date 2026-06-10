@@ -32,6 +32,7 @@
     </main>
   </div>
 
+  {{THREE_SCRIPT}}
   <script>
 {{CLIENT_JS}}
   </script>

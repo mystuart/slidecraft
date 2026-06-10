@@ -1,6 +1,6 @@
 /**
  * @component cut-anim
- * @version 0.1.0
+ * @version 0.1.1
  * @status 最小可用版
  *
  * 剖切动画组件 —— 「从三棱柱切下一刀得到三棱锥」的过程动画
@@ -300,10 +300,18 @@ const clientJs = `
 
     /**
      * 从源 geometry-3d 拉取所有命名顶点 + 重画三棱柱 + 保留四面体 + 切平面
+     * v0.1.1：优先走 DOM 元素的 __cwApi（per-instance 闭包，A2 改造），
+     * 兜底用 window.__cwGeom3D[id]（兼容老代码）
      */
     function pullAndRender(progress) {
       progress = (typeof progress === 'number') ? progress : (root.dataset.progress ? parseFloat(root.dataset.progress) : 0);
-      var api = (window.__cwGeom3D || {})[linkedId];
+      var api = null;
+      var linkedEl = document.getElementById(linkedId);
+      if (linkedEl && linkedEl.__cwApi && typeof linkedEl.__cwApi.getLabelPos === 'function') {
+        api = linkedEl.__cwApi;
+      } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
+        api = window.__cwGeom3D[linkedId];
+      }
       if (!api || typeof api.getLabelPos !== 'function') return;
 
       // 取所有标准顶点 A, B, C, A₁, B₁, C₁（用于画三棱柱）
