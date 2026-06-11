@@ -1,6 +1,6 @@
 /**
  * @component _inline
- * @version 0.2.0
+ * @version 0.2.1
  * @status 内部工具，不参与组件登记
  *
  * 组件共用的内联 markdown 处理工具。
@@ -8,7 +8,7 @@
  * 用法：const { processInline, escapeHtml } = require('./_inline');
  *
  * 导出：
- *   - processInline(text) — 处理内联 markdown 语法，输出 HTML
+ *   - processInline(text) — 处理内联 markdown 语法 + 行内 LaTeX（$...$），输出 HTML
  *   - escapeHtml(text)    — 转义 HTML 特殊字符
  *
  * 支持的语法（顺序敏感）：
@@ -17,9 +17,10 @@
  *   3. *italic*         → <em>italic</em>
  *   4. [text](url)      → <a href="url">text</a>  （仅允许 http/https/mailto/# 协议）
  *   5. 换行符           → <br>
+ *   6. $...$ LaTeX      → KaTeX 渲染（可选依赖：未装 katex 时降级为原样）
  *
- * **已知限制**：不处理 `$...$` 行内 LaTeX（影响 quiz options[].text、quiz feedback、callout content、math-step step.content 写数学公式的场景）。
- * 决策：待办「processInline 升级支持 LaTeX」是跨组件任务，登记在 [COMPONENTS.md](../../COMPONENTS.md) 系统级问题 #1。
+ * v0.2.1 变更：JSDoc 同步 processInline 已支持 LaTeX（renderer.processInlineFormulas 升级后
+ * 系统级问题 #1 已解决），之前说"不处理 $...$"过期。
  *
  * 字段契约：内部工具，无字段。
  */

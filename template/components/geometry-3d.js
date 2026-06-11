@@ -1,6 +1,6 @@
 /**
  * @component geometry-3d
- * @version 0.1.1
+ * @version 0.1.2
  * @status 最小可用版
  *
  * 立体几何 3D 组件（Three.js）
@@ -50,6 +50,11 @@
  *   - window.__cwThree         : THREE 命名空间
  *   - window.__cwOrbitControls : OrbitControls 构造器
  *   - window.__cwCSS2D         : { CSS2DRenderer, CSS2DObject }
+ *
+ * v0.1.2 变更：
+ *   - camera.layers.enable(1)：修 layer 1 不可见 bug（半透面、坐标轴、高亮线之前默认不可见）
+ *   - setLabelPos / setHighlight 末尾打 __dirty=true + 派发 CustomEvent('cw:geom3d:change')
+ *   - 联动组件（tetra-equiv / cut-anim）可订阅事件或轮询 dirty 标记，按需重建几何体（GLM-5.1 评审指出每帧重建浪费）
  *
  * v0.1.1 变更（A2 · per-instance 闭包改造）：
  *   - API 同时挂到 DOM 元素（container.__cwApi）和 window.__cwGeom3D[stageId]（向后兼容）
@@ -161,6 +166,13 @@ const clientJs = `
     var camera = new THREE.PerspectiveCamera(fov, width / height, 0.1, 1000);
     camera.position.set(camPos[0], camPos[1], camPos[2]);
     camera.lookAt(camTarget[0], camTarget[1], camTarget[2]);
+    // v0.1.2 修复：enable layer 1 渲染半透面 / 坐标轴 / 高亮线
+    //   半透面（planeMesh.layers.set(1)）、高亮线（lineSeg.layers.set(1)）、
+    //   AxesHelper、GridHelper 等都默认在 layer 0/1；
+    //   camera 默认只 layer 0 → 之前这些辅助元素全部不可见。
+    //   修法：相机 enable layer 1，让 layer 0 + 1 都渲染；
+    //   raycaster 仍然限定 layer 0（不让半透面阻挡双击 picking）。
+    camera.layers.enable(1);
 
     var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio || 1);
@@ -358,12 +370,26 @@ const clientJs = `
         var p0 = positions[0], p1 = positions[1], p2 = positions[2];
         var v1 = new THREE.Vector3().subVectors(p1, p0);
         var v2 = new THREE.Vector3().subVectors(p2, p0);
+        // v0.1.2 修复：plane 尺寸 = 3 顶点包围盒的 1.5 倍（之前固定 5x5 太大，layer 修复后才暴露）
+        // 包围盒 = 取所有顶点位置 p, 算 bbox，按 bbox.max - bbox.min 算 maxSpan
+        var allVerts = positions;
+        var minX = Infinity, minY = Infinity, minZ = Infinity;
+        var maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+        allVerts.forEach(function(p) {
+          if (p.x < minX) minX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.z < minZ) minZ = p.z;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y > maxY) maxY = p.y;
+          if (p.z > maxZ) maxZ = p.z;
+        });
+        var spanX = Math.max(maxX - minX, 0.1);
+        var spanY = Math.max(maxY - minY, 0.1);
+        var spanZ = Math.max(maxZ - minZ, 0.1);
+        var maxSpan = Math.max(spanX, spanY, spanZ) * 1.5;  // 1.5 倍冗余覆盖所有顶点
         var normal = new THREE.Vector3().crossVectors(v1, v2).normalize();
-        // 让 plane 覆盖所有顶点：临时取最大跨度做 plane 常量
         var center = new THREE.Vector3().add(p0).add(p1).add(p2).multiplyScalar(1 / 3);
-        // 用一个足够大的尺寸（容器最大跨度 2 倍）做 plane
-        var sceneSpan = 5;
-        var planeGeom = new THREE.PlaneGeometry(sceneSpan, sceneSpan);
+        var planeGeom = new THREE.PlaneGeometry(maxSpan, maxSpan);
         var planeMat = new THREE.MeshBasicMaterial({
           color: pl.color || '#ffd166',
           transparent: true,
@@ -587,10 +613,14 @@ const clientJs = `
         spec = spec || {};
         drawHighlightEdges(spec.edges || []);
         highlightPlanes(spec.planes || []);
+        api.__dirty = true;
+        container.dispatchEvent(new CustomEvent('cw:geom3d:highlight', { detail: spec || {} }));
       },
       resetHighlight: function() {
         drawHighlightEdges([]);
         highlightPlanes([]);
+        api.__dirty = true;
+        container.dispatchEvent(new CustomEvent('cw:geom3d:highlight', { detail: null }));
       },
       getLabelPos: function(name) {
         var v = labelNameToPos[name];
@@ -625,6 +655,14 @@ const clientJs = `
             ids.forEach(function(pid) { repositionPlane(pid); });
           });
         }
+        // v0.1.2：setLabelPos 后打 dirty 标记 + 派发事件
+        //   联动组件（tetra-equiv / cut-anim）用这个标记判断是否需要重建几何体
+        //   没变化时不重建（省 GC + 60fps 重画开销）
+        //   同时派发事件，未来扩展不用改这里
+        api.__dirty = true;
+        container.dispatchEvent(new CustomEvent('cw:geom3d:change', {
+          detail: { name: name, pos: pos }
+        }));
       },
       root: root,
       scene: scene,

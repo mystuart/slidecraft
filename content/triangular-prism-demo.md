@@ -225,11 +225,11 @@ sections:
   "vertexLabels": ["A", "P", "C", "B₁"],
   "showAs": [
     { "base": ["A", "P", "C"],  "apex": "B₁", "color": "#ff6b6b", "label": "B₁-APC（题面底）" },
-    { "base": ["A", "B₁", "C₁"], "apex": "P",  "color": "#4ecdc4", "label": "P-AB₁C₁（P 锥顶）" },
-    { "base": ["P", "B₁", "C"],  "apex": "A",  "color": "#ffe66d", "label": "A-PB₁C（A 锥顶）" },
-    { "base": ["A", "P", "B₁"],  "apex": "C",  "color": "#a8e6cf", "label": "C-APB₁（C 锥顶）" }
+    { "base": ["A", "P", "B₁"], "apex": "C",  "color": "#4ecdc4", "label": "C-APB₁（C 锥顶）" },
+    { "base": ["A", "C", "B₁"], "apex": "P",  "color": "#ffe66d", "label": "P-ACB₁（P 锥顶）" },
+    { "base": ["P", "C", "B₁"], "apex": "A",  "color": "#a8e6cf", "label": "A-PCB₁（A 锥顶）" }
   ],
-  "caption": "4 个三棱锥形状不同 / 顶点不同 / 体积完全相等。拖动上面滑块改变 P 位置，4 个锥同步变形，但体积校验永远相等。"
+  "caption": "4 个三棱锥形状不同 / 顶点不同 / 体积完全相等（顶点集都是 {A, P, C, B₁}，只是换 apex）。拖动上面滑块改变 P 位置，4 个锥同步变形，但体积校验永远相等。"
 }
 ```
 

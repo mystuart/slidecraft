@@ -1,6 +1,6 @@
 /**
  * @component tetra-equiv
- * @version 0.1.1
+ * @version 0.1.2
  * @status 最小可用版
  *
  * 同体异构四面体组件 —— 同时显示「同一个四面体的 4 种不同摆法」
@@ -43,6 +43,7 @@
  */
 
 const { escapeHtml } = require('./_inline.js');
+const { clientJs: geomUtilsJs } = require('./_geom_utils.js');
 
 /**
  * 4 种默认摆法的兜底配色（学员至少能看到 4 个不同颜色的四面体）
@@ -97,34 +98,10 @@ function render(data) {
 }
 
 const clientJs = `
+${geomUtilsJs}
 (function() {
   if (window.__cwTetraEquivLoaded) return;
   window.__cwTetraEquivLoaded = true;
-
-  /**
-   * 4 面体体积公式：V = |(b-a) · ((c-a) × (d-a))| / 6
-   */
-  function tetraVolume(a, b, c, d) {
-    if (!a || !b || !c || !d) return 0;
-    var bax = b[0] - a[0], bay = b[1] - a[1], baz = b[2] - a[2];
-    var cax = c[0] - a[0], cay = c[1] - a[1], caz = c[2] - a[2];
-    var dax = d[0] - a[0], day = d[1] - a[1], daz = d[2] - a[2];
-    // (c-a) × (d-a)
-    var cx = cay * daz - caz * day;
-    var cy = caz * dax - cax * daz;
-    var cz = cax * day - cay * dax;
-    // (b-a) · cross
-    var dot = bax * cx + bay * cy + baz * cz;
-    return Math.abs(dot) / 6;
-  }
-
-  function fmtVol(v) {
-    if (!Number.isFinite(v)) return '—';
-    if (Math.abs(v) < 1e-9) return '0';
-    if (Math.abs(v) >= 100) return v.toFixed(2);
-    if (Math.abs(v) >= 1) return v.toFixed(4).replace(/0+$/, '').replace(/\\.$/, '');
-    return v.toFixed(4).replace(/0+$/, '').replace(/\\.$/, '');
-  }
 
   function initOne(root) {
     var THREE = window.__cwThree;
@@ -151,6 +128,8 @@ const clientJs = `
       if (Array.isArray(p) && p.length > 0) palette = p;
     } catch (e) { /* keep default */ }
 
+    var api = null;  // 联动源 API（v0.1.2：提升到 initOne 顶层，dirty flag 渲染循环需要访问）
+    var linkedEl = null;  // 同上
     var stage = root.querySelector('.tetra-equiv-stage');
     if (!stage) return;
     var w = stage.clientWidth || 360;
@@ -212,41 +191,7 @@ const clientJs = `
       tetraGroups.push({ group: g, fillMesh: fillMesh, edgeLines: edgeLines });
     }
 
-    /**
-     * 把 4 个顶点 + 1 种「base/apex」划分 转成 BufferGeometry 的 positions（3 三角面）+ 描边 positions
-     *   base: [v0, v1, v2] 锥顶: apex（v3）
-     *   三角面: (v0,v1,v2)（底）+ (v0,v1,v3) + (v1,v2,v3) + (v2,v0,v3)（侧）
-     *   描边: 底 3 条 + 侧 3 条 = 6 条边（24 个顶点）
-     */
-    function buildTetraGeom(verts) {
-      if (!Array.isArray(verts) || verts.length !== 4) return null;
-      var v0 = verts[0], v1 = verts[1], v2 = verts[2], v3 = verts[3];
-      if (!v0 || !v1 || !v2 || !v3) return null;
-      var positions = [];
-      function pushTri(a, b, c) {
-        positions.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
-      }
-      pushTri(v0, v1, v2); // 底
-      pushTri(v0, v1, v3); // 侧 1
-      pushTri(v1, v2, v3); // 侧 2
-      pushTri(v2, v0, v3); // 侧 3
-      return positions;
-    }
-
-    function buildEdgeGeom(verts) {
-      if (!Array.isArray(verts) || verts.length !== 4) return null;
-      var v0 = verts[0], v1 = verts[1], v2 = verts[2], v3 = verts[3];
-      if (!v0 || !v1 || !v2 || !v3) return null;
-      // 底 3 条: v0-v1, v1-v2, v2-v0
-      // 侧 3 条: v0-v3, v1-v3, v2-v3
-      var positions = [];
-      function pushLine(a, b) {
-        positions.push(a[0], a[1], a[2], b[0], b[1], b[2]);
-      }
-      pushLine(v0, v1); pushLine(v1, v2); pushLine(v2, v0);
-      pushLine(v0, v3); pushLine(v1, v3); pushLine(v2, v3);
-      return positions;
-    }
+    // buildTetraPositions / buildEdgePositions 来自 _geom_utils 的共享定义（cwGeom_ 前缀）
 
     /**
      * 拉取最新顶点位置 + 重画 4 个四面体 + 计算体积
@@ -254,8 +199,7 @@ const clientJs = `
      * 兜底用 window.__cwGeom3D[id]（兼容老代码）
      */
     function pullAndRender() {
-      var api = null;
-      var linkedEl = document.getElementById(linkedId);
+      linkedEl = document.getElementById(linkedId);
       if (linkedEl && linkedEl.__cwApi && typeof linkedEl.__cwApi.getLabelPos === 'function') {
         api = linkedEl.__cwApi;
       } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
@@ -280,8 +224,8 @@ const clientJs = `
           api.getLabelPos(baseLabels[2]) || [0, 0, 0],
           api.getLabelPos(apexLabel) || [0, 0, 0],
         ];
-        var fillPos = buildTetraGeom(orderedVerts);
-        var edgePos = buildEdgeGeom(orderedVerts);
+        var fillPos = cwGeom_buildTetraPositions(orderedVerts);
+        var edgePos = cwGeom_buildEdgePositions(orderedVerts);
         var entry = tetraGroups[i];
         if (fillPos) {
           entry.fillMesh.geometry.dispose();
@@ -294,7 +238,7 @@ const clientJs = `
           entry.edgeLines.geometry = new THREE.BufferGeometry();
           entry.edgeLines.geometry.setAttribute('position', new THREE.Float32BufferAttribute(edgePos, 3));
         }
-        volumes.push(tetraVolume(orderedVerts[0], orderedVerts[1], orderedVerts[2], orderedVerts[3]));
+        volumes.push(cwGeom_tetraVolume(orderedVerts[0], orderedVerts[1], orderedVerts[2], orderedVerts[3]));
       }
 
       // 体积校验显示
@@ -303,7 +247,7 @@ const clientJs = `
         if (volBox && volBox.hidden) volBox.hidden = false;
         for (var k = 0; k < 4; k++) {
           var el = root.querySelector('[data-vol-' + k + ']');
-          if (el) el.textContent = fmtVol(volumes[k]);
+          if (el) el.textContent = cwGeom_fmtVol(volumes[k]);
         }
       }
 
@@ -337,18 +281,32 @@ const clientJs = `
       }
     }
 
-    // 渲染循环
+    // 渲染循环（v0.1.2：dirty flag 优化）
+    //   只有当联动源 setLabelPos / setHighlight 触发时（api.__dirty = true）才 pullAndRender 重建几何体
+    //   其他帧只 render(scene) 用现有 geometry，省 GC + 重建 CPU
+    //   对静态观察场景（学员不操作）CPU 占用降到接近 0
     function animate() {
       requestAnimationFrame(animate);
-      pullAndRender();
+      if (api && api.__dirty) {
+        api.__dirty = false;
+        pullAndRender();
+      }
       if (controls) controls.update();
       renderer.render(scene, camera);
     }
     animate();
 
-    // linkedGeometry3d 实例可能晚于本组件就绪 → 延迟 200ms 再拉一次确保拿到
-    setTimeout(pullAndRender, 200);
-    setTimeout(pullAndRender, 800);
+    // 事件驱动：监听联动源的 cw:geom3d:change 立即触发一次重建（不等下一帧）
+    //   RAF + 事件双通道：事件保证响应速度，dirty flag 保证空闲开销
+    if (linkedEl) {
+      linkedEl.addEventListener('cw:geom3d:change', function() { api.__dirty = true; });
+    }
+
+    // v0.1.2：不再用 setTimeout 200/800 兜底联动源就绪
+    //   改用事件驱动：上一行 addEventListener 监听 cw:geom3d:change
+    //   联动源 setLabelPos 触发时立刻同步 + 下一帧重建
+    //   首帧时强制 pullAndRender 一次（拿到初始坐标）
+    pullAndRender();
   }
 
   function initAll() {

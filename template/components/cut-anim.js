@@ -1,6 +1,6 @@
 /**
  * @component cut-anim
- * @version 0.1.1
+ * @version 0.1.2
  * @status 最小可用版
  *
  * 剖切动画组件 —— 「从三棱柱切下一刀得到三棱锥」的过程动画
@@ -51,6 +51,7 @@
  */
 
 const { escapeHtml } = require('./_inline.js');
+const { clientJs: geomUtilsJs } = require('./_geom_utils.js');
 
 function render(data) {
   const id = data.id || ('cut-' + Math.random().toString(36).slice(2, 8));
@@ -64,6 +65,11 @@ function render(data) {
   const playButton = data.playButton !== false;
   const loop = data.loop !== false;
   const showVolumeHint = data.showVolumeHint !== false;
+  // v0.1.2 升级：prism 顶点 labels 由 schema 配置（GLM-5.1 评审指出硬编码 'A'/'B'/'C' 是 bug）
+  // 默认值兼容旧 demo：['A', 'B', 'C', 'A₁', 'B₁', 'C₁']，对应标准三棱柱 6 顶点
+  const prismLabels = Array.isArray(data.prismLabels) && data.prismLabels.length === 6
+    ? data.prismLabels
+    : ['A', 'B', 'C', 'A₁', 'B₁', 'C₁'];
 
   // 把配置序列化到 data-*（供 clientJs 解析）
   // 所有用户输入字段走 escapeHtml 防 XSS
@@ -83,6 +89,7 @@ function render(data) {
   data-linked-geometry-3d="${linkedId}"
   data-keep='${escapeHtml(keepJson)}'
   data-cut-plane='${escapeHtml(cutPlaneJson)}'
+  data-prism-labels='${escapeHtml(JSON.stringify(prismLabels))}'
   data-duration="${duration}"
   data-easing="${escapeHtml(easing)}"
   data-play-button="${playButton ? '1' : '0'}"
@@ -122,59 +129,12 @@ function pickEasing(name) {
 `;
 
 const clientJs = `
+${geomUtilsJs}
 (function() {
   if (window.__cwCutAnimLoaded) return;
   window.__cwCutAnimLoaded = true;
 
   ${EASING_FN}
-
-  function tetraVolume(a, b, c, d) {
-    if (!a || !b || !c || !d) return 0;
-    var bax = b[0] - a[0], bay = b[1] - a[1], baz = b[2] - a[2];
-    var cax = c[0] - a[0], cay = c[1] - a[1], caz = c[2] - a[2];
-    var dax = d[0] - a[0], day = d[1] - a[1], daz = d[2] - a[2];
-    var cx = cay * daz - caz * day;
-    var cy = caz * dax - cax * daz;
-    var cz = cax * day - cay * dax;
-    var dot = bax * cx + bay * cy + baz * cz;
-    return Math.abs(dot) / 6;
-  }
-
-  function fmtVol(v) {
-    if (!Number.isFinite(v)) return '—';
-    if (Math.abs(v) < 1e-9) return '0';
-    if (Math.abs(v) >= 100) return v.toFixed(2);
-    if (Math.abs(v) >= 1) return v.toFixed(4).replace(/0+$/, '').replace(/\\.$/, '');
-    return v.toFixed(4).replace(/0+$/, '').replace(/\\.$/, '');
-  }
-
-  function buildTetraPositions(verts) {
-    if (!Array.isArray(verts) || verts.length !== 4) return null;
-    var v0 = verts[0], v1 = verts[1], v2 = verts[2], v3 = verts[3];
-    if (!v0 || !v1 || !v2 || !v3) return null;
-    var positions = [];
-    function pushTri(a, b, c) {
-      positions.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
-    }
-    pushTri(v0, v1, v2); // 底
-    pushTri(v0, v1, v3);
-    pushTri(v1, v2, v3);
-    pushTri(v2, v0, v3);
-    return positions;
-  }
-
-  function buildEdgePositions(verts) {
-    if (!Array.isArray(verts) || verts.length !== 4) return null;
-    var v0 = verts[0], v1 = verts[1], v2 = verts[2], v3 = verts[3];
-    if (!v0 || !v1 || !v2 || !v3) return null;
-    var positions = [];
-    function pushLine(a, b) {
-      positions.push(a[0], a[1], a[2], b[0], b[1], b[2]);
-    }
-    pushLine(v0, v1); pushLine(v1, v2); pushLine(v2, v0);
-    pushLine(v0, v3); pushLine(v1, v3); pushLine(v2, v3);
-    return positions;
-  }
 
   function initOne(root) {
     var THREE = window.__cwThree;
@@ -185,6 +145,8 @@ const clientJs = `
     }
 
     var linkedId = root.getAttribute('data-linked-geometry-3d') || '';
+    var api = null;  // 联动源 API（v0.1.2：提升到 initOne 顶层，dirty flag 渲染循环需要访问）
+    var linkedEl = null;
     var keep = [];
     var cutPlane = null;
     var duration = parseInt(root.getAttribute('data-duration'), 10) || 1500;
@@ -201,6 +163,13 @@ const clientJs = `
         cutPlane = cp;
       }
     } catch (e) { /* keep null */ }
+    // v0.1.2：棱柱 6 顶点 label 由 schema 配置（默认 ['A','B','C','A₁','B₁','C₁']）
+    // 顺序：[底面3, 顶面3]，与 geometry-3d 的 vertices 顺序一致
+    var prismLabels = ['A', 'B', 'C', 'A₁', 'B₁', 'C₁'];
+    try {
+      var pl = JSON.parse(root.getAttribute('data-prism-labels') || '[]');
+      if (Array.isArray(pl) && pl.length === 6) prismLabels = pl;
+    } catch (e) { /* keep default */ }
 
     var stage = root.querySelector('.cut-anim-stage');
     if (!stage) return;
@@ -305,8 +274,7 @@ const clientJs = `
      */
     function pullAndRender(progress) {
       progress = (typeof progress === 'number') ? progress : (root.dataset.progress ? parseFloat(root.dataset.progress) : 0);
-      var api = null;
-      var linkedEl = document.getElementById(linkedId);
+      linkedEl = document.getElementById(linkedId);
       if (linkedEl && linkedEl.__cwApi && typeof linkedEl.__cwApi.getLabelPos === 'function') {
         api = linkedEl.__cwApi;
       } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
@@ -316,21 +284,16 @@ const clientJs = `
 
       // 取所有标准顶点 A, B, C, A₁, B₁, C₁（用于画三棱柱）
       // 注意：源 geometry-3d 的 labels 用的可能是带下标字符（"A₁"），
-      // 我们先尝试常见名称，缺失就 fallback 到 [0,0,0]
-      function tryGet(names) {
-        for (var i = 0; i < names.length; i++) {
-          var p = api.getLabelPos(names[i]);
-          if (p) return p;
-        }
-        return null;
-      }
-      var a  = tryGet(['A']);
-      var b  = tryGet(['B']);
-      var c  = tryGet(['C']);
-      var a1 = tryGet(['A₁', 'A1']);
-      var b1 = tryGet(['B₁', 'B1']);
-      var c1 = tryGet(['C₁', 'C1']);
-      var p  = tryGet(['P']);
+      // 取所有 6 个棱柱顶点（label 由 schema 配置，默认 ['A','B','C','A₁','B₁','C₁']）
+      // 顺序：底面 3 + 顶面 3，与 geometry-3d 的 vertices 顺序一致
+      function tryGet(name) { return api.getLabelPos(name) || null; }
+      var a  = tryGet(prismLabels[0]);
+      var b  = tryGet(prismLabels[1]);
+      var c  = tryGet(prismLabels[2]);
+      var a1 = tryGet(prismLabels[3]);
+      var b1 = tryGet(prismLabels[4]);
+      var c1 = tryGet(prismLabels[5]);
+      var p  = tryGet('P');
       var d  = tryGet(['D']);
 
       var verts = [];
@@ -386,8 +349,8 @@ const clientJs = `
           api.getLabelPos(keep[2]) || [0, 0, 0],
           api.getLabelPos(keep[3]) || [0, 0, 0],
         ];
-        var kf = buildTetraPositions(kv);
-        var ke = buildEdgePositions(kv);
+        var kf = cwGeom_buildTetraPositions(kv);
+        var ke = cwGeom_buildEdgePositions(kv);
         if (kf) {
           keepFill.geometry.dispose();
           keepFill.geometry = new THREE.BufferGeometry();
@@ -403,7 +366,7 @@ const clientJs = `
         if (showVolume) {
           var hint = root.querySelector('.cut-anim-volume-hint');
           if (hint && hint.hidden) hint.hidden = false;
-          var keepVol = tetraVolume(kv[0], kv[1], kv[2], kv[3]);
+          var keepVol = cwGeom_tetraVolume(kv[0], kv[1], kv[2], kv[3]);
           var totalVol = 0;
           // 三棱柱体积 = 底面积 × 高（用 B₁B 向量在底面法向的投影；此处用最简估算）
           if (a && b && c && b1) {
@@ -425,8 +388,8 @@ const clientJs = `
           var elKV = root.querySelector('[data-keep-vol]');
           var elTV = root.querySelector('[data-total-vol]');
           var elR  = root.querySelector('[data-ratio]');
-          if (elKV) elKV.textContent = fmtVol(keepVol);
-          if (elTV) elTV.textContent = fmtVol(totalVol);
+          if (elKV) elKV.textContent = cwGeom_fmtVol(keepVol);
+          if (elTV) elTV.textContent = cwGeom_fmtVol(totalVol);
           if (elR) elR.textContent = (totalVol > 1e-9 ? (keepVol / totalVol).toFixed(4).replace(/0+$/, '').replace(/\\.$/, '') + ' : 1' : '—');
         }
       }
@@ -552,20 +515,31 @@ const clientJs = `
     var resetBtn = root.querySelector('.cut-anim-reset');
     if (resetBtn) resetBtn.addEventListener('click', reset);
 
-    // RAF 渲染循环（即使没动画也要重画 —— slider 改 P 时 keep / cutPlane 会跟着变）
+    // v0.1.2：RAF + dirty flag 渲染循环
+    //   只有联动源 setLabelPos 触发（api.__dirty = true）才 pullAndRender 重建
+    //   空闲时只 render(scene) 沿用现有几何体，省 GC
+    //   动画播放期间仍走独立 animate() 循环（线性插值进度条）
     function renderLoop() {
       requestAnimationFrame(renderLoop);
       if (!animState.active) {
-        pullAndRender(progress);
+        if (api && api.__dirty) {
+          api.__dirty = false;
+          pullAndRender(progress);
+        }
         if (controls) controls.update();
         renderer.render(scene, camera);
       }
     }
     renderLoop();
 
-    // 联动源可能晚于本组件就绪 → 延迟重拉
-    setTimeout(function() { pullAndRender(progress); }, 200);
-    setTimeout(function() { pullAndRender(progress); }, 800);
+    // 事件驱动：监听联动源的 cw:geom3d:change 立即触发一次重建
+    var linkedGeom3dEl = document.getElementById(linkedId);
+    if (linkedGeom3dEl) {
+      linkedGeom3dEl.addEventListener('cw:geom3d:change', function() { api.__dirty = true; });
+    }
+
+    // 首帧强制 pullAndRender 一次（拿到初始坐标）
+    pullAndRender(progress);
 
     // 自动播放（如果 playButton=false）
     if (!playButton) {

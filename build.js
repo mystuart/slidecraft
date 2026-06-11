@@ -153,8 +153,16 @@ async function buildFile(inputPath) {
         threeBundleTag = `<script src="${hashedName}"></script>`;
       }
     } else {
-      console.error('! 警告：检测到 geometry-3d 组件但未找到 cw-three-bundle.iife.js');
-      console.error('  运行: node_modules/.bin/esbuild cw-three-bundle.js --bundle --format=iife --target=es2020 --minify --outfile=cw-three-bundle.iife.js');
+      // v0.x 修复：硬失败而不是 warn
+      //   之前只 warn 不 throw，新 clone 项目 + npm install 之后 Alice 跑 build 看不出问题，
+      //   课件 3D 跑不起来才在浏览器里发现。
+      //   现在直接 throw + 给一键修复命令。
+      const buildCmd = 'node_modules/.bin/esbuild cw-three-bundle.js --bundle --format=iife --target=es2020 --minify --outfile=cw-three-bundle.iife.js';
+      throw new Error(
+        `检测到 geometry-3d 组件但未找到 cw-three-bundle.iife.js。\n` +
+        `先运行:\n  ${buildCmd}\n` +
+        `(一次性设置，后续 build 自动复用)`
+      );
     }
   }
 

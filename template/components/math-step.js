@@ -1,7 +1,13 @@
 /**
  * @component math-step
- * @version 0.2.0
+ * @version 0.2.1
  * @status 打磨完成
+ *
+ * v0.2.1 变更：补上步骤 hover 联动 geometry-3d 高亮（之前 clientJs 只有 checkbox 进度条，
+ * step.highlight 字段在 render 阶段已经写到 data-attr，但客户端从未读取使用）
+ *   - mouseenter → __cwApi.setHighlight(spec)
+ *   - mouseleave → __cwApi.resetHighlight()
+ *   - 用 hover 而非 click：学员读题时鼠标自然悬停即高亮对应平面/虚拟边，无需点击
  *
  * 分步解题组件（数学/物理/化学）
  *
@@ -199,6 +205,7 @@ const clientJs = `
 document.querySelectorAll('[data-component="math-step"]').forEach(function(root) {
   var total = parseInt(root.dataset.stepCount, 10) || 0;
   var celebrate = root.dataset.celebrate !== 'false';
+  var defaultGeomId = root.dataset.geometry3dId || '';
   var countEl = root.querySelector('.math-step-progress-count');
   var barEl = root.querySelector('.math-step-progress-bar');
   var checkboxes = root.querySelectorAll('.math-step-done');
@@ -219,6 +226,38 @@ document.querySelectorAll('[data-component="math-step"]').forEach(function(root)
 
   checkboxes.forEach(function(cb) {
     cb.addEventListener('change', updateProgress);
+  });
+
+  // v0.2.1 变更：步骤 hover 联动 geometry-3d 高亮
+  //   每个 .math-step-step 带 data-highlight + data-geometry-3d-id
+  //   鼠标进入 step → 调 __cwGeom3D[id].setHighlight(spec)
+  //   鼠标离开 step → 调 setHighlight(null) 复位
+  //   优先走 per-instance 闭包（document.getElementById(id).__cwApi）
+  function getGeom3dApi(id) {
+    if (!id) return null;
+    var el = document.getElementById(id);
+    if (el && el.__cwApi) return el.__cwApi;
+    if (window.__cwGeom3D && window.__cwGeom3D[id]) return window.__cwGeom3D[id];
+    return null;
+  }
+
+  var steps = root.querySelectorAll('.math-step-step');
+  steps.forEach(function(step) {
+    var geomId = step.getAttribute('data-geometry-3d-id') || defaultGeomId;
+    if (!geomId) return;
+    var hl = step.getAttribute('data-highlight');
+    if (!hl) return;
+    var spec = null;
+    try { spec = JSON.parse(hl); } catch (e) { return; }
+    if (!spec) return;
+    step.addEventListener('mouseenter', function() {
+      var api = getGeom3dApi(geomId);
+      if (api) api.setHighlight(spec);
+    });
+    step.addEventListener('mouseleave', function() {
+      var api = getGeom3dApi(geomId);
+      if (api) api.resetHighlight();
+    });
   });
 });
 `;
