@@ -1,6 +1,6 @@
 /**
  * @component _inline
- * @version 0.2.1
+ * @version 0.2.2
  * @status 内部工具，不参与组件登记
  *
  * 组件共用的内联 markdown 处理工具。
@@ -49,17 +49,15 @@ function isSafeUrl(url) {
 function processInline(s) {
   const raw = String(s == null ? '' : s);
 
-  // 0.1) JSON 字面 \n / \t 转真实字符（content 字段写 \\n 时被解析为字面 \n，line 5 再转 <br>）
-  const rawDecoded = raw.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
-
-  // 0) LaTeX inline math $...$ — 先在 rawDecoded 上提取到占位符，escapeHtml 后还原
-  // katex 按需加载：未安装时整段 LaTeX 处理降级为 no-op（占位符替换为原文本，不影响其他语法）
+  // 0) LaTeX inline math $...$ — 先于 \n/\t 转换提取到占位符，防止 \triangle 的 \t、
+  //    \not 的 \n 被误替换（v0.2.2 修复：交换步骤 0 和 0.1 的顺序）
+  // katex 按需加载：未安装时整段 LaTeX 处理降级为 no-op
   let katex;
   try { katex = require('katex'); } catch (e) { katex = null; }
 
   const mathSegments = [];
-  const rawWithMath = katex
-    ? rawDecoded.replace(/\$([^$\n]+)\$/g, (m, content) => {
+  const rawWithPlaceholders = katex
+    ? raw.replace(/\$([^$\n]+)\$/g, (m, content) => {
         try {
           const html = katex.renderToString(content, { throwOnError: false, displayMode: false });
           const idx = mathSegments.length;
@@ -69,9 +67,12 @@ function processInline(s) {
           return m; // KaTeX 解析失败时保持原样
         }
       })
-    : rawDecoded; // katex 未安装：保留原文，让 $...$ 进 escapeHtml 后变成普通文本
+    : raw; // katex 未安装：保留原文，让 $...$ 进 escapeHtml 后变成普通文本
 
-  let out = escapeHtml(rawWithMath);
+  // 0.1) JSON 字面 \n / \t 转真实字符（LaTeX 已提取为占位符，不受影响）
+  const rawDecoded = rawWithPlaceholders.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+
+  let out = escapeHtml(rawDecoded);
 
   // 1) inline code 先处理，避免内部 * / [ 被误解析
   out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
