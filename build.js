@@ -117,6 +117,13 @@ async function buildFile(inputPath) {
     console.error('  公式组件将无法正确渲染。请运行: npm install katex');
   }
 
+  // 6.6) 条件加载 3D 组件 CSS（仅当课件包含 geometry-3d 时注入，不含 3D 的课件零负担）
+  let geomCss = '';
+  const geomCssPath = path.join(ROOT, 'template/styles/geometry-3d.css');
+  if (bodyHtml.includes('class="geom-3d"') && fs.existsSync(geomCssPath)) {
+    geomCss = fs.readFileSync(geomCssPath, 'utf8');
+  }
+
   // 7) 渲染侧边导航
   const nav = renderer.renderSideNav(fm.sections || [], fm.title, fm.subtitle, fm.author);
 
@@ -124,7 +131,7 @@ async function buildFile(inputPath) {
   // 漏写 sections 不会让 build 失败（向后兼容），只给 warning
   if (!nav.items && /<h2[\s>]/i.test(bodyHtml)) {
     console.warn(`! 提醒：${path.basename(inputPath)} 有 <h2> 但 frontmatter 没写 sections，sidebar 会是空的。`);
-    console.warn('  复制 template/fm-template.md 的 frontmatter，参考 binary-card-trick.md 补 sections。');
+    console.warn('  参考 content/binary-card-trick.md 的 frontmatter 补 sections。');
   }
 
   // 7.6) v0.1.8 校验：sections 数量必须 == h2 数量，否则锚点错位
@@ -202,7 +209,7 @@ async function buildFile(inputPath) {
     .replace(/\{\{THEME\}\}/g, () => escapeHtml(fm.theme || 'lavender'))
     .replace(/\{\{NAV_ITEMS\}\}/g, () => nav.items)
     .replace(/\{\{CONTENT\}\}/g, () => bodyHtml)
-    .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss)
+    .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss + (geomCss ? '\n' + geomCss : ''))
     .replace(/\{\{THREE_SCRIPT\}\}/g, () => threeBundleTag)
     .replace(/\{\{CLIENT_JS\}\}/g, () => threeBundleJs + '\n' + clientJs);
 

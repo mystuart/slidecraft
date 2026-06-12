@@ -1,0 +1,359 @@
+/* @boundary geometry-3d.css — 3D 组件样式（geometry-3d / slider / tetra-equiv / cut-anim）
+ *
+ * 守卫规则（CI 可扫）：
+ *   - 本文件只允许 .geom-3d-* / .slider-* / .tetra-equiv-* / .cut-anim-* 选择器
+ *   - main.css 不允许出现以上四组前缀的选择器
+ *   - 违反任意一条 = 边界违规，build 应报 warning
+ *
+ * 本文件由 build.js 条件注入：仅当课件包含 class="geom-3d" 时才加载。
+ * 不含 3D 组件的课件零负担。
+ */
+
+/* ===== geometry-3d 组件 ===== */
+.geom-3d {
+  margin: 1.5em 0;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+
+.geom-3d-title {
+  padding: 0.7em 1em;
+  font-size: 1.05em;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.geom-3d-stage {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  background: #fdfdfd;
+}
+
+.geom-3d-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  /* 禁止浏览器拦截触摸板 / 触屏的拖动手势（否则 OrbitControls 拿不到完整 mousemove 事件流） */
+  touch-action: none;
+}
+
+.geom-3d-label {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  cursor: default;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
+  user-select: none;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 0 2px rgba(255,255,255,0.6);
+}
+
+.geom-3d-caption {
+  padding: 0.6em 1em;
+  font-size: 0.9em;
+  color: #555;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   geom-3d 操作提示徽章（v0.1.3）
+   右下角浮动，4 行 hint，hover 高亮
+   ============================================================ */
+.geom-3d-hint {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 10;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #555;
+  font-family: var(--font-mono, 'SF Mono', Menlo, Consolas, monospace);
+  user-select: none;
+  pointer-events: none; /* 不挡鼠标事件，让 OrbitControls 拿到 drag */
+  opacity: 0.75;
+  transition: opacity 0.2s;
+}
+.geom-3d-stage:hover .geom-3d-hint {
+  opacity: 1;
+}
+.geom-3d-hint-row {
+  display: block;
+  white-space: nowrap;
+}
+
+@media print {
+  .geom-3d-stage {
+    height: 280px;
+    page-break-inside: avoid;
+  }
+  .geom-3d-label { color: #000; }
+}
+
+/* ============================================================
+ * slider 组件（v0.3）
+ * ============================================================ */
+.slider {
+  margin: 1.2em 0;
+  padding: 0.9em 1em 0.7em;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.slider-title {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5em;
+}
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+}
+.slider-input {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e0e0e0;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+.slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary, #4a90e2);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.slider-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary, #4a90e2);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.slider-value {
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--color-primary, #4a90e2);
+  min-width: 5em;
+  text-align: right;
+}
+.slider-label {
+  font-size: 0.88em;
+  color: #555;
+  margin-top: 0.4em;
+  line-height: 1.4;
+}
+.slider-caption {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 0.5em;
+  padding-top: 0.5em;
+  border-top: 1px dashed #f0f0f0;
+  line-height: 1.5;
+}
+
+/* ============================================================
+ * tetra-equiv 组件（v0.3）
+ * ============================================================ */
+.tetra-equiv {
+  margin: 1.5em 0;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.tetra-equiv-title {
+  padding: 0.7em 1em;
+  font-size: 1.05em;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+.tetra-equiv-stage {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  background: #fdfdfd;
+}
+.tetra-equiv-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.tetra-equiv-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8em 1.4em;
+  padding: 0.7em 1em;
+  font-size: 0.88em;
+  color: #444;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+.tetra-equiv-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.tetra-equiv-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+.tetra-equiv-volume {
+  padding: 0.5em 1em;
+  font-size: 0.88em;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  color: #1a1a1a;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+}
+.tetra-equiv-volume-text span[data-vol-0],
+.tetra-equiv-volume-text span[data-vol-1],
+.tetra-equiv-volume-text span[data-vol-2],
+.tetra-equiv-volume-text span[data-vol-3] {
+  color: var(--color-primary, #4a90e2);
+  font-weight: 600;
+}
+.tetra-equiv-caption {
+  padding: 0.6em 1em;
+  font-size: 0.9em;
+  color: #555;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  line-height: 1.5;
+}
+
+/* ============================================================
+ * cut-anim 组件（v0.3）
+ * ============================================================ */
+.cut-anim {
+  margin: 1.5em 0;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.cut-anim-title {
+  padding: 0.7em 1em;
+  font-size: 1.05em;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+.cut-anim-stage {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  background: #fdfdfd;
+}
+.cut-anim-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.cut-anim-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  padding: 0.6em 1em;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+.cut-anim-controls button {
+  padding: 0.35em 0.9em;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 0.9em;
+  cursor: pointer;
+  color: #1a1a1a;
+  transition: background 0.15s;
+}
+.cut-anim-controls button:hover {
+  background: #f0f0f0;
+}
+.cut-anim-play {
+  background: var(--color-primary, #4a90e2) !important;
+  color: #fff !important;
+  border-color: var(--color-primary, #4a90e2) !important;
+}
+.cut-anim-play:hover {
+  background: var(--color-primary-dark, #357abd) !important;
+}
+.cut-anim-progress-text {
+  margin-left: auto;
+  font-size: 0.88em;
+  color: #555;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+}
+.cut-anim-volume-hint {
+  padding: 0.5em 1em;
+  font-size: 0.88em;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  color: #1a1a1a;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+}
+.cut-anim-volume-label {
+  color: #555;
+}
+.cut-anim-volume-sep {
+  color: #888;
+}
+.cut-anim-volume-hint [data-keep-vol],
+.cut-anim-volume-hint [data-total-vol],
+.cut-anim-volume-hint [data-ratio] {
+  color: var(--color-primary, #4a90e2);
+  font-weight: 600;
+}
+.cut-anim-caption {
+  padding: 0.6em 1em;
+  font-size: 0.9em;
+  color: #555;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  line-height: 1.5;
+}
+
+/* @boundary-end geometry-3d.css */

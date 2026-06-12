@@ -27,7 +27,6 @@ courseware/
 │   ├── components-showcase.md
 │   ├── formula-test.md
 │   ├── math-step-test.md
-│   └── fm-template.md            # 空白模板，复制此文件开始写新课件
 ├── template/                     # 框架层（写一次永久复用）
 │   ├── index.html.tpl            # HTML 骨架模板
 │   ├── components/               # 各互动组件的渲染函数

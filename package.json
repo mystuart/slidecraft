@@ -1,8 +1,8 @@
 {
   "name": "courseware",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "交互课程课件框架 · 10 个 Markdown 内嵌组件 + 单文件 build",
+  "description": "交互课程课件框架 · 16 个 Markdown 内嵌组件 + 单文件 build",
   "main": "build.js",
   "scripts": {
     "build": "node build.js",

@@ -132,7 +132,7 @@ related:
 - **emoji 命运**：保留 / 切到 lucide SVG / 用 ASCII 几何。影响 hero / concept-card / callout。
 - **圆角策略**：当前默认 8-12px / dark 主题待定 / 是否切 0 直角 vs 大元素 0+ 小元素 4px 混合。
 - **阴影策略**：默认全无（最克制）/ 默认 hairline 1px（印感）/ 保留 box-shadow（当前）。
-- **主题数量**：当前仅 `lavender` 一个真正实现 CSS（fm-template 误标 6 个，SPEC §6 误标 5 个，2026-06-12 已修）。要不要补 dark / gold？什么时候补？
+- **主题数量**：当前仅 `lavender` 一个真正实现 CSS（SPEC §6 误标 5 个，2026-06-12 已修）。要不要补 dark / gold？什么时候补？
 
 ---
 
