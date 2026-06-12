@@ -5,11 +5,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Version: 1.2.0](https://img.shields.io/badge/version-1.2.0-blue.svg)](./COMPONENTS.md)
 [![Components: 16](https://img.shields.io/badge/components-16-green.svg)](./COMPONENTS.md)
-[![Size: ~150KB](https://img.shields.io/badge/size-~150KB-lightgrey.svg)](./dist)
+[![Size: ~200KB](https://img.shields.io/badge/size-~200KB-lightgrey.svg)](./dist)
 
 ## 特性
 
-- **零运行时依赖** —— 编译后是单个 HTML 文件，所有 JS/CSS 内联，双击就能打开
+- **零运行时依赖** —— 编译后是单个 HTML 文件，JS/CSS 内联（Three.js 默认拆外链 + cache busting；用 `--inline-three` 可强制内联做单文件离线部署）
 - **Markdown 即源** —— 写课件就是写 markdown，互动组件用 fenced code block 嵌入
 - **16 个互动组件** —— 封面、选择题、题组、填空、步骤引导、前后对比、概念卡片、高亮块、数学公式、分步解题；3D 立体几何 + 滑块联动 + 同体异构 + 剖切动画
 - **主题可换** —— CSS 变量驱动，lavender / 默认 / 自定义，换一行就行

@@ -12,6 +12,8 @@ sections:
     title: 化学方程式
   - id: 4
     title: 错误处理
+  - id: 5
+    title: v0.2.0 新增能力
 ---
 
 ```hero

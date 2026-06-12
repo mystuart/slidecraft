@@ -21,7 +21,7 @@ FRONTMATTER 必填与可选字段说明
   subtitle         副标题（sidebar 标题下小字）
   description      课件简介（meta description、分享卡）
   author           作者名（sidebar 底部）
-  theme            主题色：lavender / champagne / green / dark / rosegold / blue（缺省 lavender）
+  theme            主题色：当前仅 lavender 真正实现 CSS（缺省 lavender；其他值静默回退到默认）
   emoji            sidebar 标题前的小图标（一个 emoji 字符）
 
 ================================================================================

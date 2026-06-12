@@ -65,14 +65,16 @@ related:
 6. **字体系统化分工**—— 4 种字体各司其职（display / body / 中文 / 数字 mono），组件 CSS 通过 CSS 变量引用。
 7. **「被排过版的纸」质感**—— detail 元素按"印感"打磨：metadata 用 hairline 分隔，footnote 用 1px 顶 rule + 0.8rem 灰字，page number 用 11px uppercase 角标。
 
-### 逐组件借鉴方向
+### 逐组件打磨方向（v0.2 路线图）
 
-#### 1. hero
+> MVP 10 组件的"当前"+"下一步"放在这里（v0.1 阶段 geometry-3d 借鉴方向 7 个项目，2ba17a4 后已大半实现，单独成文 schema）。3D 体系（geometry-3d / slider / tetra-equiv / cut-anim）的字段细节看 `docs/*.md`。
+
+#### 1. hero *(v0.2.0 已打磨)*
 - **当前**：背景色 + 大标题 + 副标题 + 可选 CTA + emoji。
 - **借鉴**：S01 Cover「accent 全屏 + ASCII 呼吸点阵 + 反白标题 + 元数据 chrome（date / № / topic）」
 - **方向**：加 ground texture · 元数据 chrome（右下角 №N/M 章号 + 左下角 topic 标签）· display 字号（标题 4-5rem）· emoji 切到 SVG 图标。
 
-#### 2. quiz
+#### 2. quiz *(v0.2.0 已打磨)*
 - **借鉴**：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」
 - **方向**：题型分类标签（概念题 / 计算题 / 应用题）—— 给 quiz 加 `category` 字段？· 多选状态机（未选 / 部分选 / 全选错 / 全选对 / 提交后）的颜色规范 · feedback 折叠/展开默认决策。
 
@@ -80,55 +82,57 @@ related:
 - **当前**：题组 carousel，dots 容器加 hairline 时间轴（灰轴 + 已答段绿 hairline，宽度由 `--quiz-progress-width` 变量驱动），节点 hairline 描边 4 态（default/correct/partial/wrong），完成时 callout 内嵌 4 stat 总结（总题数/全对/部分对/答错），next 按钮 3 态分发。
 - **方向**：答对自动跳下一题（流畅感 vs 允许回头看）· 移动端/窄屏 prev/next 文字可改纯箭头 · 进度 hairline 当前按"已答总数"算，若想表达"连续答对"需换算法。
 
-#### 4. fill-blank
-- **当前**：单空 / 多答案 `|` 分隔。
+#### 4. fill-blank *(v0.2.1 已打磨)*
+- **当前**：v0.2.0 加多空 `{{1}}` 占位 + 每空独立等价集合 + 旧 `answer: "H|O"` 写法兼容。v0.2.1 加占位编号硬校验（必须 `{{1}} {{2}} {{3}}` 连续，无跳号重复）。
 - **借鉴**：parchment 风格的填空「被填进纸里」（hairline 描边输入框，不用浮起的 box-shadow 输入框）。
-- **方向**：等价答案规则（大小写 / unicode 标准化 / 去空格）· 多空场景字段设计（一题多个 `____`，按顺序 `answer[0]` 还是命名 `answers.q1`）· 判分粒度（全对 vs 部分得分）。
+- **方向**：等价答案规则再扩（unicode 标准化 / 去中间空格）· 判分粒度（全对 vs 部分得分）· 显示/隐藏答案按钮。
 
-> 2026-06-07 升级到 v0.2.0：多空支持（{{1}} 占位）+ 每空独立等价集合 + 旧 `answer: "H|O"` 写法兼容 + 进度条 + hairline 描边输入框（已实现）。
-
-#### 5. step-guide（v0.2.0 已打磨）
+#### 5. step-guide *(v0.2.0 已打磨)*
 - **当前**：tab 切换，按钮组形式。`title` 走 processInline；`example` 字段默认展开 + 可折叠（HTML `<details>` 原生，零 JS）。
 - **下一步可选**：tab 视觉从"按钮组"改为"timeline 节点"· 当前 step 序号角标 · 移动端 tab 横滑 · example 代码高亮（hljs 集成）。
 
-#### 6. compare（v0.2.0 已打磨）
+#### 6. compare *(v0.2.0 已打磨)*
 - **当前**：左右两列 + 4 tag 颜色 + `mode` 字段控制语义（good-bad / before-after / neutral）+ "vs" 圆牌 + warn 加边框增强对比。
 - **下一步可选**：points 数量上限折叠（> 6 项时折叠）· 横向响应式（移动端两列改纵向）· "vs" 圆牌可换成箭头/方向指示。
 
-#### 7. concept-card（v0.2.0 已打磨）
+#### 7. concept-card *(v0.2.0 已打磨)*
 - **当前**：网格 + icon + 标题 + 描述。`title` 走 processInline；`iconType` 字段路由 emoji/svg/image 三种 icon 写法。
 - **下一步可选**：响应式（移动端 4 列降级到 2 列 / 1 列的断点）· 是否切到统一 SVG 图标库。
 
-#### 8. callout
+#### 8. callout *(v0.2.0 已打磨)*
 - **当前**：5 种 type（tip / warning / info / danger / note），调色板：tip 绿 / warning 琥珀 / info 蓝 / danger 红 / note 紫。
 - **方向**：✅ 调色板定型（2026-06-05）· 每个 type 配一个 SVG icon 统一视觉签名 · 内容超过 N 行默认折叠？
 
-#### 9. formula（v0.2.0 已打磨）
+#### 9. formula *(v0.2.0 已打磨)*
 - **当前**：KaTeX 编译时 + caption 走 processInline + showExpr 折叠按钮 + 块级公式自动编号。
 - **下一步可选**：编号字体（当前用 0.88em italic）· 公式引用（"由公式 1.1 得..." 跨公式引用方案）· 公式锚点（点击编号跳到公式）。
 
-#### 10. math-step *(v0.2.0 已打磨)*
-- **当前**：题面 / 步骤 / 答案 / 4 种折叠区（统一琥珀色，默认展开）/ hairline 进度条 + 文字 / `celebrate: false` 可关全卡片变绿。
-- **下一步可选**：单 step 内进度（"看完了提示"不算"完成"，是不是要二级进度？）· 折叠区支持折叠回默认（现在 `open` 是硬编码的，不支持 step 级"教学节奏"）· 进度条完成态加点动效（避免太干）。
+#### 10. math-step *(v0.2.1 已打磨)*
+- **当前**：v0.2.1 加 step 联动 geometry-3d（hover → setHighlight）· v0.2.0 4 折叠区统一琥珀色 + 默认展开 + hairline 进度条 + `celebrate: false` 开关。
+- **下一步可选**：单 step 内进度（"看完了提示"不算"完成"，是不是要二级进度？）· 折叠区支持折叠回默认（现在 `open` 是硬编码的）· 进度条完成态加点动效（避免太干）。
 
-#### 11. geometry-3d *(v0.1.0 首次可用)*
-- **当前**：WebGL/Three.js 立体几何组件，3D 拖动旋转 / 滚轮缩放 / 右键平移；CSS2DRenderer 标签 DOM 形式；双击几何体 = 局部重置、双击空白 = 全局重置。
-- **支持几何体**（v0.1）：box / sphere / cylinder / cone / tetrahedron / octahedron / icosahedron。
-- **字段契约**：[`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)（4 类 23 字段，全部带默认值；含 4 个示例：正方体带顶点标签 / 圆柱剖切 / 三视图 / 三棱锥展开）。
-- **体积影响**：约 720KB（Three.js + OrbitControls + CSS2DRenderer，esbuild 打 IIFE）。build.js 检测到 `.geom-3d` class 才注入。
-- **借鉴方向**（v0.2 路线图）：
-  - **几何体改 JSON 数据表** —— 当前是写死的 `case` 分支，新增形状要改代码。借鉴 Mathigon `PolyhedronData`，用 `{vertex, edge, face}` 纯数据结构描述任意多面体，新形状追加一项。
-  - **mode 状态机 + Raycaster 命中高亮** —— `mode: "vertex"|"edge"|"face"|"all"` 切换，讲"二面角"必须能高亮棱 / 面。
-  - **剖切面（slice）** —— Three.js `ClippingPlane`，初高中立体几何讲截面全靠它。
-  - **三视图同步（`views: "three"`）** —— 三个 canvas 共享场景数据，每帧渲染不同相机角度。
-  - **展开动画（unfold）** —— 正多面体展开图。
+#### 11. geometry-3d *(v0.1.7)*
+- **当前**：v0.1.7 已有 30+ 字段（vertices / planes / auxLines / derivedVertices / rightAngles / id），9 种几何体（triangular-prism v0.1.2 真正实现），触摸板 / Z 轴自转 / camera.up=+Z 校准 / per-instance 闭包 / 三角面 / math-step 联动。
+- **字段契约**：[`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)（v0.1.7，含 4 个示例：正方体 / 三角柱+辅助线池+math-step 联动 / slider 联动 / 错误回退）。
+- **v0.2+ 路线图**：`clippingPlane`（物理剖切）/ `views: "three"`（三视图）/ `unfold`（展开图）/ `mode` 状态机 + Raycaster 命中高亮。
+
+#### 12-14. slider / tetra-equiv / cut-anim *(v0.1)*
+- 三个 3D 联动组件，字段契约见 `docs/slider-schema.md` / `docs/tetra-equiv-schema.md` / `docs/cut-anim-schema.md`。
+- **v0.2 路线图**：slider 加键盘 ←/→ 微调 + 输入框数字回写；tetra-equiv 加"按底面积排序"图例 + 4 锥独立相机视角；cut-anim 加 3 段速（匀速 / 缓入缓出 / 弹跳）。
+- **体积影响**：约 730KB（Three.js + OrbitControls + CSS2DRenderer，esbuild 打 IIFE）。build.js 检测到 `.geom-3d` class 才注入；`--inline-three` 模式可强制内联（Alice 内网离线部署）。
+- **v0.2+ 路线图**：
+  - `clippingPlane` —— Three.js 物理剖切平面（注意：cut-anim 走的是透明度动画路线，不是 clippingPlane）
+  - `views: "three"` —— 三视图同步（主视图 + 左视图 + 俯视图）
+  - `unfold` —— 展开图 / 折叠动画
+  - `mode` 状态机 + Raycaster 命中高亮 —— v0.1 留作占位
 - **待办**：v0.2 空白区识别区扩大（双击空白命中率对正方体/圆锥偏小，加 padding / 5% 边界保护区）。
 
+### 跨组件悬而未决项（开放讨论中）
+
 - **emoji 命运**：保留 / 切到 lucide SVG / 用 ASCII 几何。影响 hero / concept-card / callout。
-- **圆角策略**：dark 保持 8-12px / 全部切到 0 直角 / 大元素 0 + 小元素 4px 混合。影响全部组件。
-- **阴影策略**：默认全无（最克制）/ 默认 hairline 1px（印感）/ 保留 box-shadow（当前）。影响全部组件。
-- **主题数量**：5 个太散，要不要砍到 3 个（lavender + dark + gold）？
-- **打磨优先级**：从哪个组件开刀（建议 hero → callout → formula → compare → concept-card → quiz → quiz-track → step-guide → fill-blank → math-step）。
+- **圆角策略**：当前默认 8-12px / dark 主题待定 / 是否切 0 直角 vs 大元素 0+ 小元素 4px 混合。
+- **阴影策略**：默认全无（最克制）/ 默认 hairline 1px（印感）/ 保留 box-shadow（当前）。
+- **主题数量**：当前仅 `lavender` 一个真正实现 CSS（fm-template 误标 6 个，SPEC §6 误标 5 个，2026-06-12 已修）。要不要补 dark / gold？什么时候补？
 
 ---
 

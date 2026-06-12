@@ -393,8 +393,6 @@ sections:
 
 ## 7. concept-card · 概念卡片网格
 
-## 7. concept-card · 概念卡片网格
-
 > **v0.2.0 新能力**：`iconType` 字段（`emoji` / `svg` / `image`）路由 3 种 icon 写法；`title` 走 processInline 支持 `**bold**` / `[link]()`。
 
 ```concept-card

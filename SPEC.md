@@ -69,7 +69,7 @@ courseware/
 title: 如何创作 SKILL
 subtitle: 从零开始，写出可复用的 AI 技能
 author: Alice
-theme: lavender      # 主题色：lavender / rosegold / champagne / dark / green
+theme: lavender      # 主题色：当前仅 lavender 真正实现 CSS（其他值静默回退到默认）
 sections:
   - 开篇：什么是 SKILL
   - SKILL 的结构解剖
