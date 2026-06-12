@@ -22,6 +22,10 @@
  *   - vertexColor   {string}   可选 · 顶点球颜色（默认 #ff6b35）
  *   - opacity       {number}   可选 · 面填充透明度（0-1，默认 0.85）
  *   - labels        {array}    可选 · 顶点标签 [text, [x,y,z], color?, fontSize?]
+ *   - planes        {array}    可选 · 半透面 [{id, vertices:[lbl1,lbl2,lbl3], color, opacity}]
+ *   - auxLines      {array}    可选 · 预置辅助线池 [{id, from, to, style, color, width, label}]
+ *                                默认全部隐藏，通过 api.showAuxLines([id, ...]) 或 highlight.auxLines 显示
+ *   - rightAngles   {array}    可选 · 直角标记 [{vertex:"B", arms:["A","C"], size?:0.12, color?:"#555"}]
  *   - caption       {string}   可选 · 卡片下方说明文字
  *
  * 已知问题（v0.1）：
@@ -399,10 +403,19 @@ const clientJs = `
         var spanX = Math.max(maxX - minX, 0.1);
         var spanY = Math.max(maxY - minY, 0.1);
         var spanZ = Math.max(maxZ - minZ, 0.1);
-        var maxSpan = Math.max(spanX, spanY, spanZ) * 1.5;  // 1.5 倍冗余覆盖所有顶点
+        var maxSpan = Math.max(spanX, spanY, spanZ) * 1.5;  // 留给未来无限平面模式用
         var normal = new THREE.Vector3().crossVectors(v1, v2).normalize();
         var center = new THREE.Vector3().add(p0).add(p1).add(p2).multiplyScalar(1 / 3);
-        var planeGeom = new THREE.PlaneGeometry(maxSpan, maxSpan);
+        // v0.1.6 修复：plane 应该是 3 顶点构成的三角形，而不是 maxSpan×maxSpan 的正方形
+        // 用 BufferGeometry 写死 3 顶点（绝对世界坐标），mesh 本身放在原点
+        var planeGeom = new THREE.BufferGeometry();
+        var planePositions = new Float32Array([
+          p0.x, p0.y, p0.z,
+          p1.x, p1.y, p1.z,
+          p2.x, p2.y, p2.z
+        ]);
+        planeGeom.setAttribute('position', new THREE.Float32BufferAttribute(planePositions, 3));
+        planeGeom.computeVertexNormals();
         var planeMat = new THREE.MeshBasicMaterial({
           color: pl.color || '#ffd166',
           transparent: true,
@@ -411,10 +424,9 @@ const clientJs = `
           depthWrite: false,
         });
         var planeMesh = new THREE.Mesh(planeGeom, planeMat);
-        planeMesh.position.copy(center);
-        // Plane 朝向：把 plane 的 +Z 旋转到 normal 方向
-        var quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
-        planeMesh.quaternion.copy(quat);
+        // 顶点已经在绝对位置，mesh 不需要 position / quaternion
+        planeMesh.position.set(0, 0, 0);
+        planeMesh.quaternion.set(0, 0, 0, 1);
         planeMesh.layers.set(1); // 单独 layer，hover 不可达
         planeMesh.renderOrder = 2; // 在实体几何体之后渲染
         root.add(planeMesh);
@@ -435,13 +447,13 @@ const clientJs = `
       var positions = meta.vertices.map(function(n) { return labelNameToPos[n]; }).filter(Boolean);
       if (positions.length < 3) return;
       var p0 = positions[0], p1 = positions[1], p2 = positions[2];
-      var v1 = new THREE.Vector3().subVectors(p1, p0);
-      var v2 = new THREE.Vector3().subVectors(p2, p0);
-      var normal = new THREE.Vector3().crossVectors(v1, v2).normalize();
-      var center = new THREE.Vector3().add(p0).add(p1).add(p2).multiplyScalar(1 / 3);
-      m.position.copy(center);
-      var quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
-      m.quaternion.copy(quat);
+      // v0.1.6：直接改 BufferGeometry 的 position attribute（3 顶点三角形跟着 label 移动）
+      var posAttr = m.geometry.getAttribute('position');
+      posAttr.setXYZ(0, p0.x, p0.y, p0.z);
+      posAttr.setXYZ(1, p1.x, p1.y, p1.z);
+      posAttr.setXYZ(2, p2.x, p2.y, p2.z);
+      posAttr.needsUpdate = true;
+      m.geometry.computeVertexNormals();
     }
 
     // 找出所有引用了某个 label 的 plane id，返回 id 列表
@@ -451,6 +463,82 @@ const clientJs = `
         if (planeMeta[pid].vertices.indexOf(labelName) >= 0) ids.push(pid);
       });
       return ids;
+    }
+
+    // ---- 6.51) 预置辅助线池（v0.1.7） ----
+    // auxLines: [{ id, from, to, style: "solid"|"dashed", color, width, label }]
+    // 全部默认 hidden，挂在 HIGHLIGHT_LAYER（不影响 orbit camera 视角、不被 raycaster 命中）
+    // 教学场景：markdown 里声明一次，math-step 的 highlight.auxLines 在不同 step toggle 可见性
+    // 与 hover 临时线 (drawHighlightEdges) 不同：auxLines 是带语义的、可被 setHighlight 控制的
+    var auxLineObjects = {}; // id → { line, mat, from, to, meta }
+    function auxLineResolvePoint(token) {
+      if (typeof token === 'string') {
+        var v = labelNameToPos[token];
+        if (v) return [v.x, v.y, v.z];
+      }
+      return null;
+    }
+    if (Array.isArray(data.auxLines)) {
+      data.auxLines.forEach(function(line) {
+        if (!line || !line.id || !line.from || !line.to) return;
+        var a = auxLineResolvePoint(line.from);
+        var b = auxLineResolvePoint(line.to);
+        if (!a || !b) return;
+        var p0 = new THREE.Vector3(a[0], a[1], a[2]);
+        var p1 = new THREE.Vector3(b[0], b[1], b[2]);
+        var geom = new THREE.BufferGeometry().setFromPoints([p0, p1]);
+        var style = line.style || 'dashed';
+        var mat;
+        if (style === 'dashed') {
+          mat = new THREE.LineDashedMaterial({
+            color: line.color || '#ff3366',
+            dashSize: 0.08,
+            gapSize: 0.05,
+          });
+        } else {
+          mat = new THREE.LineBasicMaterial({ color: line.color || '#ff3366' });
+        }
+        var lineObj = new THREE.Line(geom, mat);
+        if (style === 'dashed') lineObj.computeLineDistances();
+        lineObj.visible = false; // 默认隐藏，由 highlight.auxLines 控制
+        lineObj.layers.set(1);
+        lineObj.renderOrder = 3;
+        root.add(lineObj);
+        auxLineObjects[line.id] = {
+          line: lineObj,
+          mat: mat,
+          from: line.from,
+          to: line.to,
+          meta: line
+        };
+      });
+    }
+    // 同步 auxLine 两端点到 label 当前位置（slider 拖动时调用）
+    function repositionAuxLine(auxId) {
+      var info = auxLineObjects[auxId];
+      if (!info) return;
+      var a = auxLineResolvePoint(info.from);
+      var b = auxLineResolvePoint(info.to);
+      if (!a || !b) return;
+      var posAttr = info.line.geometry.getAttribute('position');
+      posAttr.setXYZ(0, a[0], a[1], a[2]);
+      posAttr.setXYZ(1, b[0], b[1], b[2]);
+      posAttr.needsUpdate = true;
+      if (info.mat instanceof THREE.LineDashedMaterial) {
+        info.line.computeLineDistances();
+      }
+    }
+    function setAuxLineVisibility(ids, visible) {
+      if (!Array.isArray(ids)) return;
+      ids.forEach(function(id) {
+        var info = auxLineObjects[id];
+        if (info) info.line.visible = !!visible;
+      });
+    }
+    function resetAuxLines() {
+      Object.keys(auxLineObjects).forEach(function(id) {
+        auxLineObjects[id].line.visible = false;
+      });
     }
 
     // ---- 6.55) 派生顶点（v0.3）----
@@ -626,15 +714,28 @@ const clientJs = `
         spec = spec || {};
         drawHighlightEdges(spec.edges || []);
         highlightPlanes(spec.planes || []);
+        // v0.1.7: 预置辅助线池 toggle —— 跟 planes / edges 一样的设计
+        if (Array.isArray(spec.auxLines)) {
+          setAuxLineVisibility(spec.auxLines, true);
+        }
         api.__dirty = true;
         container.dispatchEvent(new CustomEvent('cw:geom3d:highlight', { detail: spec || {} }));
       },
       resetHighlight: function() {
         drawHighlightEdges([]);
         highlightPlanes([]);
+        resetAuxLines(); // v0.1.7: 全部隐藏
         api.__dirty = true;
         container.dispatchEvent(new CustomEvent('cw:geom3d:highlight', { detail: null }));
       },
+      // v0.1.7 暴露的辅助线 API（供 devtools 或脚本直接调用）
+      showAuxLines: function(ids) { setAuxLineVisibility(ids, true); },
+      hideAuxLines: function(ids) { setAuxLineVisibility(ids, false); },
+      toggleAuxLine: function(id) {
+        var info = auxLineObjects[id];
+        if (info) info.line.visible = !info.line.visible;
+      },
+      hasAuxLine: function(id) { return !!auxLineObjects[id]; },
       getLabelPos: function(name) {
         var v = labelNameToPos[name];
         return v ? [v.x, v.y, v.z] : null;
@@ -646,6 +747,7 @@ const clientJs = `
         // 3) 重新计算引用了此 label 的 plane（中心 + 法线）
         // 4) 触发整组 derivedVertices 重算
         // 5) 衍生 label 变化时也连带触发引用它的 plane 重新定位
+        // 6) v0.1.7：同步引用了此 label 的 auxLine 端点（slider 拖 P 时 OD 自动跟）
         if (!Array.isArray(pos) || pos.length < 3) return;
         var newPos = new THREE.Vector3(pos[0], pos[1], pos[2]);
         labelNameToPos[name] = newPos;
@@ -658,6 +760,11 @@ const clientJs = `
         // 重新定位引用了此 label 的 plane
         var affectedPlaneIds = planesUsingLabel(name);
         affectedPlaneIds.forEach(function(pid) { repositionPlane(pid); });
+        // v0.1.7：重新定位引用了此 label 的 auxLine（slider 拖 P 时 OD 跟着动）
+        Object.keys(auxLineObjects).forEach(function(aid) {
+          var info = auxLineObjects[aid];
+          if (info.from === name || info.to === name) repositionAuxLine(aid);
+        });
         // 重算 derived vertices（按声明顺序，可能产生新位置 → 同样需要更新 CSS2D + 受影响的 plane）
         if (derivedList.length > 0) {
           recomputeDerived();
