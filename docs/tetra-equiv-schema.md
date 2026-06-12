@@ -14,7 +14,7 @@
 | `linkedGeometry3d` | string | - | - | 联动的 geometry-3d 实例 ID（顶点源） |
 | `vertexLabels` | string[] | ✅（4 个） | - | 4 个顶点的 label（顺序无关，内部去重） |
 | `showAs` | array | ✅（正好 4 项） | - | 4 种摆法（每种 = 1 个底 + 1 个锥顶 + 1 种颜色 + 1 个图例文字） |
-| `opacity` | number | - | `0.45` | 填充透明度（0-1） |
+| `opacity` | number | - | `0.45` | 填充透明度（0-1）—— 4 锥叠加时取**最小值**，避免画面"过白" |
 | `camera` | object | - | 自动框 | `{position:[x,y,z], target:[x,y,z]}`（默认根据 4 顶点包围盒自适应） |
 | `showVolumeCheck` | bool | - | `true` | 是否在卡片标题下方显示 4 个体积数值（验证相等） |
 

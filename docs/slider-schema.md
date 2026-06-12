@@ -12,8 +12,8 @@
 | `label` | string | ✅ | - | 滑块上方的文字描述（用户可读） |
 | `min` | number | ✅ | - | 滑块最小值 |
 | `max` | number | ✅ | - | 滑块最大值 |
-| `step` | number | - | `(max-min)/100` | 步长 |
-| `defaultValue` | number | - | `(min+max)/2` | 初始值（自动 clamp 到 [min, max]） |
+| `step` | number | - | `(max-min)/100` | 步长（推荐显示成 `0.01` 之类细粒度） |
+| `defaultValue` | number | - | `(min+max)/2` | 初始值；超出 [min, max] 时自动 clamp |
 | `unit` | string | - | `''` | 显示单位文字，跟在数字后面 |
 | `showValue` | bool | - | `true` | 是否显示当前数值 |
 | `linkedGeometry3d` | string | - | - | 联动的 geometry-3d 实例 ID（须匹配其 `id` 字段） |

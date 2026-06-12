@@ -42,13 +42,19 @@ courseware/
 │   │   ├── formula.js
 │   │   ├── math-step.js
 │   │   ├── geometry-3d.js        # 3D 几何（WebGL/Three.js，立体几何教学）
+│   │   ├── slider.js             # 滑块，驱动 geometry-3d 命名顶点
+│   │   ├── tetra-equiv.js        # 同体异构四面体（等体积法可视化）
+│   │   ├── cut-anim.js           # 剖切动画（从多面体切出三棱锥）
+│   │   ├── _geom_utils.js        # 几何工具（顶点/面/法线计算，geometry-3d 内部用）
 │   │   └── renderer.js           # 组件调度器（processMarkdown / mergeComponents / collectClientScript）
 │   └── styles/
 │       └── main.css              # CSS 变量驱动主题（含 @media print 打印样式）
 ├── docs/                         # 设计/打磨记录
 │   ├── README.md                 # docs/ 目录说明
-│   ├── components-registry.md    # 10 个组件的 v0.x.x 状态 / 字段 / 打磨时间线
-│   └── geometry-3d-schema.md     # geometry-3d 组件字段契约（v0.1，4 个示例）
+│   ├── geometry-3d-schema.md     # geometry-3d 组件字段契约（v0.1.7，4 个示例）
+│   ├── slider-schema.md          # slider 组件字段契约（v0.1）
+│   ├── cut-anim-schema.md        # cut-anim 组件字段契约（v0.1）
+│   └── tetra-equiv-schema.md     # tetra-equiv 组件字段契约（v0.1）
 ├── build.js                      # 编译脚本：md → HTML
 └── dist/                         # 编译产物（最终分发，每个 .md 独立一份）
     └── <name>.html
@@ -286,17 +292,27 @@ sections:
 
 ### 4.10 组件清单
 
-**MVP 10 个组件**（进入本次实现）：
-- `hero` — 开篇封面
-- `quiz` — 选择题（单选/多选，含即时反馈）
-- `quiz-track` — 多题轮播（quiz 数组，carousel 切换）
-- `fill-blank` — 填空题
-- `step-guide` — 步骤引导
-- `compare` — 前后对比
-- `concept-card` — 概念卡片网格
-- `callout` — 高亮块（tip/warning/info/danger/note）
-- `formula` — 数学公式块（KaTeX 编译时渲染，含编号 / caption / 分类）
-- `math-step` — 分步解题（题面 / 步骤 / 答案 / 折叠区）
+**MVP 10 个组件**（v1.0.0 稳定）：
+- `hero` — 开篇封面（v0.2.0）
+- `quiz` — 选择题（单选/多选，含即时反馈）（v0.2.0）
+- `quiz-track` — 多题轮播（quiz 数组，carousel 切换）（v0.2.0）
+- `fill-blank` — 填空题（v0.2.1，支持多空 + 等价 + practice）
+- `step-guide` — 步骤引导（v0.2.0）
+- `compare` — 前后对比（v0.2.0）
+- `concept-card` — 概念卡片网格（v0.2.0）
+- `callout` — 高亮块（tip/warning/info/danger/note）（v0.2.0）
+- `formula` — 数学公式块（KaTeX 编译时渲染，含编号 / caption / 分类）（v0.2.0）
+- `math-step` — 分步解题（v0.2.1，step 高亮联动 geometry-3d）
+
+**3D 体系（v1.2.0 新增）**：
+- `geometry-3d` — 立体几何 3D 渲染（v0.1.7，WebGL/Three.js；触摸板 / Z 轴自转 / 三角面 / 派生顶点 / 辅助线池 / per-instance 闭包）
+- `slider` — 滑块联动 3D 命名顶点（v0.1）
+- `tetra-equiv` — 同体异构四面体（v0.1，等体积法可视化）
+- `cut-anim` — 剖切动画（v0.1，从多面体切出三棱锥）
+
+**公共工具**（非组件）：
+- `_inline.js` — 行内 markdown 解析（processInline，KaTeX 集成）
+- `_geom_utils.js` — 几何工具函数（顶点/面/法线计算，供 geometry-3d 和 3D 联动组件共用）
 
 侧边导航由 frontmatter 的 `sections` 字段自动生成（无独立组件）。
 
@@ -304,6 +320,7 @@ sections:
 - `accordion`（折叠列表）—— 可用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 内容量大时再加
 - `timeline`（时间线）—— 适合讲发展史
+- `geometry-3d` 进阶：剖切（`clippingPlane`）/ 三视图（`views: "three"`）/ 展开图（`unfold`）—— 路线图见 [`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)
 
 ### 4.11 组件内联 markdown 支持
 
@@ -336,17 +353,71 @@ sections:
 
 ### 4.13 Geometry-3D（3D 几何体）
 
-**用途**：立体几何 / 空间向量 / 解析几何的交互式 3D 演示。鼠标拖动旋转、滚轮缩放、右键平移；标签用 DOM（CSS2DRenderer）跟随几何体。
+**用途**：立体几何 / 空间向量 / 解析几何的交互式 3D 演示。鼠标拖动旋转、滚轮缩放、右键平移、键盘 A/D 或 ←/→ 绕 Z 轴自转；标签用 DOM（CSS2DRenderer）跟随几何体。
 
-**详细字段契约、数据示例、v0.2 路线图见** [`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)。
+**详细字段契约、数据示例、v0.1.7 完整能力见** [`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)。
+
+**关键点速览**（v0.1.7）：
+- 字段契约：10+ 类 30+ 字段（`geometry` / `display` / `labels` / `planes` / `auxLines` / `rightAngles` / `derivedVertices` / `camera` / `id` / `caption` / `size` / `vertices` / `background`），全部带默认值
+- 支持几何体：box / sphere / cylinder / cone / tetrahedron / octahedron / **triangular-prism**（v0.1.2 真正实现，不再是占位）
+- 体积影响：单 HTML 注入约 730KB（Three.js + OrbitControls + CSS2DRenderer，esbuild IIFE 外链），**仅在课件包含此组件时内联**。`--inline-three` 模式可强制内联（Alice 内网离线部署）
+- 交互：拖动旋转 / 滚轮缩放 / Shift+拖动平移 / 双击几何体 = 局部复位 / 双击空白 = 全局复位 / **A/D 或 ←/→ 键绕 Z 轴自转** / 右下角操作提示徽章
+- 坐标系：默认 +Z 朝上（`camera.up.set(0,0,1)`），与项目 BB₁ 垂直约定一致
+- 标签：DOM 形式（CSS2DRenderer），可与 KaTeX 混排、a11y 友好
+- **派生顶点**（v0.1.3）：`derivedVertices: [{label, formula}]` —— formula 走 `midpoint` / `centroid` / `linear`，命名顶点变化时整组重算
+- **辅助线池**（v0.1.7）：`auxLines: [{id, from, to, style, color}]` —— 默认全部隐藏，通过 `api.showAuxLines([id,...])` 或 `math-step.highlight.auxLines` toggle
+- **API**：per-instance 闭包（`container.__cwApi`），向后兼容 `window.__cwGeom3D[id]`
+- 路线图（v0.2+）：剖切（`clippingPlane`）/ 三视图（`views: "three"`）/ 展开图（`unfold`）
+
+### 4.14 Slider（滑块 + 3D 顶点联动）
+
+**用途**：拖动滑块改变某个数值，实时联动 geometry-3d 中的命名顶点位置。适用于「$P$ 在 $A_1C_1$ 上滑动」「$h$ 从 0 增到 2」等动点 / 动值教学场景。
 
 **关键点速览**（v0.1）：
-- 字段契约：4 类 23 字段（`geometry` / `display` / `labels` / `camera`），全部带默认值
-- 支持几何体：box / sphere / cylinder / cone / tetrahedron / octahedron / icosahedron
-- 体积影响：单 HTML 注入约 720KB（Three.js + OrbitControls + CSS2DRenderer），**仅在课件包含此组件时内联**
-- 交互：拖动旋转 / 滚轮缩放 / 右键平移 / 双击几何体 = 以该几何体为中心重置 / 双击空白 = 全局重置
-- 标签：DOM 形式（CSS2DRenderer），可与 KaTeX 混排、a11y 友好
-- 待办（v0.2）：剖切面（slice）/ 模式切换（mode）/ 三视图同步（views: "three"）/ 几何体改 JSON 数据表
+- 必填：`label` / `min` / `max`
+- 联动：`linkedGeometry3d` + `drives: [{vertex, path:[a,b], param}]` —— 滑块值 $t \in [0,1]$ 在 `path` 两 label 间插值
+- 联动后自动触发：CSS2D 标签移动 / 引用 label 的半透面重算 / 派生顶点重算
+- 详细字段契约见 [`docs/slider-schema.md`](./docs/slider-schema.md)
+
+### 4.15 Tetra-equiv（同体异构四面体）
+
+**用途**：在同一 canvas 内**同时**显示「同一个四面体的 4 种不同摆法」（4 种底 + 4 个锥顶），让学员一眼看见「4 个形状不同、顶点不同，但体积完全相等」—— 立体几何「等体积法」教学的核心可视化。
+
+**关键点速览**（v0.1）：
+- 必填：`vertexLabels: [lbl1,lbl2,lbl3,lbl4]`（4 个顶点）+ `showAs: [4 项]`
+- 每项 `showAs` 含 `base:[3 label]` / `apex:1 label` / `color` / `label`
+- 联动源 `slider` 拖动 P 时，4 个四面体同步变形
+- 体积校验自动显示 4 个数值（理论相等，浮点 $10^{-6}$ 误差）
+- 详细字段契约见 [`docs/tetra-equiv-schema.md`](./docs/tetra-equiv-schema.md)
+
+### 4.16 Cut-anim（剖切动画）
+
+**用途**：动画展示「从三棱柱切下一刀得到三棱锥」的过程，把「为什么可以用 V_keep / V_total 这个比例」从抽象变成肉眼可见的几何动作。
+
+**关键点速览**（v0.1）：
+- 必填：`linkedGeometry3d` / `keepVertices:[4 label]` / `cutPlane:{type:"plane-through-points", points:[3 label]}`
+- 动画方案：**不用** Three.js `clippingPlane`（兼容性差），改用「透明度动画」—— 三棱柱从 1.0 淡到 0.3，保留四面体从 0 渐显到 0.85
+- 联动源 `slider` 拖动 P 时，保留四面体 / 切平面 / 完整三棱柱同步重画
+- 体积提示（默认 on）：保留 / 整体 / 比例三个数值实时显示
+- 详细字段契约见 [`docs/cut-anim-schema.md`](./docs/cut-anim-schema.md)
+
+### 4.17 build.js 锚点校验（v0.1.8）
+
+**问题**：旧版 `injectSectionIds` 按出现顺序给 h2 编号为 `section-1..N`，侧边栏也按 (i+1) 编号。一旦 frontmatter `sections` 数量 ≠ 正文 h2 数量，**sidebar 锚点会无声错位**（如三角柱 demo 漏写 `## 原题` 时 "原题"sidebar 跳到不存在的 section-1、"第(2)问"跳到 section-3 而非 section-4）。
+
+**修复**：build.js 6/12 加了 section 7.6 校验：
+
+```js
+if (sectionsCount > 0 && h2Count > 0 && sectionsCount !== h2Count) {
+  console.warn(`! 锚点错位风险：...sections=${sectionsCount}，但正文 h2=${h2Count}`);
+  // 打印 sidebar 列表 + h2 列表便于排查
+}
+```
+
+**约束（写新课件时）**：
+- `sections` 数量 **必须** 等于正文 h2 数量
+- `sections` 顺序应与 h2 在正文中出现顺序一致
+- 漏写 `sections` 不会让 build 失败（向后兼容，只给 warning），但 sidebar 会是空
 
 ---
 

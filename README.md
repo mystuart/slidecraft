@@ -3,15 +3,15 @@
 > 一套「内容与框架解耦」的课件系统：Markdown 是源、HTML 是产物，**换话题只改一个 markdown 文件**。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version: 1.1.0](https://img.shields.io/badge/version-1.1.0-blue.svg)](./COMPONENTS.md)
-[![Components: 10](https://img.shields.io/badge/components-10-green.svg)](./COMPONENTS.md)
+[![Version: 1.2.0](https://img.shields.io/badge/version-1.2.0-blue.svg)](./COMPONENTS.md)
+[![Components: 16](https://img.shields.io/badge/components-16-green.svg)](./COMPONENTS.md)
 [![Size: ~150KB](https://img.shields.io/badge/size-~150KB-lightgrey.svg)](./dist)
 
 ## 特性
 
 - **零运行时依赖** —— 编译后是单个 HTML 文件，所有 JS/CSS 内联，双击就能打开
 - **Markdown 即源** —— 写课件就是写 markdown，互动组件用 fenced code block 嵌入
-- **10 个互动组件** —— 封面、选择题、题组、填空、步骤引导、前后对比、概念卡片、高亮块、数学公式、分步解题
+- **16 个互动组件** —— 封面、选择题、题组、填空、步骤引导、前后对比、概念卡片、高亮块、数学公式、分步解题；3D 立体几何 + 滑块联动 + 同体异构 + 剖切动画
 - **主题可换** —— CSS 变量驱动，lavender / 默认 / 自定义，换一行就行
 - **打印友好** —— 内置 `@media print` 样式，侧栏自动隐藏、答案展开、每章新页
 - **响应式** —— 桌面端优先，移动端可读
@@ -20,10 +20,16 @@
 
 ```bash
 cd courseware
-npm install              # 装 gray-matter + marked
-node build.js            # 编译 content/*.md → dist/<name>.html
-open dist/how-to-create-skill.html     # 在浏览器查看
+npm install                          # 装 gray-matter + marked + katex
+node build.js                        # 编译 content/*.md → dist/<name>.html
+open dist/triangular-prism-demo.html  # 在浏览器查看
 ```
+
+> 第一次跑 build 时如果课件里用到 `geometry-3d` 组件，需要先准备 Three.js bundle：
+> ```bash
+> npm run build:three    # 一次性 esbuild 打包 Three.js → cw-three-bundle.iife.js
+> ```
+> 之后 build 会自动 hash 缓存破坏 + 拆外链（除非用 `--inline-three` 强制内联）。
 
 ## 目录结构
 
@@ -33,7 +39,7 @@ courseware/
 │   └── how-to-create-skill.md
 ├── template/            # 框架（写一次永久复用）
 │   ├── index.html.tpl   # HTML 骨架
-│   ├── components/      # 10 个组件 + _inline 公共工具
+│   ├── components/      # 16 个组件 + _inline / _geom_utils 公共工具
 │   ├── styles/main.css  # CSS 变量驱动主题（含 @media print 打印样式）
 │   └── README.md        # 组件 API 详细文档
 ├── build.js             # 编译脚本
@@ -109,16 +115,20 @@ node build.js
 |------|------|----------|
 | `hero` | 封面 | `{"title": "标题", "cta": "开始"}` |
 | `quiz` | 选择题（单/多选） | `{"question": "?", "type": "single", "options": [...], "correct": ["a"]}` |
-| `fill-blank` | 填空题 | `{"question": "答案是 ____", "answer": "42"}` |
+| `fill-blank` | 填空题 | `{"question": "答案是 {{1}}", "answers": [["42"]]}` |
 | `step-guide` | 步骤引导 | `{"title": "标题", "steps": [{"title": "步骤1", "content": "..."}]}` |
 | `compare` | 前后对比 | `{"left": {...}, "right": {...}}` |
 | `concept-card` | 概念卡片网格 | `{"cards": [{"icon": "🎯", "title": "...", "desc": "..."}]}` |
 | `callout` | 高亮块 | `{"type": "tip", "content": "..."}` |
 | `formula` | 数学公式块 | `{"expr": "E = mc^2", "caption": "质能方程"}` |
-| `math-step` | 分步解题 | `{"question": "...", "steps": [{"title": "...", "content": "..."}]}` |
+| `math-step` | 分步解题 | `{"question": "...", "steps": [{"title": "...", "content": "...", "highlight": {"planes":["..."]}}]}` |
 | `quiz-track` | 题组（quiz 数组） | `[{"question": "?", "type": "single", "options": [...], "correct": ["a"]}, ...]` |
+| `geometry-3d` | 3D 立体几何 | `{"geometry": "box", "size": [2,2,2], "labels": [["A",[-1,-1,-1]]]}` |
+| `slider` | 滑块联动 3D 顶点 | `{"label": "P 滑动", "min": 0, "max": 1, "linkedGeometry3d": "...", "drives": [...]}` |
+| `tetra-equiv` | 同体异构四面体 | `{"vertexLabels": ["A","P","C","B₁"], "showAs": [{...},{...},{...},{...}]}` |
+| `cut-anim` | 剖切动画 | `{"linkedGeometry3d": "...", "keepVertices": [...], "cutPlane": {...}}` |
 
-类型：`tip` / `warning` / `info` / `danger` / `note`，五种配色。
+callout 类型：`tip` / `warning` / `info` / `danger` / `note`，五种配色。
 
 ## 进阶用法
 
@@ -142,11 +152,12 @@ node build.js
 
 ## 演示
 
-- `content/how-to-create-skill.md` — 完整 6 章节课件（《如何创作 SKILL》）
-- `content/components-showcase.md` — 10 个组件 × 20+ 变体的大型 showcase
+- `content/components-showcase.md` — 14 个组件 × 20+ 变体的大型 showcase
 - `content/binary-card-trick.md` — 二进制与纸牌魔术的 6 章节课件
 - `content/formula-test.md` — 公式组件（formula）的数学/化学/物理场景
 - `content/math-step-test.md` — 分步解题组件（math-step）的展示
+- `content/geometry-3d-test.md` — 3D 几何组件（geometry-3d）的多几何体展示
+- `content/triangular-prism-demo.md` — 立体几何大题完整解法（4 组件联动：3D + 滑块 + 同体异构 + 剖切 + math-step 步骤高亮）
 
 ## 设计文档
 
@@ -155,10 +166,11 @@ node build.js
 
 ## 后续可扩展
 
-MVP 10 个组件之外的候选（与 [SPEC.md §4.10](./SPEC.md#410-组件清单) 同步）：
+MVP 16 个组件之外的候选（与 [SPEC.md §4.10](./SPEC.md#410-组件清单) 同步）：
 - `accordion`（折叠列表）—— 当前用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 内容量大时再加
 - `timeline`（时间线）—— 适合讲发展史
+- geometry-3d 进阶：`clippingPlane`（剖切）/ `views: "three"`（三视图）/ `unfold`（展开图）—— 路线图见 [`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)
 
 需要时按"加新组件"流程扩展即可。
 

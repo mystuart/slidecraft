@@ -103,7 +103,7 @@ sections:
 ```geometry-3d
 {
   "id": "prism-2024-xianyang-q2",
-  "title": "三棱柱（直）· P = (1.5, 2, 2)",
+  "title": "三棱柱（直）· P = (1.5, 0.5, 2)",
   "geometry": "triangular-prism",
   "vertices": [
     [0, 2, 0], [0, 0, 0], [2, 0, 0],

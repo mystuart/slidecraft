@@ -174,5 +174,8 @@ processInline  支持：**bold** / *italic* / `code` / [text](url) / $LaTeX$
 □ `sections` 数量和 `##` 数量对得上吗
 □ 跑一次 build，看 build 输出的 sidebar li 数量是不是 0
 □ 跑一次 build，看 console 有没有 warning
+□ 跑一次 build，看有没有「锚点错位风险」warning —— 说明 sections 数量 ≠ 正文 h2 数量
+□ 跑一次 build，看有没有「检测到 geometry-3d 组件但未找到 cw-three-bundle.iife.js」throw
+  —— 第一次跑 `npm run build:three` 把 three-bundle.iife.js 准备好
 ================================================================================
 -->
