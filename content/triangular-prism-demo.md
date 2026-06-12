@@ -16,7 +16,7 @@ sections:
 
 > **（2024·陕西咸阳·模拟预测）** 已知三棱柱 $ABC$-$A_1B_1C_1$，如图所示，$P$ 是 $A_1C_1$ 上一动点，点 $O, D$ 分别是 $AC, PC$ 的中点，$AB \perp BC$，$AA_1 = AB = BC = 2$。
 >
-> （1）求证：$OD \,\|\,$ 平面 $PAB$；
+> （1）求证：$OD \parallel$ 平面 $PAB$；
 > （2）当 $AA_1 \perp$ 平面 $ABC$，且 $A_1P = 3PC_1$ 时，求三棱锥 $B_1\text{-}APC$ 的体积。
 
 ```callout
@@ -51,6 +51,7 @@ sections:
   "showEdges": true,
   "showVertices": true,
   "showAxes": true,
+  "showGrid": true,
   "edgeColor": "#1a1a1a",
   "faceColor": "#cce0ff",
   "vertexColor": "#ff6b35",
@@ -68,7 +69,7 @@ sections:
     ["P",  [ 0.5, 1.5, 2]],
     ["D",  [ 1.25, 0.75, 1]]
   ],
-  "camera": { "position": [3.5, 3.2, 3.6], "target": [0.8, 1, 0.8], "fov": 50 },
+  "camera": { "position": [4.0, 4.0, 1.0], "target": [1.0, 1.0, 1.0], "fov": 45 },
   "caption": "P 取 A₁C₁ 中点（动点示意）。hover 下方步骤可联动高亮关键平面和虚拟辅助线。"
 }
 ```

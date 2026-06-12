@@ -78,9 +78,18 @@ function render(data) {
   const id = data.id || ('geom3d-' + Math.random().toString(36).slice(2, 10));
   const dataJson = JSON.stringify(data || {});
 
+  // 操作提示徽章（右下角，淡色，hover 高亮）—— 学员第一次接触 3D 时必看
+  const hintHtml = `<div class="geom-3d-hint" title="3D 交互">
+    <span class="geom-3d-hint-row">🖱 拖动 = 旋转（azimuth + polar）</span>
+    <span class="geom-3d-hint-row">⌨ A/D 或 ←/→ = 绕 Z 轴自转</span>
+    <span class="geom-3d-hint-row">⇧ Shift+拖动 = 平移</span>
+    <span class="geom-3d-hint-row">🖲 滚轮 = 缩放</span>
+    <span class="geom-3d-hint-row">⏺ 双击 = 复位</span>
+  </div>`;
+
   return `<div class="geom-3d" id="${escapeHtml(id)}" data-geom='${escapeHtml(dataJson)}'>
   ${titleHtml}
-  <div class="geom-3d-stage"></div>
+  <div class="geom-3d-stage">${hintHtml}</div>
   ${captionHtml}
 </div>`;
 }
@@ -165,6 +174,10 @@ const clientJs = `
     var fov = (data.camera && data.camera.fov) || 50;
     var camera = new THREE.PerspectiveCamera(fov, width / height, 0.1, 1000);
     camera.position.set(camPos[0], camPos[1], camPos[2]);
+    // v0.1.5 修复：本课件坐标系约定 BB₁ = +Z（垂直方向），但 Three.js 默认 up = +Y
+    // → 不设的话，棱柱的「底面 x-y」会显示成「竖的」（z 轴不朝上）
+    // → 显式把 camera.up 设为 +Z，让渲染时 +Z 永远朝屏幕上
+    camera.up.set(0, 0, 1);
     camera.lookAt(camTarget[0], camTarget[1], camTarget[2]);
     // v0.1.2 修复：enable layer 1 渲染半透面 / 坐标轴 / 高亮线
     //   半透面（planeMesh.layers.set(1)）、高亮线（lineSeg.layers.set(1)）、
@@ -677,14 +690,87 @@ const clientJs = `
     }
 
     // ---- 7) 控制器（OrbitControls） ----
+    // 显式声明鼠标 / 触摸映射，避免 macOS 触摸板双指被误判为中键（DOLLY）导致旋转轴丢失
+    // - 鼠标：左键旋转 / 右键平移 / 滚轮缩放（不分配 MIDDLE，避免触摸板 Force Touch 误触发）
+    // - 触屏：单指旋转 / 双指缩放+平移
     var controls = null;
     if (window.__cwOrbitControls) {
       controls = new window.__cwOrbitControls(camera, renderer.domElement);
       controls.target.set(camTarget[0], camTarget[1], camTarget[2]);
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
+      if (window.__cwThree) {
+        var T = window.__cwThree;
+        controls.mouseButtons = {
+          LEFT:   T.MOUSE.ROTATE,
+          MIDDLE: T.MOUSE.DOLLY,
+          RIGHT:  T.MOUSE.PAN
+        };
+        controls.touches = {
+          ONE: T.TOUCH.ROTATE,
+          TWO: T.TOUCH.DOLLY_PAN
+        };
+      }
       controls.update();
     }
+
+    // ---- 7.4) 第三轴旋转（绕 Z 轴自转，OrbitControls 不暴露） ----
+    // OrbitControls 默认只给 2 DOF（azimuth + polar），学员要"在底面（x-y 面）里看一圈"做不到。
+    // 本课件坐标系约定：B 为原点，BA = +Y，BC = +X，BB₁ = +Z。
+    // 所以「底面是 x-y 面、垂直方向是 z 轴」—— 学员要的自转 = 绕 Z 轴 = 让棱柱像陀螺一样原地转。
+    //
+    // 实现：旋转 camera 绕 controls.target（schema 设的 camera.target ≈ 棱柱中心 1,1,1），
+    // 视觉上等价于棱柱原地自转。z 坐标保持不变 → camera 沿水平面绕圈。
+    //
+    // v0.1.5 修复 v0.1.4 的「按一下先复位」bug：
+    //   之前在 controls.update() 里调 camera.lookAt(target)，会和 OrbitControls 内部
+    //   spherical / damping 状态打架。改法：临时 disableDamping，update() 自然重新
+    //   derive spherical from 新 position，damping 状态保持同步。
+    var lastKeyRotateTime = 0;
+    var KEY_ROTATE_STEP = 0.18; // 每次按键约 10°，连按会顺滑
+    function rotateAroundZ(deltaAngle) {
+      if (!controls) return;
+      var target = controls.target;
+      // 算 camera 相对 target 的偏移
+      var dx = camera.position.x - target.x;
+      var dy = camera.position.y - target.y;
+      // 绕 Z 轴 2D 旋转（dx, dy 平面），dz 不变
+      var c = Math.cos(deltaAngle), s = Math.sin(deltaAngle);
+      var nx = c * dx - s * dy;
+      var ny = s * dx + c * dy;
+      // 临时关掉 damping，避免 controls.update() 把位置往旧 spherical 拉回
+      var wasDamping = controls.enableDamping;
+      controls.enableDamping = false;
+      camera.position.x = target.x + nx;
+      camera.position.y = target.y + ny;
+      // z 不变（camera 高度不变 → 视觉上棱柱原地自旋）
+      controls.update();
+      controls.enableDamping = wasDamping;
+      // 联动组件不需要更新（getLabelPos 拿到的是 root 下的 label 世界坐标，camera 动了不影响）
+    }
+    function shouldHandleKey(ev) {
+      // 焦点在表单控件上时不拦截（让用户能正常打字）
+      var tag = (ev.target && ev.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return false;
+      if (ev.target && ev.target.isContentEditable) return false;
+      return true;
+    }
+    document.addEventListener('keydown', function(ev) {
+      if (!shouldHandleKey(ev)) return;
+      var key = ev.key;
+      // 限流：长按也最多 60fps
+      var now = performance.now();
+      if (now - lastKeyRotateTime < 16) return;
+      if (key === 'a' || key === 'A' || key === 'ArrowLeft') {
+        rotateAroundZ(KEY_ROTATE_STEP);
+        ev.preventDefault();
+        lastKeyRotateTime = now;
+      } else if (key === 'd' || key === 'D' || key === 'ArrowRight') {
+        rotateAroundZ(-KEY_ROTATE_STEP);
+        ev.preventDefault();
+        lastKeyRotateTime = now;
+      }
+    });
 
     // ---- 7.5) 双击复位 ----
     // 几何体根容器包围盒中心（用于"双击几何体 = 以它为中心重置"）

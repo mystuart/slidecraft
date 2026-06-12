@@ -1566,6 +1566,8 @@ details summary { cursor: pointer; font-weight: 600; }
   display: block;
   width: 100% !important;
   height: 100% !important;
+  /* 禁止浏览器拦截触摸板 / 触屏的拖动手势（否则 OrbitControls 拿不到完整 mousemove 事件流） */
+  touch-action: none;
 }
 
 .geom-3d-label {
@@ -1592,6 +1594,36 @@ details summary { cursor: pointer; font-weight: 600; }
   background: #fafafa;
   border-top: 1px solid #f0f0f0;
   line-height: 1.5;
+}
+
+/* ============================================================
+   geom-3d 操作提示徽章（v0.1.3）
+   右下角浮动，4 行 hint，hover 高亮
+   ============================================================ */
+.geom-3d-hint {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 10;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #555;
+  font-family: var(--font-mono, 'SF Mono', Menlo, Consolas, monospace);
+  user-select: none;
+  pointer-events: none; /* 不挡鼠标事件，让 OrbitControls 拿到 drag */
+  opacity: 0.75;
+  transition: opacity 0.2s;
+}
+.geom-3d-stage:hover .geom-3d-hint {
+  opacity: 1;
+}
+.geom-3d-hint-row {
+  display: block;
+  white-space: nowrap;
 }
 
 @media print {
