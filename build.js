@@ -124,6 +124,27 @@ async function buildFile(inputPath) {
     geomCss = fs.readFileSync(geomCssPath, 'utf8');
   }
 
+  // 6.7) 条件加载 2D 组件 CSS（仅当课件包含 coords-2d 时注入）
+  let coords2dCss = '';
+  const coords2dCssPath = path.join(ROOT, 'template/styles/coords-2d.css');
+  if (bodyHtml.includes('class="coords-2d"') && fs.existsSync(coords2dCssPath)) {
+    coords2dCss = fs.readFileSync(coords2dCssPath, 'utf8');
+  }
+
+  // 6.8) 条件加载 function-plot 组件 CSS
+  let functionPlotCss = '';
+  const functionPlotCssPath = path.join(ROOT, 'template/styles/function-plot.css');
+  if (bodyHtml.includes('class="function-plot"') && fs.existsSync(functionPlotCssPath)) {
+    functionPlotCss = fs.readFileSync(functionPlotCssPath, 'utf8');
+  }
+
+  // 6.9) 条件加载 intersection-marker 组件 CSS
+  let intersectionCss = '';
+  const intersectionCssPath = path.join(ROOT, 'template/styles/intersection-marker.css');
+  if (bodyHtml.includes('class="intersection"') && fs.existsSync(intersectionCssPath)) {
+    intersectionCss = fs.readFileSync(intersectionCssPath, 'utf8');
+  }
+
   // 7) 渲染侧边导航
   const nav = renderer.renderSideNav(fm.sections || [], fm.title, fm.subtitle, fm.author);
 
@@ -209,7 +230,7 @@ async function buildFile(inputPath) {
     .replace(/\{\{THEME\}\}/g, () => escapeHtml(fm.theme || 'lavender'))
     .replace(/\{\{NAV_ITEMS\}\}/g, () => nav.items)
     .replace(/\{\{CONTENT\}\}/g, () => bodyHtml)
-    .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss + (geomCss ? '\n' + geomCss : ''))
+    .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss + (geomCss ? '\n' + geomCss : '') + (coords2dCss ? '\n' + coords2dCss : '') + (functionPlotCss ? '\n' + functionPlotCss : '') + (intersectionCss ? '\n' + intersectionCss : ''))
     .replace(/\{\{THREE_SCRIPT\}\}/g, () => threeBundleTag)
     .replace(/\{\{CLIENT_JS\}\}/g, () => threeBundleJs + '\n' + clientJs);
 

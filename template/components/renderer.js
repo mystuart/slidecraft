@@ -46,6 +46,10 @@ const geometry3d = require('./geometry-3d.js');
 const slider = require('./slider.js');
 const tetraEquiv = require('./tetra-equiv.js');
 const cutAnim = require('./cut-anim.js');
+const trajectory = require('./trajectory.js');
+const coords2d = require('./coords-2d.js');
+const functionPlot = require('./function-plot.js');
+const intersectionMarker = require('./intersection-marker.js');
 
 // 语言标记 → 组件渲染器
 const COMPONENT_MAP = {
@@ -79,6 +83,17 @@ const COMPONENT_MAP = {
   'cut-anim': cutAnim,
   'cutanim': cutAnim,
   'cut_anim': cutAnim,
+  'trajectory': trajectory,
+  'traj': trajectory,
+  'coords-2d': coords2d,
+  'coords2d': coords2d,
+  'coords_2d': coords2d,
+  'function-plot': functionPlot,
+  'functionplot': functionPlot,
+  'function_plot': functionPlot,
+  'intersection-marker': intersectionMarker,
+  'intersection': intersectionMarker,
+  'intersectionmarker': intersectionMarker,
 };
 
 const PLACEHOLDER_RE = /<!--\s*CW-COMPONENT-(\d+)\s*-->/g;

@@ -1,9 +1,9 @@
 /**
  * @component slider
- * @version 0.1.1
+ * @version 0.1.2
  * @status 最小可用版
  *
- * 滑块组件（拖动实时改值，可联动 geometry-3d 顶点）
+ * 滑块组件（拖动实时改值，可联动 geometry-3d 顶点 或 function-plot 参数）
  *
  * 字段：
  *   - id                  {string}                可选 · 组件根 ID（未指定自动生成）
@@ -16,23 +16,39 @@
  *   - unit                {string}                可选 · 显示单位文字，会跟在数字后面
  *   - showValue           {bool}                  可选 · 是否显示当前数值（默认 true）
  *   - linkedGeometry3d    {string}                可选 · 联动的 geometry-3d 实例 ID
- *   - drives              {array}                 可选 · 滑块驱动的顶点
- *   - drives[].vertex     {string}                顶点 label 名（需在 geometry-3d labels 中存在）
- *   - drives[].path       {string[]}              沿这两个 label 之间插值
- *   - drives[].param      {'value'|'1-value'}     可选 · 插值参数，'value' 表示 t=value（默认），'1-value' 表示 t=1-value
- *   - caption             {string}                可选 · 卡片下方说明文字
+ *   - linkedFunctionPlot  {string}                可选 · 联动的 function-plot 实例 ID（v0.1.2 新增）
+ *   - drives              {array}                 可选 · 滑块驱动的目标
+ *
+ * drives 项（v0.1.2 双形态，向后兼容 v0.1.1）：
+ *
+ *   形态 A：驱动 geometry-3d 顶点（默认，当 drives[].vertex 存在时使用）
+ *     - drives[].vertex     {string}                顶点 label 名（需在 geometry-3d labels 中存在）
+ *     - drives[].path       {string[]}              沿这两个 label 之间插值
+ *     - drives[].param      {'value'|'1-value'}     可选 · 插值参数
+ *
+ *   形态 B：驱动 function-plot 参数（当 drives[].fnId 存在时使用，必须配 linkedFunctionPlot）
+ *     - drives[].fnId       {string}                function-plot 内某条函数的 id
+ *     - drives[].param      {string}                函数参数名（如 "a", "b", "amp", "freq"）
+ *     - drives[].map        {'linear'|'lerp'|'1-value'} 可选 · 映射方式
+ *                                                  linear: 直接传 t (默认)
+ *                                                  lerp:   在 [min, max] 间插值
+ *                                                  1-value: 传 1 - t
+ *     - drives[].min        {number}                lerp 模式下的下限（map=lerp 时必填）
+ *     - drives[].max        {number}                lerp 模式下的上限（map=lerp 时必填）
+ *
+ *   注意：drives[].param 在两种形态下含义不同 —— A 是插值方向，B 是函数参数名
+ *         判断标准：有没有 fnId
  *
  * 联动规则：
  *   - 滑块值 v ∈ [min, max] ⇒ 归一化 t = (v - min) / (max - min) ∈ [0, 1]
- *   - 顶点新位置 = path[0] + t * (path[1] - path[0])
- *   - 联动后调用 window.__cwGeom3D[id].setLabelPos(name, pos)
- *   - 联动前把 t 通过 param 字段决定方向（"1-value" 用于反向：从 path[1] 滑到 path[0]）
+ *   - 形态 A：顶点新位置 = path[0] + t * (path[1] - path[0])
+ *   - 形态 B：函数参数 = map 后的值（直接传 t / 在 [min,max] 插值 / 1-t）
  *
- * v0.1 实现边界：
- *   - path 必须正好 2 个 label（不支持更长的折线/曲线）
- *   - 不支持 param 引用其他滑块的值（v0.1 只支持滑块自身值）
- *   - 联动仅在客户端触发，初次渲染时不会自动调用 setLabelPos（保持 geometry-3d 标签的初始位置）
- *   - 联动会同时触发 geometry-3d 的 derivedVertices 重算（D = midpoint(P, C) 这种）
+ * v0.1.2 实现边界：
+ *   - 形态 A 的 path 必须正好 2 个 label（不支持更长的折线/曲线）
+ *   - 形态 B 的 lerp 模式必须给 min/max，否则传 t 跟 linear 一样
+ *   - linkedGeometry3d 和 linkedFunctionPlot 可同时设置（一次滑动驱动两个目标）
+ *   - 联动仅在客户端触发，初次渲染时不会自动调用 setParam / setLabelPos
  *
  * 已知问题：
  *   - 暂不支持键盘左右键微调（浏览器原生 <input type=range> 已支持，不重复实现）
@@ -55,6 +71,7 @@ function render(data) {
   const unit = data.unit || '';
   const showValue = data.showValue !== false;
   const linkedGeometry3d = data.linkedGeometry3d || '';
+  const linkedFunctionPlot = data.linkedFunctionPlot || '';
   const drives = Array.isArray(data.drives) ? data.drives : [];
   const caption = data.caption || '';
 
@@ -72,6 +89,7 @@ function render(data) {
     data-min="${min}" data-max="${max}" data-step="${step}"
     data-default="${defaultValue}" data-unit="${escapeHtml(unit)}"
     data-linked-geometry-3d="${escapeHtml(linkedGeometry3d)}"
+    data-linked-function-plot="${escapeHtml(linkedFunctionPlot)}"
     data-drives='${escapeHtml(drivesJson)}'>
   ${titleHtml}
   <div class="slider-row">
@@ -105,6 +123,7 @@ document.querySelectorAll('.slider').forEach(function(s) {
   var defaultValue = parseFloat(s.getAttribute('data-default')) || ((min + max) / 2);
   var unit = s.getAttribute('data-unit') || '';
   var linkedId = s.getAttribute('data-linked-geometry-3d') || '';
+  var linkedFpId = s.getAttribute('data-linked-function-plot') || '';
   var drives = [];
   try { drives = JSON.parse(s.getAttribute('data-drives') || '[]'); } catch (e) { drives = []; }
 
@@ -124,21 +143,52 @@ document.querySelectorAll('.slider').forEach(function(s) {
     return (v - min) / (max - min);
   }
 
-  // 把 t 应用到所有 drives（驱动 geometry-3d 顶点）
+  // 把 t 应用到所有 drives（驱动 geometry-3d 顶点 或 function-plot 参数）
   // v0.1.1：优先走 DOM 元素的 __cwApi（per-instance 闭包，A2 改造），
   // 兜底用 window.__cwGeom3D[id]（兼容老代码 + 跑在 DOM 之外的脚本）
+  // v0.1.2：新增 function-plot 参数驱动（drives[].fnId/param/map/min/max）
   function applyDrives(t) {
-    if (!linkedId || drives.length === 0) return;
-    var api = null;
-    var linkedEl = document.getElementById(linkedId);
-    if (linkedEl && linkedEl.__cwApi && linkedEl.__cwApi.setLabelPos) {
-      api = linkedEl.__cwApi;
-    } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
-      api = window.__cwGeom3D[linkedId];
-    }
-    if (!api || !api.setLabelPos) return;
+    if (drives.length === 0) return;
     drives.forEach(function(d) {
-      if (!d || !d.vertex) return;
+      if (!d) return;
+
+      // ---- 新支线：function-plot 参数驱动 ----
+      if (linkedFpId && d.fnId && d.param) {
+        var fpEl = document.getElementById(linkedFpId);
+        if (!fpEl || !fpEl.__cwApi) return;
+        var fpApi = fpEl.__cwApi;
+        // 映射：t → 实际参数值
+        // map: "linear"（默认）→ 直接传 t；"lerp" → 在 [d.min, d.max] 间插值
+        var value;
+        if (d.map === 'lerp') {
+          // C3-3：lerp 必须给 min/max，漏配时静默回退成 [0,1]（等同 linear）——
+          //   作者写 lerp 多半想要自定义范围，静默会让滑块「看起来没生效」，故 warn
+          if (d.min == null || d.max == null) {
+            console.warn('[slider] map=lerp 但未给 min/max（fnId=' + d.fnId + '），按 [0,1] 回退');
+          }
+          var lo = d.min != null ? d.min : 0;
+          var hi = d.max != null ? d.max : 1;
+          value = lo + t * (hi - lo);
+        } else if (d.map === '1-value') {
+          value = 1 - t;
+        } else {
+          // linear：直接传 t
+          value = t;
+        }
+        fpApi.setParam(d.fnId, d.param, value);
+        return;
+      }
+
+      // ---- 老支线：geometry-3d 顶点位置驱动 ----
+      if (!linkedId || !d.vertex) return;
+      var api = null;
+      var linkedEl = document.getElementById(linkedId);
+      if (linkedEl && linkedEl.__cwApi && linkedEl.__cwApi.setLabelPos) {
+        api = linkedEl.__cwApi;
+      } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
+        api = window.__cwGeom3D[linkedId];
+      }
+      if (!api || !api.setLabelPos) return;
       if (!Array.isArray(d.path) || d.path.length < 2) return;
       var p0 = api.getLabelPos ? api.getLabelPos(d.path[0]) : null;
       var p1 = api.getLabelPos ? api.getLabelPos(d.path[1]) : null;
