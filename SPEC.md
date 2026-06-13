@@ -305,7 +305,7 @@ sections:
 
 **3D 体系（v1.2.0 新增）**：
 - `geometry-3d` — 立体几何 3D 渲染（v0.1.7，WebGL/Three.js；触摸板 / Z 轴自转 / 三角面 / 派生顶点 / 辅助线池 / per-instance 闭包）
-- `slider` — 滑块联动 3D 命名顶点（v0.1）
+- `slider` — 滑块联动 3D 命名顶点 + function-plot 参数（v0.1.2，新增 form-B 联动 2D）
 - `tetra-equiv` — 同体异构四面体（v0.1，等体积法可视化）
 - `cut-anim` — 剖切动画（v0.1，从多面体切出三棱锥）
 
@@ -315,11 +315,22 @@ sections:
 
 侧边导航由 frontmatter 的 `sections` 字段自动生成（无独立组件）。
 
+**2D 体系（v1.3.0 新增，2026-06-13）**：
+- `coords-2d` — Canvas 2D 网格 + 坐标轴 + 刻度 + 数据↔像素 API（v0.1.0）
+- `function-plot` — 5 种曲线（polynomial / sine / cosine / conic_ellipse / conic_hyperbola / conic_parabola）+ 关键点 + per-instance 闭包 + setParam 点语法（v0.1.0）
+- `intersection-marker` — 静态交点 / polynomialIntersection / polynomialDiscriminant（Δ 实时 + 韦达定理）（v0.1.0）
+- **杀手特性**：二次方程组图像解法 demo，拖滑块同时看曲线相交 + 交点坐标 + Δ 状态色 + 韦达和与积（C1-1 重根修复后真正可用）
+
+**公共工具**（非组件）：
+- `_inline.js` — 行内 markdown 解析（processInline，KaTeX 集成）
+- `_geom_utils.js` — 几何工具函数（顶点/面/法线计算 + polyEval / polyDeriv / polyRealRoots 多项式工具，供 geometry-3d / coords-2d / function-plot / intersection-marker 共用，v0.2.0）
+
 **后续可扩展**（不进入 MVP）：
 - `accordion`（折叠列表）—— 可用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 内容量大时再加
 - `timeline`（时间线）—— 适合讲发展史
 - `geometry-3d` 进阶：剖切（`clippingPlane`）/ 三视图（`views: "three"`）/ 展开图（`unfold`）—— 路线图见 [`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)
+- `geometry-2d` 平面几何画板（点/线段/射线/角/多边形/圆/标签/角度/面积）—— 路线图见本组件研发（2026-06-13 概念确认，**二次方程组图像解法 killer feature 已间接实现**）
 
 ### 4.11 组件内联 markdown 支持
 
