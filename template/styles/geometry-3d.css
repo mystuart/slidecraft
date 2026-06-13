@@ -356,4 +356,82 @@
   line-height: 1.5;
 }
 
+/* === auxLabels 标注（CSS2D 文字标签） === */
+.geom-3d-aux-label {
+  pointer-events: none;
+  user-select: none;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #d6336c;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  border: 1px solid rgba(214, 51, 108, 0.3);
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* === trajectory 轨迹追踪卡片 === */
+.trajectory {
+  margin: 1.5em 0;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.trajectory-title {
+  padding: 0.7em 1em;
+  font-size: 1.05em;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+.trajectory-stage {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  background: #fdfdfd;
+}
+.trajectory-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+}
+.trajectory-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em 1.2em;
+  padding: 0.5em 1em;
+  font-size: 0.85em;
+  color: #444;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+.trajectory-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+.trajectory-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+.trajectory-caption {
+  padding: 0.6em 1em;
+  font-size: 0.9em;
+  color: #555;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  line-height: 1.5;
+}
+
 /* @boundary-end geometry-3d.css */

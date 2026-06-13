@@ -296,17 +296,25 @@ ${geomUtilsJs}
     }
     animate();
 
-    // 事件驱动：监听联动源的 cw:geom3d:change 立即触发一次重建（不等下一帧）
-    //   RAF + 事件双通道：事件保证响应速度，dirty flag 保证空闲开销
-    if (linkedEl) {
-      linkedEl.addEventListener('cw:geom3d:change', function() { api.__dirty = true; });
-    }
-
     // v0.1.2：不再用 setTimeout 200/800 兜底联动源就绪
-    //   改用事件驱动：上一行 addEventListener 监听 cw:geom3d:change
+    //   改用事件驱动：addEventListener 监听 cw:geom3d:change
     //   联动源 setLabelPos 触发时立刻同步 + 下一帧重建
     //   首帧时强制 pullAndRender 一次（拿到初始坐标）
+    //
+    // C1 修复：原代码把 addEventListener 放在 pullAndRender() 之后？
+    //   错！原代码先 addEventListener 再 pullAndRender()，但 linkedEl 在 L132
+    //   声明时是 null，到 addEventListener 时尚未通过 pullAndRender() 拿到 DOM 元素，
+    //   if (linkedEl) 永远 false → listener 永远挂不上。功能还活着（每帧轮询 __dirty），
+    //   但事件驱动通道是死代码。
+    // 修法：先 pullAndRender() 让 linkedEl 拿到值，再 addEventListener。
     pullAndRender();
+
+    // 事件驱动：监听联动源的 cw:geom3d:change 立即触发一次重建（不等下一帧）
+    //   RAF + 事件双通道：事件保证响应速度，dirty flag 保证空闲开销
+    if (linkedEl && !linkedEl.__cwTetraEquivBound) {
+      linkedEl.__cwTetraEquivBound = true; // 防重复注册（多个 tetra-equiv 绑同一源时）
+      linkedEl.addEventListener('cw:geom3d:change', function() { api.__dirty = true; });
+    }
   }
 
   function initAll() {

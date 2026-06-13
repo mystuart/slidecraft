@@ -49,6 +49,10 @@ sections:
     { "id": "OD",  "from": "O",  "to": "D",  "style": "dashed", "color": "#ff3366" },
     { "id": "AP",  "from": "A",  "to": "P",  "style": "dashed", "color": "#ff3366" }
   ],
+  "auxLabels": [
+    { "id": "OD-len",  "kind": "length", "from": ["O", "D"], "prefix": "OD = ",  "color": "#d6336c" },
+    { "id": "AP-len",  "kind": "length", "from": ["A", "P"], "prefix": "AP = ",  "color": "#d6336c" }
+  ],
   "labels": [
     ["A",  [ 0, 2, 0]], ["B",  [ 0, 0, 0]], ["C",  [ 2, 0, 0]],
     ["A₁", [ 0, 2, 2]], ["B₁", [ 0, 0, 2]], ["C₁", [ 2, 0, 2]],
@@ -81,7 +85,8 @@ sections:
       "content": "$O$ 是 $AC$ 中点、$D$ 是 $PC$ 中点 ⇒ $OD$ 是 $\\triangle PAC$ 的中位线 ⇒ $OD \\parallel AP$。\n\n$AP \\subset$ 平面 $PAB$，$OD \\not\\subset$ 平面 $PAB$，由**线面平行判定定理** ⇒ $OD \\parallel$ 平面 $PAB$。",
       "highlight": {
         "planes": ["Tri-PAC"],
-        "auxLines": ["OD", "AP"]
+        "auxLines": ["OD", "AP"],
+        "auxLabels": ["OD-len", "AP-len"]
       }
     }
   ]
@@ -163,8 +168,22 @@ sections:
   "linkedGeometry3d": "prism-2024-xianyang-q2",
   "keepVertices": ["A", "P", "C", "B₁"],
   "cutPlane": { "type": "plane-through-points", "points": ["A", "P", "C"] },
-  "duration": 1800, "easing": "easeInOutQuad",
+  "duration": 1800,
+  "easing": "easeInOutQuad",
   "caption": "切下部分 = 三棱锥 B₁-APC（橙）；剩余 = 三棱柱去掉该锥（淡蓝）。点播放看剖切。"
+}
+```
+
+```trajectory
+{
+  "id": "p-trajectory",
+  "title": "动点 P 的轨迹",
+  "linkedGeometry3d": "prism-2024-xianyang-q2",
+  "tracks": [
+    { "id": "P", "label": "P 在 A₁C₁ 上", "color": "#ff6b35", "maxPoints": 200 }
+  ],
+  "showAxes": true,
+  "caption": "拖动上方滑块让 P 在 A₁C₁ 上滑动 —— 轨迹是一段直线（顶面 A₁C₁ 投影）。这是「动点轨迹」最简单的情形：参数沿直线段线性变化。"
 }
 ```
 

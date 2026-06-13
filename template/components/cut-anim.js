@@ -226,7 +226,8 @@ ${geomUtilsJs}
     scene.add(prismFill);
     var prismEdges = new THREE.LineSegments(
       new THREE.BufferGeometry(),
-      new THREE.LineBasicMaterial({ color: new THREE.Color('#1a1a1a') })
+      // C3 修复：必须 transparent: true，否则 L418 动画改 opacity 失效（Three.js 要求）
+      new THREE.LineBasicMaterial({ color: new THREE.Color('#1a1a1a'), transparent: true })
     );
     scene.add(prismEdges);
 
@@ -294,7 +295,7 @@ ${geomUtilsJs}
       var b1 = tryGet(prismLabels[4]);
       var c1 = tryGet(prismLabels[5]);
       var p  = tryGet('P');
-      var d  = tryGet(['D']);
+      // C2 修复：删掉 var d = tryGet(['D']); —— 死代码（变量 d 从未使用，且 ['D'] 是数组非字符串，靠 JS 对象键 toString 巧合不报错）
 
       var verts = [];
       if (a && b && c && a1 && b1 && c1) {

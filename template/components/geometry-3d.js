@@ -1,7 +1,13 @@
 /**
  * @component geometry-3d
- * @version 0.1.2
+ * @version 0.1.8
  * @status 最小可用版
+ *
+ * v0.1.8 变更（label-3d 落地）：
+ *   - 新增 auxLabels 字段：长度/角度/直角标注池（CSS2D 文字标签）
+ *   - 3 种 kind：length（两端点距离）/ angle（3 点夹角）/ rightAngle（90° 用 ▢）
+ *   - slider 改 P 时数值实时重算（subscribe cw:geom3d:change → recomputeAllAuxLabels）
+ *   - 暴露 api.showAuxLabels / hideAuxLabels / toggleAuxLabel / hasAuxLabel
  *
  * 立体几何 3D 组件（Three.js）
  *
@@ -25,6 +31,9 @@
  *   - planes        {array}    可选 · 半透面 [{id, vertices:[lbl1,lbl2,lbl3], color, opacity}]
  *   - auxLines      {array}    可选 · 预置辅助线池 [{id, from, to, style, color, width, label}]
  *                                默认全部隐藏，通过 api.showAuxLines([id, ...]) 或 highlight.auxLines 显示
+ *   - auxLabels     {array}    可选 · 预置长度/角度标注池 [{id, kind, ...}]
+ *                                kind: "length" 两端点距离标注 / "angle" 三点夹角 / "rightAngle" 直角
+ *                                默认全部隐藏，通过 highlight.auxLabels 显示；slider 拖动时数值实时重算
  *   - rightAngles   {array}    可选 · 直角标记 [{vertex:"B", arms:["A","C"], size?:0.12, color?:"#555"}]
  *   - caption       {string}   可选 · 卡片下方说明文字
  *
@@ -513,6 +522,121 @@ const clientJs = `
         };
       });
     }
+
+    // ---- v0.1.8 · auxLabels 标注池 ----
+    // 3 种 kind:
+    //   - "length"     两端点 (a, b) 的欧氏距离 + 标签"OD = √41"
+    //   - "angle"      3 点夹角 (at, b, c)，顶点为 b，量 ∠abc
+    //   - "rightAngle" 同 angle，但只识别 90°，偏差 ±2° 内用直角符号 ▢
+    // 全部默认 hidden，CSS2D 文字 + （可选）leader line
+    // 联动：slider 拖动 P 时，setLabelPos 派发 cw:geom3d:change 事件 →
+    // 本组件订阅后调 recomputeAuxLabels() 重算数值并更新 DOM 文本
+    var auxLabelObjects = {}; // id → { container, kind, refLabels:[], meta, lastValue }
+    function auxLabelResolve3(token) {
+      // 返回 [x,y,z] 或 null
+      if (typeof token === 'string') {
+        var v = labelNameToPos[token];
+        if (v) return [v.x, v.y, v.z];
+      }
+      return null;
+    }
+    function fmtLength(d) {
+      // 自适应：>= 100 → 2 位小数；>= 10 → 4 位有效；< 1 → 4 位有效；< 1e-3 → 0
+      if (!Number.isFinite(d)) return '—';
+      if (Math.abs(d) < 1e-6) return '0';
+      if (Math.abs(d) >= 100) return d.toFixed(2);
+      if (Math.abs(d) >= 1) return d.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+      return d.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+    }
+    function fmtAngle(rad) {
+      var deg = rad * 180 / Math.PI;
+      if (Math.abs(deg) < 0.01) return '0°';
+      if (Math.abs(deg - 90) < 2) return '90°';
+      return deg.toFixed(2) + '°';
+    }
+    function recomputeAuxLabel(id) {
+      var info = auxLabelObjects[id];
+      if (!info) return;
+      var html = info.meta.prefix || '';
+      if (info.kind === 'length') {
+        var a = auxLabelResolve3(info.refLabels[0]);
+        var b = auxLabelResolve3(info.refLabels[1]);
+        if (!a || !b) { info.container.textContent = html + '—'; return; }
+        var d = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+        info.lastValue = d;
+        info.container.textContent = html + fmtLength(d);
+      } else if (info.kind === 'angle' || info.kind === 'rightAngle') {
+        // ∠abc at=b, arms=[a, c]
+        var ba = auxLabelResolve3(info.refLabels[0]);
+        var bb = auxLabelResolve3(info.refLabels[1]);
+        var bc = auxLabelResolve3(info.refLabels[2]);
+        if (!ba || !bb || !bc) { info.container.textContent = html + '—'; return; }
+        var va = [ba[0] - bb[0], ba[1] - bb[1], ba[2] - bb[2]];
+        var vc = [bc[0] - bb[0], bc[1] - bb[1], bc[2] - bb[2]];
+        var dot = va[0] * vc[0] + va[1] * vc[1] + va[2] * vc[2];
+        var ma = Math.hypot(va[0], va[1], va[2]);
+        var mc = Math.hypot(vc[0], vc[1], vc[2]);
+        if (ma < 1e-9 || mc < 1e-9) { info.container.textContent = html + '—'; return; }
+        var rad = Math.acos(Math.max(-1, Math.min(1, dot / (ma * mc))));
+        info.lastValue = rad;
+        info.container.textContent = html + (info.kind === 'rightAngle'
+          ? (Math.abs(rad * 180 / Math.PI - 90) < 2 ? '90° ▢' : fmtAngle(rad))
+          : fmtAngle(rad));
+      }
+      // 同步位置到中点
+      if (info.kind === 'length') {
+        var p1 = auxLabelResolve3(info.refLabels[0]);
+        var p2 = auxLabelResolve3(info.refLabels[1]);
+        if (p1 && p2) {
+          info.css2d.position.set((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2, (p1[2] + p2[2]) / 2);
+        }
+      } else if (info.kind === 'angle' || info.kind === 'rightAngle') {
+        var pat = auxLabelResolve3(info.refLabels[1]);
+        if (pat) info.css2d.position.set(pat[0], pat[1], pat[2]);
+      }
+    }
+    function recomputeAllAuxLabels() {
+      Object.keys(auxLabelObjects).forEach(recomputeAuxLabel);
+    }
+    if (Array.isArray(data.auxLabels)) {
+      data.auxLabels.forEach(function(lab) {
+        if (!lab || !lab.id) return;
+        var kind = lab.kind || 'length';
+        // 收集依赖的 label 名字
+        var refs = [];
+        if (kind === 'length') {
+          if (Array.isArray(lab.from)) refs = [lab.from[0], lab.from[1]];
+          else if (lab.from && lab.to) refs = [lab.from, lab.to];
+        } else {
+          // angle / rightAngle: [at, arm1, arm2] 或 [at, a, c]
+          var arms = lab.arms || lab.from;
+          if (Array.isArray(arms)) refs = arms.slice(0, 3);
+          if (lab.at) refs = [lab.at].concat(refs.slice(0, 2));
+        }
+        if (refs.length < 2) return;
+        // CSS2D 文字标签
+        var div = document.createElement('div');
+        div.className = 'geom-3d-aux-label';
+        div.textContent = lab.prefix || '';
+        if (lab.color) div.style.color = lab.color;
+        if (lab.fontSize) div.style.fontSize = lab.fontSize;
+        div.style.display = 'none'; // 默认隐藏
+        var css2d = new CSS2D.CSS2DObject(div);
+        css2d.center.set(0.5, 0.5);
+        root.add(css2d);
+        auxLabelObjects[lab.id] = {
+          container: div,
+          css2d: css2d,
+          kind: kind,
+          refLabels: refs,
+          meta: lab,
+          lastValue: null
+        };
+      });
+      // 立即算一次（取初始值）
+      recomputeAllAuxLabels();
+    }
+
     // 同步 auxLine 两端点到 label 当前位置（slider 拖动时调用）
     function repositionAuxLine(auxId) {
       var info = auxLineObjects[auxId];
@@ -538,6 +662,23 @@ const clientJs = `
     function resetAuxLines() {
       Object.keys(auxLineObjects).forEach(function(id) {
         auxLineObjects[id].line.visible = false;
+      });
+    }
+    // v0.1.8 · auxLabels visibility toggles
+    function setAuxLabelVisibility(ids, visible) {
+      if (!Array.isArray(ids)) return;
+      ids.forEach(function(id) {
+        var info = auxLabelObjects[id];
+        if (info) {
+          info.css2d.visible = !!visible;
+          info.container.style.display = visible ? 'block' : 'none';
+        }
+      });
+    }
+    function resetAuxLabels() {
+      Object.keys(auxLabelObjects).forEach(function(id) {
+        auxLabelObjects[id].css2d.visible = false;
+        auxLabelObjects[id].container.style.display = 'none';
       });
     }
 
@@ -718,6 +859,10 @@ const clientJs = `
         if (Array.isArray(spec.auxLines)) {
           setAuxLineVisibility(spec.auxLines, true);
         }
+        // v0.1.8: 预置标注池 toggle（length / angle / rightAngle 文字标签）
+        if (Array.isArray(spec.auxLabels)) {
+          setAuxLabelVisibility(spec.auxLabels, true);
+        }
         api.__dirty = true;
         container.dispatchEvent(new CustomEvent('cw:geom3d:highlight', { detail: spec || {} }));
       },
@@ -725,6 +870,7 @@ const clientJs = `
         drawHighlightEdges([]);
         highlightPlanes([]);
         resetAuxLines(); // v0.1.7: 全部隐藏
+        resetAuxLabels(); // v0.1.8: 全部隐藏
         api.__dirty = true;
         container.dispatchEvent(new CustomEvent('cw:geom3d:highlight', { detail: null }));
       },
@@ -736,6 +882,14 @@ const clientJs = `
         if (info) info.line.visible = !info.line.visible;
       },
       hasAuxLine: function(id) { return !!auxLineObjects[id]; },
+      // v0.1.8 暴露的标注 API
+      showAuxLabels: function(ids) { setAuxLabelVisibility(ids, true); },
+      hideAuxLabels: function(ids) { setAuxLabelVisibility(ids, false); },
+      toggleAuxLabel: function(id) {
+        var info = auxLabelObjects[id];
+        if (info) info.container.parentNode.style.display = info.css2d.visible ? 'none' : 'block';
+      },
+      hasAuxLabel: function(id) { return !!auxLabelObjects[id]; },
       getLabelPos: function(name) {
         var v = labelNameToPos[name];
         return v ? [v.x, v.y, v.z] : null;
@@ -765,6 +919,10 @@ const clientJs = `
           var info = auxLineObjects[aid];
           if (info.from === name || info.to === name) repositionAuxLine(aid);
         });
+        // v0.1.8：重新计算所有 auxLabels（slider 拖 P 时 OD 长度、夹角实时变化）
+        if (Object.keys(auxLabelObjects).length > 0) {
+          recomputeAllAuxLabels();
+        }
         // 重算 derived vertices（按声明顺序，可能产生新位置 → 同样需要更新 CSS2D + 受影响的 plane）
         if (derivedList.length > 0) {
           recomputeDerived();
@@ -781,7 +939,8 @@ const clientJs = `
         //   同时派发事件，未来扩展不用改这里
         api.__dirty = true;
         container.dispatchEvent(new CustomEvent('cw:geom3d:change', {
-          detail: { name: name, pos: pos }
+          detail: { name: name, pos: pos },
+          bubbles: true  // 允许 trajectory / 其他全局监听器在 document 上捕获
         }));
       },
       root: root,
