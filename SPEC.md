@@ -329,6 +329,9 @@ sections:
 - `intersection-marker` — 静态交点 / polynomialIntersection / polynomialDiscriminant（Δ 实时 + 韦达定理）（v0.1.0）
 - **杀手特性**：二次方程组图像解法 demo，拖滑块同时看曲线相交 + 交点坐标 + Δ 状态色 + 韦达和与积（C1-1 重根修复后真正可用）
 
+**通用叙事（v1.3.0 新增，2026-06-15）**：
+- `timeline` — 时间线（vertical / horizontal 双模式，讲发展史 / 演进 / 流程节点，零运行时，v0.1.0）
+
 **公共工具**（非组件）：
 - `_inline.js` — 行内 markdown 解析（processInline，KaTeX 集成）
 - `_geom_utils.js` — 几何工具函数（顶点/面/法线计算 + polyEval / polyDeriv / polyRealRoots 多项式工具，供 geometry-3d / coords-2d / function-plot / intersection-marker 共用，v0.2.0）
@@ -336,7 +339,7 @@ sections:
 **后续可扩展**（不进入 MVP）：
 - `accordion`（折叠列表）—— 可用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 内容量大时再加
-- `timeline`（时间线）—— 适合讲发展史
+- `chart`（数据图表：柱/折/饼）—— v1.4 候选
 - `geometry-3d` 进阶：剖切（`clippingPlane`）/ 三视图（`views: "three"`）/ 展开图（`unfold`）—— 路线图见 [`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)
 - `geometry-2d` 平面几何画板（点/线段/射线/角/多边形/圆/标签/角度/面积）—— 路线图见本组件研发（2026-06-13 概念确认，**二次方程组图像解法 killer feature 已间接实现**）
 

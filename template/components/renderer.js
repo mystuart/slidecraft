@@ -1,7 +1,10 @@
 /**
  * @component renderer
- * @version 0.2.2
+ * @version 0.2.3
  * @status 内部调度器，不参与组件登记
+ *
+ * v0.2.3 变更：
+ *   - 注册 timeline 组件（v0.1.0 时间线）
  *
  * v0.2.2 变更：
  *   - 注册 cut-anim 组件（v0.3 剖切动画）
@@ -50,6 +53,7 @@ const trajectory = require('./trajectory.js');
 const coords2d = require('./coords-2d.js');
 const functionPlot = require('./function-plot.js');
 const intersectionMarker = require('./intersection-marker.js');
+const timeline = require('./timeline.js');
 
 // 语言标记 → 组件渲染器
 const COMPONENT_MAP = {
@@ -94,6 +98,7 @@ const COMPONENT_MAP = {
   'intersection-marker': intersectionMarker,
   'intersection': intersectionMarker,
   'intersectionmarker': intersectionMarker,
+  'timeline': timeline,
 };
 
 const PLACEHOLDER_RE = /<!--\s*SC-COMPONENT-(\d+)\s*-->/g;

@@ -42,7 +42,8 @@ related:
 | 15 | coords-2d | v0.1.0 | 🟡 首次可用 | 2026-06-13 | 2026-06-13 |
 | 16 | function-plot | v0.1.0 | 🟡 首次可用 | 2026-06-13 | 2026-06-13 |
 | 17 | intersection-marker | v0.1.0 | 🟡 首次可用 | 2026-06-13 | 2026-06-13 |
-| 18 | _geom_utils | v0.2.0 | 🟡 内部工具（polyEval/Deriv/RealRoots + tetra 等） | 2026-06-11 | 2026-06-13 |
+| 18 | timeline | v0.1.0 | 🟡 首次可用 | 2026-06-15 | 2026-06-15 |
+| 19 | _geom_utils | v0.2.0 | 🟡 内部工具（polyEval/Deriv/RealRoots + tetra 等） | 2026-06-11 | 2026-06-13 |
 
 **状态图例**：🟢 打磨完成 · 🟡 待打磨 · 🔴 打磨中 · ⚪ 弃用
 

@@ -1,11 +1,11 @@
 # Slidecraft
 
 > **写一个 Markdown，产出一个独立的 HTML 互动课件。**
-> 16 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好。
+> 17 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Version: 1.3.0](https://img.shields.io/badge/version-1.3.0-blue.svg)](./COMPONENTS.md)
-[![Components: 16](https://img.shields.io/badge/components-16-green.svg)](./COMPONENTS.md)
+[![Components: 17](https://img.shields.io/badge/components-17-green.svg)](./COMPONENTS.md)
 [![Output: single .html](https://img.shields.io/badge/output-single%20.html-brightgreen.svg)](./dist)
 
 ---
@@ -58,7 +58,7 @@ open dist/triangular-prism-demo.html
 | Marp | 浏览器 | 多文件 | ❌ | ⚠️ | ❌ |
 | Reveal.js | 浏览器 | 多文件 | ⚠️ | ✅ | ❌ |
 | Slidev | Node 服务 | 多文件 | ✅ | ✅ | ❌ |
-| **Slidecraft** | **零** | **单文件 HTML** | **✅ 16 个** | **✅ CSS 变量** | **✅** |
+| **Slidecraft** | **零** | **单文件 HTML** | **✅ 17 个** | **✅ CSS 变量** | **✅** |
 
 **Slidecraft 的核心差异**：产物是**单文件 HTML**，不是 Web 应用。这决定了它可以——
 
@@ -70,7 +70,7 @@ open dist/triangular-prism-demo.html
 
 ---
 
-## 16 个内嵌组件速览
+## 17 个内嵌组件速览
 
 完整 API 见 [`template/components/*.js`](./template/components/) 顶部 JSDoc。
 
@@ -81,6 +81,7 @@ open dist/triangular-prism-demo.html
 | | `callout` | 高亮块（tip/warning/info/danger/note） |
 | | `step-guide` | 步骤引导 |
 | | `compare` | 前后对比 |
+| | `timeline` | 时间线（历史 / 流程节点） |
 | **练习** | `quiz` | 选择题（单/多选） |
 | | `quiz-track` | 题组 |
 | | `fill-blank` | 填空题 |
@@ -198,6 +199,7 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 | `content/geometry-3d-test.md` | 3D 几何组件（geometry-3d）的多几何体展示 |
 | `content/triangular-prism-demo.md` | 立体几何大题完整解法（4 组件联动） |
 | `content/gaokao-2020-jiangsu-q18.md` | 真实高考题 4 组件联动课件 |
+| `content/timeline-test.md` | 时间线组件（timeline）的 vertical/horizontal 模式 + 边界情况 |
 
 ---
 
@@ -213,11 +215,11 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 
 ## 路线图
 
-MVP 16 个组件之外的候选（与 [SPEC.md §4.10](./SPEC.md#410-组件清单) 同步）：
+当前 17 个组件之外的候选（与 [SPEC.md §4.10](./SPEC.md#410-组件清单) 同步）：
 
+- `chart`（数据图表：柱/折/饼）—— 下一批
 - `accordion`（折叠列表）—— 当前用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 内容量大时再加
-- `timeline`（时间线）—— 适合讲发展史
 - geometry-3d 进阶：`clippingPlane`（剖切）/ `views: "three"`（三视图）/ `unfold`（展开图）
 
 需要时按"加新组件"流程扩展即可。
