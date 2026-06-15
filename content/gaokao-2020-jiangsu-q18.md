@@ -96,7 +96,7 @@ sections:
 {
   "id": "kq-formula-basics",
   "title": "椭圆基本量",
-  "expr": "$a^2 = 4, \\quad b^2 = 3, \\quad c^2 = 1, \\quad e = \\dfrac{1}{2}, \\quad \\text{右准线}\\ x = 4$"
+  "expr": "a^2 = 4, \\quad b^2 = 3, \\quad c^2 = 1, \\quad e = \\dfrac{1}{2}, \\quad \\text{右准线}\\ x = 4"
 }
 ```
 

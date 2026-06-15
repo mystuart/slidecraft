@@ -35,6 +35,44 @@ async function loadMarked() {
 // 默认 false = 拆外链 + 缓存破坏
 let INLINE_THREE = false;
 
+// 架构债 #3 修复：KaTeX 解析错误收集器
+// throwOnError:false 时 KaTeX 不抛异常，而是把错误渲染成 <span class="katex-error">
+// 这里在 build 期主动扫描产物 HTML，收集错误 → 末尾汇总报告 + exit code 非 0
+// 避免"产物能 build 但公式不显示、作者完全不知道"的静默降级。
+const KATEX_ERROR_RE = /<span class="katex-error"[^>]*>([\s\S]*?)<\/span>/g;
+const buildErrors = []; // [{ file, errors: [{ src, msg }] }]
+
+/**
+ * 扫描渲染后的 HTML，收集所有 katex-error 标记
+ * @param {string} html
+ * @returns {Array<{src:string, msg:string}>}
+ */
+function collectKatexErrors(html) {
+  const errors = [];
+  let m;
+  // 重置正则 lastIndex（全局正则复用）
+  KATEX_ERROR_RE.lastIndex = 0;
+  while ((m = KATEX_ERROR_RE.exec(html)) !== null) {
+    // katex-error 的 title 属性含 "ParseError: ..." 信息，
+    // textContent 是出错的原 LaTeX 源码
+    const inner = m[0];
+    const src = m[1].trim();
+    const titleMatch = inner.match(/title="([^"]*)"/);
+    let msg = 'KaTeX 解析失败';
+    if (titleMatch) {
+      // title 里是 HTML entity 编码的，解码最常见的
+      msg = titleMatch[1]
+        .replace(/&#x27;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+    }
+    errors.push({ src, msg });
+  }
+  return errors;
+}
+
 // ============================================================
 // 配置
 // ============================================================
@@ -95,6 +133,14 @@ async function buildFile(inputPath) {
 
   // 4.5) 处理行内公式 $...$（依赖 katex，未安装则跳过）
   bodyHtml = renderer.processInlineFormulas(bodyHtml);
+
+  // 4.6) 架构债 #3：扫描 KaTeX 静默降级
+  // throwOnError:false 让 KaTeX 把错误渲染成 katex-error span 而非抛异常，
+  // 这里主动收集，build 末尾汇总报告 + exit code 非 0。
+  const katexErrors = collectKatexErrors(bodyHtml);
+  if (katexErrors.length > 0) {
+    buildErrors.push({ file: path.basename(inputPath), errors: katexErrors });
+  }
 
   // 5) 给 h2 注入 id
   const injected = injectSectionIds(bodyHtml);
@@ -310,6 +356,24 @@ async function buildFile(inputPath) {
 
   for (const t of targets) {
     await buildFile(t);
+  }
+
+  // 架构债 #3：汇总 KaTeX 解析错误报告
+  // 产物已生成（可看），但有公式解析失败时报告出来 + exit code 1，
+  // 让 CI / 作者能发现"公式没正确渲染"。
+  if (buildErrors.length > 0) {
+    const totalErrors = buildErrors.reduce((s, r) => s + r.errors.length, 0);
+    console.error('');
+    console.error('⚠ 发现 ' + totalErrors + ' 个公式解析错误（产物已生成，但下列公式未正确渲染）：');
+    for (const report of buildErrors) {
+      console.error('  ' + report.file + '：');
+      for (const e of report.errors) {
+        const d = String.fromCharCode(36);
+        console.error("    - " + e.msg + " --- 源码: " + d + e.src + d);
+      }
+    }
+    console.error('产物可正常打开，但上述公式显示为红色错误。修复 LaTeX 语法后重新 build。');
+    process.exitCode = 1;
   }
 }
 
