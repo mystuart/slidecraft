@@ -257,6 +257,10 @@ ${geomUtilsJs}
               var cf = Math.sqrt(c2);
               kps.push({ type: 'focus', x: cx + cf, y: cy, label: 'F₁' });
               kps.push({ type: 'focus', x: cx - cf, y: cy, label: 'F₂' });
+              // v0.1.1 准线 label（仅 keypoint 展示，实际线由 drawConicEllipse 画）
+              var aOverE = a * a / cf;
+              kps.push({ type: 'directrix', x: cx + aOverE, y: cy, label: '右准线 x=' + round(cx + aOverE, 2) });
+              kps.push({ type: 'directrix', x: cx - aOverE, y: cy, label: '左准线 x=' + round(cx - aOverE, 2) });
             }
           } else {
             kps.push({ type: 'vertex', x: cx, y: cy + a, label: '(' + cx + ', ' + (cy + a) + ')' });
@@ -268,6 +272,16 @@ ${geomUtilsJs}
               kps.push({ type: 'focus', x: cx, y: cy + cf2, label: 'F₁' });
               kps.push({ type: 'focus', x: cx, y: cy - cf2, label: 'F₂' });
             }
+          }
+          // v0.1.1 · onCurve 模式：椭圆上可拖动点 A = (a·cosθ + cx, b·sinθ + cy)
+          //   slider 联动 param: "onCurve.theta" 改 θ，A 沿曲线动
+          //   走 fp keypoint 系统自动画圆点 + label
+          if (p.onCurve && typeof p.onCurve.theta === 'number') {
+            var theta = p.onCurve.theta;
+            var ax = a * Math.cos(theta) + cx;
+            var ay = b * Math.sin(theta) + cy;
+            var aLabel = (p.onCurve.label || 'A');
+            kps.push({ type: 'onCurve', x: ax, y: ay, label: aLabel + ' (' + round(ax, 3) + ', ' + round(ay, 3) + ')' });
           }
           return kps;
         }
@@ -427,6 +441,51 @@ ${geomUtilsJs}
         else ctx.lineTo(sp2[0], sp2[1]);
       }
       ctx.stroke();
+
+      // ---- v0.1.1 · 准线绘制（v0.1.0 不支持，gaokao-2020-q18 课件需求） ----
+      //   椭圆 x²/a² + y²/b² = 1，c² = a²-b²，e = c/a
+      //   左右准线 x = cx ± a/e = cx ± a²/c
+      if (fn.params.showDirectrix) {
+        var c2 = a * a - b * b;
+        if (c2 > 0) {
+          var cf = Math.sqrt(c2);
+          var e = cf / a;  // 离心率
+          var aOverE = a / e;  // = a²/c
+          var directrixColor = fn.params.directrixColor || '#888';
+          var directrixStyle = fn.params.directrixStyle || 'dashed';
+          ctx.save();
+          ctx.strokeStyle = directrixColor;
+          ctx.lineWidth = 1;
+          if (directrixStyle === 'dashed') {
+            ctx.setLineDash([4, 4]);
+          }
+          var yRange = coordsApi.getYRange();
+          var yMin = yRange[0], yMax = yRange[1];
+          // 左准线 x = cx - a²/c
+          var xL = cx - aOverE;
+          if (xL >= coordsApi.getXRange()[0] && xL <= coordsApi.getXRange()[1]) {
+            var sp1 = coordsApi.dataToScreen([xL, yMin]);
+            var sp2 = coordsApi.dataToScreen([xL, yMax]);
+            ctx.beginPath();
+            ctx.moveTo(sp1[0], sp1[1]);
+            ctx.lineTo(sp2[0], sp2[1]);
+            ctx.stroke();
+          }
+          // 右准线 x = cx + a²/c
+          var xR = cx + aOverE;
+          if (xR >= coordsApi.getXRange()[0] && xR <= coordsApi.getXRange()[1]) {
+            var sp3 = coordsApi.dataToScreen([xR, yMin]);
+            var sp4 = coordsApi.dataToScreen([xR, yMax]);
+            ctx.beginPath();
+            ctx.moveTo(sp3[0], sp3[1]);
+            ctx.lineTo(sp4[0], sp4[1]);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+      // v0.1.1 · onCurve 点：已经在 keypoint 阶段被画了（统一走 keypoint 渲染管道），
+      // 这里无需再画。
     }
 
     /**
