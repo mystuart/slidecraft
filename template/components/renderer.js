@@ -96,7 +96,7 @@ const COMPONENT_MAP = {
   'intersectionmarker': intersectionMarker,
 };
 
-const PLACEHOLDER_RE = /<!--\s*CW-COMPONENT-(\d+)\s*-->/g;
+const PLACEHOLDER_RE = /<!--\s*SC-COMPONENT-(\d+)\s*-->/g;
 
 /**
  * 扫描 markdown，把组件代码块替换为占位符，返回剩余 markdown + 组件 HTML 列表
@@ -128,7 +128,7 @@ function processMarkdown(md) {
       : comp.render(data);
     const idx = components.length;
     components.push(html);
-    return `<!--CW-COMPONENT-${idx}-->`;
+    return `<!--SC-COMPONENT-${idx}-->`;
   });
   return { md: replaced, components };
 }
@@ -162,7 +162,7 @@ function processInlineFormulas(html) {
   html = html.replace(/(<code\b[^>]*>[\s\S]*?<\/code>|<pre\b[^>]*>[\s\S]*?<\/pre>)/g, (m) => {
     const idx = codeBlocks.length;
     codeBlocks.push(m);
-    return `\u0000CWINLINECODE${idx}\u0000`;
+    return `\u0000SCINLINECODE${idx}\u0000`;
   });
 
   // 2) 处理行内公式 $...$（不允许跨行）
@@ -180,7 +180,7 @@ function processInlineFormulas(html) {
   });
 
   // 3) 还原 <code>/<pre> 块
-  html = html.replace(/\u0000CWINLINECODE(\d+)\u0000/g, (_, i) => codeBlocks[parseInt(i, 10)]);
+  html = html.replace(/\u0000SCINLINECODE(\d+)\u0000/g, (_, i) => codeBlocks[parseInt(i, 10)]);
 
   return html;
 }

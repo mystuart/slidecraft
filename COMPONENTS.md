@@ -240,7 +240,7 @@ OrbitControls 故意不暴露 3rd 轴旋转（roll/Z-rotate），但立体几何
 
 Three.js + OrbitControls + CSS2DRenderer 打包后约 730KB，每个含 geometry-3d 的课件都内联 = 同一站点多课件的 Three.js 不共享缓存，CDN 流量翻倍。
 
-**为什么这样选**：(a) `esbuild cw-three-bundle.js --bundle --format=iife --minify` 一次性打 IIFE 包到 `cw-three-bundle.iife.js`。(b) build 时按 sha256 前 8 位算 cache buster，复制到 `dist/three-bundle.<hash>.iife.js`，HTML 只插 `<script src="...">`。(c) 同一课件重 build hash 不变 = 不重新复制；不同课件 = 同一份 bundle 共享浏览器缓存。(d) Alice 内网离线部署场景用 `node build.js --inline-three` 强制内联回 HTML。
+**为什么这样选**：(a) `esbuild three-bundle.js --bundle --format=iife --minify` 一次性打 IIFE 包到 `three-bundle.iife.js`。(b) build 时按 sha256 前 8 位算 cache buster，复制到 `dist/three-bundle.<hash>.iife.js`，HTML 只插 `<script src="...">`。(c) 同一课件重 build hash 不变 = 不重新复制；不同课件 = 同一份 bundle 共享浏览器缓存。(d) Alice 内网离线部署场景用 `node build.js --inline-three` 强制内联回 HTML。
 
 **重评条件**：如果将来课件数量增长到几十个且 Three.js 大版本升级频繁，可考虑用 ESM `<script type="importmap">` 多文件分包，但目前单 IIFE 满足需求。
 
