@@ -7,8 +7,8 @@ dist/*
 
 # Three.js 打包产物（build.js 现成读 node_modules/three/build 打）
 # 这两个文件约 730KB，build.js 会把 bundle 内联进 dist/*.html，仓库不存档
-cw-three-bundle.iife.js
-cw-three-bundle.js
+three-bundle.iife.js
+three-bundle.js
 
 # 系统
 .DS_Store

@@ -187,7 +187,7 @@ async function buildFile(inputPath) {
   //   a) 默认（externalThree=true）：Three.js 拆为外链 <script src="three-bundle.<hash>.iife.js"></script>
   //      同一站点多个课件共享同一份 Three.js（浏览器缓存命中，CDN 流量减半）
   //   b) --inline-three：Three.js 内联进 HTML，单文件离线部署（Alice 内网部署场景）
-  const threeBundlePath = path.join(ROOT, 'cw-three-bundle.iife.js');
+  const threeBundlePath = path.join(ROOT, 'three-bundle.iife.js');
   let threeBundleJs = '';
   let threeBundleTag = '';
   if (bodyHtml.includes('class="geom-3d"')) {
@@ -212,9 +212,9 @@ async function buildFile(inputPath) {
       //   之前只 warn 不 throw，新 clone 项目 + npm install 之后 Alice 跑 build 看不出问题，
       //   课件 3D 跑不起来才在浏览器里发现。
       //   现在直接 throw + 给一键修复命令。
-      const buildCmd = 'node_modules/.bin/esbuild cw-three-bundle.js --bundle --format=iife --target=es2020 --minify --outfile=cw-three-bundle.iife.js';
+      const buildCmd = 'node_modules/.bin/esbuild three-bundle.js --bundle --format=iife --target=es2020 --minify --outfile=three-bundle.iife.js';
       throw new Error(
-        `检测到 geometry-3d 组件但未找到 cw-three-bundle.iife.js。\n` +
+        `检测到 geometry-3d 组件但未找到 three-bundle.iife.js。\n` +
         `先运行:\n  ${buildCmd}\n` +
         `(一次性设置，后续 build 自动复用)`
       );
