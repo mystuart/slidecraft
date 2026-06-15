@@ -144,8 +144,8 @@ document.querySelectorAll('.slider').forEach(function(s) {
   }
 
   // 把 t 应用到所有 drives（驱动 geometry-3d 顶点 或 function-plot 参数）
-  // v0.1.1：优先走 DOM 元素的 __cwApi（per-instance 闭包，A2 改造），
-  // 兜底用 window.__cwGeom3D[id]（兼容老代码 + 跑在 DOM 之外的脚本）
+  // v0.1.1：优先走 DOM 元素的 __scApi（per-instance 闭包，A2 改造），
+  // 兜底用 window.__scGeom3D[id]（兼容老代码 + 跑在 DOM 之外的脚本）
   // v0.1.2：新增 function-plot 参数驱动（drives[].fnId/param/map/min/max）
   function applyDrives(t) {
     if (drives.length === 0) return;
@@ -155,8 +155,8 @@ document.querySelectorAll('.slider').forEach(function(s) {
       // ---- 新支线：function-plot 参数驱动 ----
       if (linkedFpId && d.fnId && d.param) {
         var fpEl = document.getElementById(linkedFpId);
-        if (!fpEl || !fpEl.__cwApi) return;
-        var fpApi = fpEl.__cwApi;
+        if (!fpEl || !fpEl.__scApi) return;
+        var fpApi = fpEl.__scApi;
         // 映射：t → 实际参数值
         // map: "linear"（默认）→ 直接传 t；"lerp" → 在 [d.min, d.max] 间插值
         var value;
@@ -183,10 +183,10 @@ document.querySelectorAll('.slider').forEach(function(s) {
       if (!linkedId || !d.vertex) return;
       var api = null;
       var linkedEl = document.getElementById(linkedId);
-      if (linkedEl && linkedEl.__cwApi && linkedEl.__cwApi.setLabelPos) {
-        api = linkedEl.__cwApi;
-      } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
-        api = window.__cwGeom3D[linkedId];
+      if (linkedEl && linkedEl.__scApi && linkedEl.__scApi.setLabelPos) {
+        api = linkedEl.__scApi;
+      } else if (window.__scGeom3D && window.__scGeom3D[linkedId]) {
+        api = window.__scGeom3D[linkedId];
       }
       if (!api || !api.setLabelPos) return;
       if (!Array.isArray(d.path) || d.path.length < 2) return;

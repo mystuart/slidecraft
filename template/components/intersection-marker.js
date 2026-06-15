@@ -8,7 +8,7 @@
  *   - 输入：x/y 列表（绝对坐标）+ coords id（坐标系实例）
  *   - 自动监听 coords 缩放/平移重新画位置
  *   - polynomialIntersection 模式：自动求两 polynomial 交点（f1 - f2 = 0 求实根）
- *     监听 function-plot 的 cw:functionplot:change，实时更新交点
+ *     监听 function-plot 的 sc:functionplot:change，实时更新交点
  *   - polynomialDiscriminant 模式：实时显示 Δ = b²-4ac（韦达形式）+ Vieta 公式
  *     Δ > 0 → 两个交点（绿色）/ Δ = 0 → 一个交点（黄色）/ Δ < 0 → 无解（灰色）
  *
@@ -98,7 +98,7 @@ ${geomUtilsJs}
       return;
     }
     function getCoords() { return document.getElementById(coordsId); }
-    function getCoordsApi() { var c = getCoords(); return c && c.__cwApi; }
+    function getCoordsApi() { var c = getCoords(); return c && c.__scApi; }
 
     // C2-3：两 polynomial 右对齐相减（refreshPolynomialIntersections / refreshDiscriminant /
     //   getDiscriminant 三处共用，之前各写一遍）。
@@ -133,7 +133,7 @@ ${geomUtilsJs}
       var stage = coords.querySelector('.coords-2d-stage');
       if (!stage) return false;
       if (stage.querySelector('.intersection-canvas[data-int-id="' + meta.id + '"]')) return true;
-      if (!coords.__cwApi) return false;
+      if (!coords.__scApi) return false;
       var c = document.createElement('canvas');
       c.className = 'intersection-canvas';
       c.setAttribute('data-int-id', meta.id);
@@ -145,7 +145,7 @@ ${geomUtilsJs}
     var canvas = null;
     var ctx = null;
 
-    document.addEventListener('cw:coords2d:change', function(ev) {
+    document.addEventListener('sc:coords2d:change', function(ev) {
       if (!ev.target || ev.target.id !== coordsId) return;
       redraw();
     });
@@ -158,8 +158,8 @@ ${geomUtilsJs}
       if (!cfg.polynomialIntersection) return;
       var cfgP = cfg.polynomialIntersection;
       var fpEl = document.getElementById(cfgP.functionPlotId);
-      if (!fpEl || !fpEl.__cwApi) return;
-      var fpApi = fpEl.__cwApi;
+      if (!fpEl || !fpEl.__scApi) return;
+      var fpApi = fpEl.__scApi;
       // C2-3：右对齐相减抽到 computeDiffCoeffs（refreshDiscriminant / getDiscriminant 共用）
       var diff = computeDiffCoeffs(fpApi, cfgP.fnId1, cfgP.fnId2);
       if (!diff) return;
@@ -187,13 +187,13 @@ ${geomUtilsJs}
 
     // 监听 function-plot 变化
     if (cfg.polynomialIntersection) {
-      document.addEventListener('cw:functionplot:change', function(ev) {
+      document.addEventListener('sc:functionplot:change', function(ev) {
         if (!ev.target || ev.target.id !== cfg.polynomialIntersection.functionPlotId) return;
         refreshPolynomialIntersections();
       });
     }
     if (cfg.polynomialDiscriminant) {
-      document.addEventListener('cw:functionplot:change', function(ev) {
+      document.addEventListener('sc:functionplot:change', function(ev) {
         if (!ev.target || ev.target.id !== cfg.polynomialDiscriminant.functionPlotId) return;
         refreshDiscriminant();
       });
@@ -207,8 +207,8 @@ ${geomUtilsJs}
       if (!cfg.polynomialDiscriminant) return;
       var cfgD = cfg.polynomialDiscriminant;
       var fpEl = document.getElementById(cfgD.functionPlotId);
-      if (!fpEl || !fpEl.__cwApi) return;
-      var fpApi = fpEl.__cwApi;
+      if (!fpEl || !fpEl.__scApi) return;
+      var fpApi = fpEl.__scApi;
       // C2-3：右对齐相减抽到 computeDiffCoeffs（subtractFnId 可选：不传 = fnId 对 x 轴）
       var diff = computeDiffCoeffs(fpApi, cfgD.fnId, cfgD.subtractFnId);
       if (!diff) return;
@@ -346,8 +346,8 @@ ${geomUtilsJs}
         // 返回最近一次算的 Δ 值（如果 polynomialDiscriminant 模式没启动，返回 null）
         if (!cfg.polynomialDiscriminant) return null;
         var fpEl = document.getElementById(cfg.polynomialDiscriminant.functionPlotId);
-        if (!fpEl || !fpEl.__cwApi) return null;
-        var fpApi = fpEl.__cwApi;
+        if (!fpEl || !fpEl.__scApi) return null;
+        var fpApi = fpEl.__scApi;
         var cfgD = cfg.polynomialDiscriminant;
         // C2-3：同 refreshDiscriminant，走 computeDiffCoeffs
         var diff = computeDiffCoeffs(fpApi, cfgD.fnId, cfgD.subtractFnId);
@@ -356,7 +356,7 @@ ${geomUtilsJs}
         return diff[1] * diff[1] - 4 * diff[0] * diff[2];
       },
     };
-    root.__cwApi = api;
+    root.__scApi = api;
 
     // 首帧：polynomialIntersection 模式 + polynomialDiscriminant 都各算一次
     if (cfg.polynomialIntersection) {

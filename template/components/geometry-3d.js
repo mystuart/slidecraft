@@ -6,7 +6,7 @@
  * v0.1.8 变更（label-3d 落地）：
  *   - 新增 auxLabels 字段：长度/角度/直角标注池（CSS2D 文字标签）
  *   - 3 种 kind：length（两端点距离）/ angle（3 点夹角）/ rightAngle（90° 用 ▢）
- *   - slider 改 P 时数值实时重算（subscribe cw:geom3d:change → recomputeAllAuxLabels）
+ *   - slider 改 P 时数值实时重算（subscribe sc:geom3d:change → recomputeAllAuxLabels）
  *   - 暴露 api.showAuxLabels / hideAuxLabels / toggleAuxLabel / hasAuxLabel
  *
  * 立体几何 3D 组件（Three.js）
@@ -60,18 +60,18 @@
  *     公式顺序按声明顺序排在前面的先算，引用后算的 label 视为依赖。
  *
  * 客户端全局约定（由 build.js 注入）：
- *   - window.__cwThree         : THREE 命名空间
- *   - window.__cwOrbitControls : OrbitControls 构造器
- *   - window.__cwCSS2D         : { CSS2DRenderer, CSS2DObject }
+ *   - window.__scThree         : THREE 命名空间
+ *   - window.__scOrbitControls : OrbitControls 构造器
+ *   - window.__scCSS2D         : { CSS2DRenderer, CSS2DObject }
  *
  * v0.1.2 变更：
  *   - camera.layers.enable(1)：修 layer 1 不可见 bug（半透面、坐标轴、高亮线之前默认不可见）
- *   - setLabelPos / setHighlight 末尾打 __dirty=true + 派发 CustomEvent('cw:geom3d:change')
+ *   - setLabelPos / setHighlight 末尾打 __dirty=true + 派发 CustomEvent('sc:geom3d:change')
  *   - 联动组件（tetra-equiv / cut-anim）可订阅事件或轮询 dirty 标记，按需重建几何体（GLM-5.1 评审指出每帧重建浪费）
  *
  * v0.1.1 变更（A2 · per-instance 闭包改造）：
- *   - API 同时挂到 DOM 元素（container.__cwApi）和 window.__cwGeom3D[stageId]（向后兼容）
- *   - 其他组件优先用 document.getElementById(id).__cwApi 找 API，无全局冲突
+ *   - API 同时挂到 DOM 元素（container.__scApi）和 window.__scGeom3D[stageId]（向后兼容）
+ *   - 其他组件优先用 document.getElementById(id).__scApi 找 API，无全局冲突
  *   - 多课件同页 / 多 iframe / 多 worker session 各自闭包独立
  */
 
@@ -109,9 +109,9 @@ function render(data) {
 
 const clientJs = `
 (function() {
-  if (window.__cwGeom3DLoaded) return;
-  window.__cwGeom3DLoaded = true;
-  if (!window.__cwGeom3D) window.__cwGeom3D = {};
+  if (window.__scGeom3DLoaded) return;
+  window.__scGeom3DLoaded = true;
+  if (!window.__scGeom3D) window.__scGeom3D = {};
 
   // 多面体通用构造器（v0.2 起 client 用，服务端 buildPolyhedronFromVerts 也在用同名函数）
   // 顶点列表 verts: [[x,y,z], ...] + 三角面/多边形面索引 faces: [[i,j,k], [i,j,k,l]]
@@ -134,8 +134,8 @@ const clientJs = `
         indices.push(startIdx, startIdx + ti, startIdx + ti + 1);
       }
     }
-    var geom = new window.__cwThree.BufferGeometry();
-    geom.setAttribute('position', new window.__cwThree.Float32BufferAttribute(positions, 3));
+    var geom = new window.__scThree.BufferGeometry();
+    geom.setAttribute('position', new window.__scThree.Float32BufferAttribute(positions, 3));
     geom.setIndex(indices);
     geom.computeVertexNormals();
     return geom;
@@ -165,9 +165,9 @@ const clientJs = `
 
     container.classList.add('is-initialized');
 
-    var THREE = window.__cwThree;
+    var THREE = window.__scThree;
     if (!THREE) {
-      console.error('[geometry-3d] window.__cwThree 未找到，请确认 build.js 已注入 Three.js');
+      console.error('[geometry-3d] window.__scThree 未找到，请确认 build.js 已注入 Three.js');
       return;
     }
 
@@ -207,7 +207,7 @@ const clientJs = `
 
     // CSS2D 渲染器（标签层）—— 如果没注入就跳过
     var labelRenderer = null;
-    var CSS2D = window.__cwCSS2D;
+    var CSS2D = window.__scCSS2D;
     if (CSS2D && CSS2D.CSS2DRenderer) {
       labelRenderer = new CSS2D.CSS2DRenderer();
       labelRenderer.setSize(width, height);
@@ -529,7 +529,7 @@ const clientJs = `
     //   - "angle"      3 点夹角 (at, b, c)，顶点为 b，量 ∠abc
     //   - "rightAngle" 同 angle，但只识别 90°，偏差 ±2° 内用直角符号 ▢
     // 全部默认 hidden，CSS2D 文字 + （可选）leader line
-    // 联动：slider 拖动 P 时，setLabelPos 派发 cw:geom3d:change 事件 →
+    // 联动：slider 拖动 P 时，setLabelPos 派发 sc:geom3d:change 事件 →
     // 本组件订阅后调 recomputeAuxLabels() 重算数值并更新 DOM 文本
     var auxLabelObjects = {}; // id → { container, kind, refLabels:[], meta, lastValue }
     function auxLabelResolve3(token) {
@@ -846,9 +846,9 @@ const clientJs = `
     }
 
     // ---- 6.8) 对外 API：setHighlight / resetHighlight / setLabelPos / getLabelPos ----
-    // math-step / slider 调这里，**优先**走 DOM 元素上的 __cwApi（per-instance 闭包），
-    // 不再依赖 window.__cwGeom3D 全局字典 —— 避免多课件同页 / 多 iframe / 多 worker session 冲突。
-    // 老代码（找 window.__cwGeom3D[id]）仍兼容：兜底也挂一份到全局。
+    // math-step / slider 调这里，**优先**走 DOM 元素上的 __scApi（per-instance 闭包），
+    // 不再依赖 window.__scGeom3D 全局字典 —— 避免多课件同页 / 多 iframe / 多 worker session 冲突。
+    // 老代码（找 window.__scGeom3D[id]）仍兼容：兜底也挂一份到全局。
     var stageId = container.id;
     var api = {
       setHighlight: function(spec) {
@@ -864,7 +864,7 @@ const clientJs = `
           setAuxLabelVisibility(spec.auxLabels, true);
         }
         api.__dirty = true;
-        container.dispatchEvent(new CustomEvent('cw:geom3d:highlight', { detail: spec || {} }));
+        container.dispatchEvent(new CustomEvent('sc:geom3d:highlight', { detail: spec || {} }));
       },
       resetHighlight: function() {
         drawHighlightEdges([]);
@@ -872,7 +872,7 @@ const clientJs = `
         resetAuxLines(); // v0.1.7: 全部隐藏
         resetAuxLabels(); // v0.1.8: 全部隐藏
         api.__dirty = true;
-        container.dispatchEvent(new CustomEvent('cw:geom3d:highlight', { detail: null }));
+        container.dispatchEvent(new CustomEvent('sc:geom3d:highlight', { detail: null }));
       },
       // v0.1.7 暴露的辅助线 API（供 devtools 或脚本直接调用）
       showAuxLines: function(ids) { setAuxLineVisibility(ids, true); },
@@ -938,7 +938,7 @@ const clientJs = `
         //   没变化时不重建（省 GC + 60fps 重画开销）
         //   同时派发事件，未来扩展不用改这里
         api.__dirty = true;
-        container.dispatchEvent(new CustomEvent('cw:geom3d:change', {
+        container.dispatchEvent(new CustomEvent('sc:geom3d:change', {
           detail: { name: name, pos: pos },
           bubbles: true  // 允许 trajectory / 其他全局监听器在 document 上捕获
         }));
@@ -948,11 +948,11 @@ const clientJs = `
     };
 
     // 主：API 挂到 DOM 元素本身（per-instance，无全局污染）
-    container.__cwApi = api;
+    container.__scApi = api;
     // 兜底：挂到全局字典（兼容老代码 + 一些跑在 DOM 之外的脚本）
     if (stageId) {
-      if (!window.__cwGeom3D) window.__cwGeom3D = {};
-      window.__cwGeom3D[stageId] = api;
+      if (!window.__scGeom3D) window.__scGeom3D = {};
+      window.__scGeom3D[stageId] = api;
     }
 
     // ---- 7) 控制器（OrbitControls） ----
@@ -960,13 +960,13 @@ const clientJs = `
     // - 鼠标：左键旋转 / 右键平移 / 滚轮缩放（不分配 MIDDLE，避免触摸板 Force Touch 误触发）
     // - 触屏：单指旋转 / 双指缩放+平移
     var controls = null;
-    if (window.__cwOrbitControls) {
-      controls = new window.__cwOrbitControls(camera, renderer.domElement);
+    if (window.__scOrbitControls) {
+      controls = new window.__scOrbitControls(camera, renderer.domElement);
       controls.target.set(camTarget[0], camTarget[1], camTarget[2]);
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
-      if (window.__cwThree) {
-        var T = window.__cwThree;
+      if (window.__scThree) {
+        var T = window.__scThree;
         controls.mouseButtons = {
           LEFT:   T.MOUSE.ROTATE,
           MIDDLE: T.MOUSE.DOLLY,

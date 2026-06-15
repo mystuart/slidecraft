@@ -7,7 +7,7 @@
  *   - 第一版：5 种曲线类型（polynomial / sine / cosine / conic_ellipse /
  *     conic_hyperbola / conic_parabola）
  *   - 每种类型带预定义关键点（零点/极值/顶点/焦点）
- *   - 联动 coords-2d：监听 cw:coords2d:change 自动 redraw
+ *   - 联动 coords-2d：监听 sc:coords2d:change 自动 redraw
  *   - 暴露 setParam / setFunctionParam / getParam / getValueAt 等 API
  *   - 多函数叠画（同一坐标系上画多条曲线）
  *
@@ -34,7 +34,7 @@
  *   - showKeyPoints    {bool}    可选 · 单条覆盖（默认 true = 用 showKeyPoints 全局）
  *   - showLabel        {bool}    可选 · 是否画线段标签
  *
- * 客户端 API（per-instance 闭包，挂在 container.__cwApi）：
+ * 客户端 API（per-instance 闭包，挂在 container.__scApi）：
  *   - getFunctions() → functions 列表（深拷贝）
  *   - getParam(fnId, name) → 当前参数值
  *   - setParam(fnId, name, value) → 改一个参数并重画
@@ -68,7 +68,7 @@
  * 架构契约（与 coords-2d / geometry-3d 一致）：
  *   - data-* 属性存 JSON
  *   - 客户端 initAll() 在 DOMContentLoaded 跑
- *   - 联动靠事件（cw:coords2d:change → redraw）
+ *   - 联动靠事件（sc:coords2d:change → redraw）
  *   - 不依赖任何外部 JS 库（纯 Canvas 2D API）
  *
  * 已知问题（v0.1.0）：
@@ -148,11 +148,11 @@ ${geomUtilsJs}
     }
     function getCoordsApi() {
       var c = getCoords();
-      return c && c.__cwApi;
+      return c && c.__scApi;
     }
 
     // v0.1.0 架构：把我们的 canvas 注入到 coords-2d 的 stage 里（叠在 coords canvas 之上）
-    // 这要求 coords-2d 必须先 init 完成（__cwApi 已挂上）
+    // 这要求 coords-2d 必须先 init 完成（__scApi 已挂上）
     function ensureCanvasInjected() {
       var coords = getCoords();
       if (!coords) return false;
@@ -161,7 +161,7 @@ ${geomUtilsJs}
       // 已注入过就别重复
       if (stage.querySelector('.function-plot-canvas[data-fp-id="' + meta.id + '"]')) return true;
       // 确保 coords 自己已 init
-      if (!coords.__cwApi) return false;
+      if (!coords.__scApi) return false;
       var newCanvas = document.createElement('canvas');
       newCanvas.className = 'function-plot-canvas';
       newCanvas.setAttribute('data-fp-id', meta.id);
@@ -172,7 +172,7 @@ ${geomUtilsJs}
     }
 
     // 监听 coords 变化（来自 setXRange / setYRange / 窗口 resize）
-    document.addEventListener('cw:coords2d:change', function(ev) {
+    document.addEventListener('sc:coords2d:change', function(ev) {
       if (!ev.target || ev.target.id !== coordsId) return;
       redraw();
     });
@@ -767,13 +767,13 @@ ${geomUtilsJs}
     };
 
     function emitChange(fnId, paramName, value) {
-      root.dispatchEvent(new CustomEvent('cw:functionplot:change', {
+      root.dispatchEvent(new CustomEvent('sc:functionplot:change', {
         detail: { fnId: fnId, paramName: paramName, value: value },
         bubbles: true,
       }));
     }
 
-    root.__cwApi = api;
+    root.__scApi = api;
   }
 
   function initAll() {

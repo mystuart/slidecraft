@@ -26,7 +26,7 @@
  *   - showVolumeCheck  {bool}     可选 · 是否在卡片标题旁显示 4 个体积数值验证相等（默认 true）
  *
  * 联动规则（v0.1）：
- *   - 客户端每帧从 window.__cwGeom3D[linkedGeometry3d].getLabelPos(name) 拉取最新顶点坐标
+ *   - 客户端每帧从 window.__scGeom3D[linkedGeometry3d].getLabelPos(name) 拉取最新顶点坐标
  *   - linkedGeometry3d 实例里通过 slider 改 P 位置时，本组件 4 个四面体同步重画
  *   - 不依赖 derivedVertices —— 只要求这些 label 在源 geometry-3d 的 labels 里存在
  *
@@ -100,14 +100,14 @@ function render(data) {
 const clientJs = `
 ${geomUtilsJs}
 (function() {
-  if (window.__cwTetraEquivLoaded) return;
-  window.__cwTetraEquivLoaded = true;
+  if (window.__scTetraEquivLoaded) return;
+  window.__scTetraEquivLoaded = true;
 
   function initOne(root) {
-    var THREE = window.__cwThree;
-    var OC = window.__cwOrbitControls;
+    var THREE = window.__scThree;
+    var OC = window.__scOrbitControls;
     if (!THREE) {
-      console.warn('[tetra-equiv] window.__cwThree 未找到，请确认 build.js 已注入 Three.js');
+      console.warn('[tetra-equiv] window.__scThree 未找到，请确认 build.js 已注入 Three.js');
       return;
     }
 
@@ -195,15 +195,15 @@ ${geomUtilsJs}
 
     /**
      * 拉取最新顶点位置 + 重画 4 个四面体 + 计算体积
-     * v0.1.1：优先走 DOM 元素的 __cwApi（per-instance 闭包，A2 改造），
-     * 兜底用 window.__cwGeom3D[id]（兼容老代码）
+     * v0.1.1：优先走 DOM 元素的 __scApi（per-instance 闭包，A2 改造），
+     * 兜底用 window.__scGeom3D[id]（兼容老代码）
      */
     function pullAndRender() {
       linkedEl = document.getElementById(linkedId);
-      if (linkedEl && linkedEl.__cwApi && typeof linkedEl.__cwApi.getLabelPos === 'function') {
-        api = linkedEl.__cwApi;
-      } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
-        api = window.__cwGeom3D[linkedId];
+      if (linkedEl && linkedEl.__scApi && typeof linkedEl.__scApi.getLabelPos === 'function') {
+        api = linkedEl.__scApi;
+      } else if (window.__scGeom3D && window.__scGeom3D[linkedId]) {
+        api = window.__scGeom3D[linkedId];
       }
       if (!api || typeof api.getLabelPos !== 'function') {
         // 没联动源：所有顶点用 [0,0,0]，4 个四面体重叠在一起 —— 静默 fallback
@@ -297,7 +297,7 @@ ${geomUtilsJs}
     animate();
 
     // v0.1.2：不再用 setTimeout 200/800 兜底联动源就绪
-    //   改用事件驱动：addEventListener 监听 cw:geom3d:change
+    //   改用事件驱动：addEventListener 监听 sc:geom3d:change
     //   联动源 setLabelPos 触发时立刻同步 + 下一帧重建
     //   首帧时强制 pullAndRender 一次（拿到初始坐标）
     //
@@ -309,11 +309,11 @@ ${geomUtilsJs}
     // 修法：先 pullAndRender() 让 linkedEl 拿到值，再 addEventListener。
     pullAndRender();
 
-    // 事件驱动：监听联动源的 cw:geom3d:change 立即触发一次重建（不等下一帧）
-    //   RAF + 事件双通道：事件保证响应速度，dirty flag 保证空闲开销
-    if (linkedEl && !linkedEl.__cwTetraEquivBound) {
-      linkedEl.__cwTetraEquivBound = true; // 防重复注册（多个 tetra-equiv 绑同一源时）
-      linkedEl.addEventListener('cw:geom3d:change', function() { api.__dirty = true; });
+    //   改用事件驱动：addEventListener 监听 sc:geom3d:change
+    // 事件驱动：监听联动源的 sc:geom3d:change 立即触发一次重建（不等下一帧）
+    if (linkedEl && !linkedEl.__scTetraEquivBound) {
+      linkedEl.__scTetraEquivBound = true; // 防重复注册（多个 tetra-equiv 绑同一源时）
+      linkedEl.addEventListener('sc:geom3d:change', function() { api.__dirty = true; });
     }
   }
 

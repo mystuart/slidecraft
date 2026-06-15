@@ -30,7 +30,7 @@
  *                                 equal 时短边留白，长边按短边等比缩
  *   - caption          {string}  可选 · 卡片下方说明
  *
- * 客户端 API（per-instance 闭包，挂在 container.__cwApi）：
+ * 客户端 API（per-instance 闭包，挂在 container.__scApi）：
  *   - getXRange() / setXRange([min, max])     · 重画
  *   - getYRange() / setYRange([min, max])
  *   - dataToScreen([x, y]) → [px, py]         · 坐标系 ↔ 像素
@@ -40,7 +40,7 @@
  * 架构契约（与 geometry-3d / slider 一致）：
  *   - data-* 属性存 JSON（data-config / data-canvas / data-meta）
  *   - 客户端 initAll() 在 DOMContentLoaded 跑
- *   - 联动靠事件（cw:coords2d:change，detail = {xRange, yRange, scale}）
+ *   - 联动靠事件（sc:coords2d:change，detail = {xRange, yRange, scale}）
  *   - 不依赖任何外部 JS 库（纯 Canvas 2D API）
  *
  * 已知问题（v0.1.0）：
@@ -417,14 +417,14 @@ const clientJs = `
 
     function emitChange() {
       // v0.1.0：基础范围变化事件，供 function-plot 订阅
-      root.dispatchEvent(new CustomEvent('cw:coords2d:change', {
+      root.dispatchEvent(new CustomEvent('sc:coords2d:change', {
         detail: { xRange: state.xRange.slice(), yRange: state.yRange.slice() },
         bubbles: true,
       }));
     }
 
     // 暴露到 DOM 元素
-    root.__cwApi = api;
+    root.__scApi = api;
 
     // 高 DPI 屏 / 窗口缩放重画
     var resizeRaf = 0;

@@ -25,7 +25,7 @@
  *   - showVolumeHint   {bool}     可选 · 是否显示「切下 / 剩余」体积比例提示（默认 true）
  *
  * 联动规则（v0.1）：
- *   - 每帧从 window.__cwGeom3D[linkedGeometry3d].getLabelPos(name) 拉取所有命名顶点
+ *   - 每帧从 window.__scGeom3D[linkedGeometry3d].getLabelPos(name) 拉取所有命名顶点
  *   - linkedGeometry3d 里通过 slider 改 P 位置时，本组件动画用最新位置
  *   - 切割平面由 3 个 label 定义，每帧重算（顶点变了切面也跟着转）
  *
@@ -131,16 +131,16 @@ function pickEasing(name) {
 const clientJs = `
 ${geomUtilsJs}
 (function() {
-  if (window.__cwCutAnimLoaded) return;
-  window.__cwCutAnimLoaded = true;
+  if (window.__scCutAnimLoaded) return;
+  window.__scCutAnimLoaded = true;
 
   ${EASING_FN}
 
   function initOne(root) {
-    var THREE = window.__cwThree;
-    var OC = window.__cwOrbitControls;
+    var THREE = window.__scThree;
+    var OC = window.__scOrbitControls;
     if (!THREE) {
-      console.warn('[cut-anim] window.__cwThree 未找到，请确认 build.js 已注入 Three.js');
+      console.warn('[cut-anim] window.__scThree 未找到，请确认 build.js 已注入 Three.js');
       return;
     }
 
@@ -270,16 +270,16 @@ ${geomUtilsJs}
 
     /**
      * 从源 geometry-3d 拉取所有命名顶点 + 重画三棱柱 + 保留四面体 + 切平面
-     * v0.1.1：优先走 DOM 元素的 __cwApi（per-instance 闭包，A2 改造），
-     * 兜底用 window.__cwGeom3D[id]（兼容老代码）
+     * v0.1.1：优先走 DOM 元素的 __scApi（per-instance 闭包，A2 改造），
+     * 兜底用 window.__scGeom3D[id]（兼容老代码）
      */
     function pullAndRender(progress) {
       progress = (typeof progress === 'number') ? progress : (root.dataset.progress ? parseFloat(root.dataset.progress) : 0);
       linkedEl = document.getElementById(linkedId);
-      if (linkedEl && linkedEl.__cwApi && typeof linkedEl.__cwApi.getLabelPos === 'function') {
-        api = linkedEl.__cwApi;
-      } else if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) {
-        api = window.__cwGeom3D[linkedId];
+      if (linkedEl && linkedEl.__scApi && typeof linkedEl.__scApi.getLabelPos === 'function') {
+        api = linkedEl.__scApi;
+      } else if (window.__scGeom3D && window.__scGeom3D[linkedId]) {
+        api = window.__scGeom3D[linkedId];
       }
       if (!api || typeof api.getLabelPos !== 'function') return;
 
@@ -533,10 +533,10 @@ ${geomUtilsJs}
     }
     renderLoop();
 
-    // 事件驱动：监听联动源的 cw:geom3d:change 立即触发一次重建
+    // 事件驱动：监听联动源的 sc:geom3d:change 立即触发一次重建
     var linkedGeom3dEl = document.getElementById(linkedId);
     if (linkedGeom3dEl) {
-      linkedGeom3dEl.addEventListener('cw:geom3d:change', function() { api.__dirty = true; });
+      linkedGeom3dEl.addEventListener('sc:geom3d:change', function() { api.__dirty = true; });
     }
 
     // 首帧强制 pullAndRender 一次（拿到初始坐标）

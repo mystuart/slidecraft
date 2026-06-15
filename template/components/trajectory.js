@@ -29,7 +29,7 @@
  *
  * 联动规则（v0.1）：
  *   - 启动时立即从 source 拉一次当前顶点位置，画初始点
- *   - 监听 source 的 cw:geom3d:change 事件（setLabelPos 触发），每收一个事件：
+ *   - 监听 source 的 sc:geom3d:change 事件（setLabelPos 触发），每收一个事件：
  *     1) 把新位置 push 到 tracks[id].points 数组
  *     2) 数组满 maxPoints 时 shift 头（FIFO 滑动窗口）
  *     3) 重画对应追踪对象的 BufferGeometry（line + 顶点球）
@@ -38,11 +38,11 @@
  * v0.1 实现边界：
  *   - 仅支持追踪 1 个顶点（多顶点可以同时追踪，但每顶点独立一条线）
  *   - 轨迹仅保留最近的 maxPoints 个采样点（避免内存无限增长）
- *   - 三个组件共用 Three.js bundle（window.__cwThree）
+ *   - 三个组件共用 Three.js bundle（window.__scThree）
  *
  * 已知问题：
  *   - 拖动很快时轨迹采样点稀疏（取决于 source setLabelPos 频率）—— 可通过拉平差值解决
- *   - 第一帧如果没收到 cw:geom3d:change 事件，初始位置点可能画错位（依赖源是初始化时已渲染的）
+ *   - 第一帧如果没收到 sc:geom3d:change 事件，初始位置点可能画错位（依赖源是初始化时已渲染的）
  */
 
 const { escapeHtml } = require('./_inline.js');
@@ -88,13 +88,13 @@ function render(data) {
 
 const clientJs = `
 (function() {
-  if (window.__cwTrajectoryLoaded) return;
-  window.__cwTrajectoryLoaded = true;
+  if (window.__scTrajectoryLoaded) return;
+  window.__scTrajectoryLoaded = true;
 
   function initOne(root) {
-    var THREE = window.__cwThree;
+    var THREE = window.__scThree;
     if (!THREE) {
-      console.warn('[trajectory] window.__cwThree 未找到，请确认 build.js 已注入 Three.js');
+      console.warn('[trajectory] window.__scThree 未找到，请确认 build.js 已注入 Three.js');
       return;
     }
 
@@ -179,8 +179,8 @@ const clientJs = `
 
     function getLinkedApi() {
       if (!linkedEl) linkedEl = document.getElementById(linkedId);
-      if (linkedEl && linkedEl.__cwApi) return linkedEl.__cwApi;
-      if (window.__cwGeom3D && window.__cwGeom3D[linkedId]) return window.__cwGeom3D[linkedId];
+      if (linkedEl && linkedEl.__scApi) return linkedEl.__scApi;
+      if (window.__scGeom3D && window.__scGeom3D[linkedId]) return window.__scGeom3D[linkedId];
       return null;
     }
 
@@ -262,7 +262,7 @@ const clientJs = `
     setTimeout(pullCurrent, 200);
     setTimeout(function() { fitCamera(); renderer.render(scene, camera); }, 300);
 
-    // 事件驱动：监听联动源的 cw:geom3d:change 立即 push 新点
+    // 事件驱动：监听联动源的 sc:geom3d:change 立即 push 新点
     // 注意：linkedEl 可能在源未初始化时为 null，事件也会冒泡到 document
     // 装 document 级监听更稳，且能在源延迟渲染后正确响应
     function onGeomChange(ev) {
@@ -276,7 +276,7 @@ const clientJs = `
       if (linkedId && srcEl && srcEl.id !== linkedId) return;
       pushPoint(detail.name, detail.pos[0], detail.pos[1], detail.pos[2]);
     }
-    document.addEventListener('cw:geom3d:change', onGeomChange);
+    document.addEventListener('sc:geom3d:change', onGeomChange);
   }
 
   function initAll() {
