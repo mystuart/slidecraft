@@ -174,11 +174,11 @@
 ## 客户端 API（per-instance 闭包）
 
 ```js
-// 优先用 DOM 元素上的 __cwApi（v0.1.1+ 闭包，不污染全局）
-const api = document.getElementById('prism-2024').__cwApi;
+// 优先用 DOM 元素上的 __scApi（v0.1.1+ 闭包，不污染全局）
+const api = document.getElementById('prism-2024').__scApi;
 
 // 或向后兼容老代码（兜底挂一份到全局）
-const api = window.__cwGeom3D['prism-2024'];
+const api = window.__scGeom3D['prism-2024'];
 
 api.setHighlight({ planes: ['Tri-PAC'], auxLines: ['OD', 'AP'] });
 api.resetHighlight();
@@ -191,8 +191,8 @@ api.hasAuxLine('B1D');
 ```
 
 **CustomEvent 事件**（v0.1.2 派发）：
-- `cw:geom3d:change` —— 命名顶点变化时派发，detail 含新坐标
-- `cw:geom3d:highlight` —— 高亮变化时派发，detail 是 spec 或 null
+- `sc:geom3d:change` —— 命名顶点变化时派发，detail 含新坐标
+- `sc:geom3d:highlight` —— 高亮变化时派发，detail 是 spec 或 null
 
 **`__dirty` 标记**（v0.1.2）：setLabelPos / setHighlight 末尾打 `api.__dirty = true`，联动组件（tetra-equiv / cut-anim）可订阅事件或轮询 dirty 标记按需重画（避免每帧重建浪费）。
 
@@ -278,7 +278,7 @@ api.hasAuxLine('B1D');
 }
 ```
 
-学员 hover step 1 → `__cwApi.setHighlight({planes: ["Tri-PAC"]})` 自动调用；hover step 2 → 加 `auxLines: ["OD", "AP"]` 触发两条辅助线显示。
+学员 hover step 1 → `__scApi.setHighlight({planes: ["Tri-PAC"]})` 自动调用；hover step 2 → 加 `auxLines: ["OD", "AP"]` 触发两条辅助线显示。
 
 ### 示例 4：slider 联动命名顶点
 

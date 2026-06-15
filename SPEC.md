@@ -376,7 +376,7 @@ sections:
 - 标签：DOM 形式（CSS2DRenderer），可与 KaTeX 混排、a11y 友好
 - **派生顶点**（v0.1.3）：`derivedVertices: [{label, formula}]` —— formula 走 `midpoint` / `centroid` / `linear`，命名顶点变化时整组重算
 - **辅助线池**（v0.1.7）：`auxLines: [{id, from, to, style, color}]` —— 默认全部隐藏，通过 `api.showAuxLines([id,...])` 或 `math-step.highlight.auxLines` toggle
-- **API**：per-instance 闭包（`container.__cwApi`），向后兼容 `window.__cwGeom3D[id]`
+- **API**：per-instance 闭包（`container.__scApi`），向后兼容 `window.__scGeom3D[id]`
 - 路线图（v0.2+）：剖切（`clippingPlane`）/ 三视图（`views: "three"`）/ 展开图（`unfold`）
 
 ### 4.14 Slider（滑块 + 3D 顶点联动）

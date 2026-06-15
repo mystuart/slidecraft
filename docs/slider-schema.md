@@ -36,7 +36,7 @@
 
 - 滑块值 $v \in [min, max]$ 归一化 $t = (v - min) / (max - min) \in [0, 1]$
 - 顶点新位置 = `path[0] + t * (path[1] - path[0])`
-- 联动后调用 `window.__cwGeom3D[id].setLabelPos(name, pos)`
+- 联动后调用 `window.__scGeom3D[id].setLabelPos(name, pos)`
 - 联动会**级联触发** linkedGeometry3d 内部的：
   - 同名 CSS2D 文字标签移动
   - 引用该 label 的半透面（`planes`）重新计算中心 + 法线

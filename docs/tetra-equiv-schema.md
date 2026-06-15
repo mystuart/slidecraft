@@ -22,7 +22,7 @@
 
 `vertexLabels` 是 **4 个 label 名**（如 `["A", "P", "C", "B₁"]`）—— 这 4 个 label 必须都在 `linkedGeometry3d` 实例的 `labels` 中存在，否则该顶点位置 fallback 为 `[0, 0, 0]`（不报错，但视觉上会看到四面体塌陷成一点）。
 
-**联动**：组件每帧（≈60fps）从 `window.__cwGeom3D[linkedGeometry3d].getLabelPos(name)` 拉取最新坐标。当 `slider` 组件通过 `setLabelPos` 改动某个 label（如 `P`）时，本组件 4 个四面体自动重画。
+**联动**：组件每帧（≈60fps）从 `window.__scGeom3D[linkedGeometry3d].getLabelPos(name)` 拉取最新坐标。当 `slider` 组件通过 `setLabelPos` 改动某个 label（如 `P`）时，本组件 4 个四面体自动重画。
 
 ## showAs 字段
 

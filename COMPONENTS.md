@@ -1,6 +1,6 @@
 ---
 title: 组件登记簿
-summary: courseware 交互课程框架的组件维护档案。概览、v0.x.x 状态、借鉴方向、系统级问题、决策记录、待办。
+summary: Slidecraft 交互课程框架的组件维护档案。概览、v0.x.x 状态、借鉴方向、系统级问题、决策记录、待办。
 category: registry
 type: registry
 created: 2026-06-05
@@ -246,9 +246,9 @@ Three.js + OrbitControls + CSS2DRenderer 打包后约 730KB，每个含 geometry
 
 ### 11. per-instance 闭包 API（2026-06-08，commit c816efb）
 
-旧 API 用 `window.__cwGeom3D[id]` 全局字典，多课件同页 / 多 iframe / 多 worker session 会冲突（A2 评审指出）。
+旧 API 用 `window.__scGeom3D[id]` 全局字典，多课件同页 / 多 iframe / 多 worker session 会冲突（A2 评审指出）。
 
-**为什么这样选**：每个 geometry-3d 渲染时把 `api` 挂到 `container.__cwApi`（DOM 元素上），同时**兜底**也挂一份到 `window.__cwGeom3D[id]`（向后兼容老代码）。其他组件（slider / cut-anim / tetra-equiv / math-step）**优先**用 `document.getElementById(id).__cwApi` 找 API。
+**为什么这样选**：每个 geometry-3d 渲染时把 `api` 挂到 `container.__scApi`（DOM 元素上），同时**兜底**也挂一份到 `window.__scGeom3D[id]`（向后兼容老代码）。其他组件（slider / cut-anim / tetra-equiv / math-step）**优先**用 `document.getElementById(id).__scApi` 找 API。
 
 **重评条件**：无。per-instance 是 1.x 后的稳定契约。
 

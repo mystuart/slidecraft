@@ -22,7 +22,7 @@ courseware 框架 v1.3.0 新增 4 个 2D 组件：坐标系 + 函数图像 + 交
 | 17 | `intersection-marker` | 静态交点 / polynomialIntersection / polynomialDiscriminant（Δ 实时 + 韦达定理） |
 | - | `slider` v0.1.2 | form-B 联动 function-plot 参数（v0.1.1 老 form-A 联动 geometry-3d 向后兼容） |
 
-**架构对齐**（与 3D 组件同款）：canvas 注入到 coords-2d stage 共享坐标系、per-instance `__cwApi` 闭包、`cw:coords2d:change` / `cw:functionplot:change` 事件带 `bubbles: true`。
+**架构对齐**（与 3D 组件同款）：canvas 注入到 coords-2d stage 共享坐标系、per-instance `__scApi` 闭包、`sc:coords2d:change` / `sc:functionplot:change` 事件带 `bubbles: true`。
 
 > **v0.2.0 评审修复**（GLM-5.1）：抛物线 orientation 4 方向画法 + 4x 缩放（C0-1）、`polyRealRoots` 重根漏掉相切（C1-1）、三次极值分类错（C1-2）、抽 `_geom_utils` 共享（C2-1）、`computeDiffCoeffs` 抽 helper（C2-3）。详见 `docs/glm-review-2d-v0.1.0.md`。
 
