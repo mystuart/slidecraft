@@ -147,16 +147,309 @@ related:
 > 标"待打磨"前先看这里——这些是跨组件的、应该一起改的。
 
 1. **`processInline` 已支持 `$...$` 行内 LaTeX**（`_inline.js:30-44`）— 现状：quiz / callout / math-step 的 `content` 字段内 `$x^2$` 会被 KaTeX 编译。
-   - **升级目标**（不是 bug）：(a) 支持多行 LaTeX（`$$...$$`）— 当前正则 `\$([^$\n]+)\$` 排除换行。(b) 兼容 `\(...\)` / `\[...\]` 标准语法。(c) 解析失败时给出**编译期**提示（目前 throwOnError:false 静默降级到 `<code>`，学员看不到"哪里写错了"）。
+   - **升级目标**（不是 bug）：(a) 支持多行 LaTeX（`$...$`）— 当前正则 `\$([^$\n]+)\---
+title: 组件登记簿
+summary: Slidecraft 交互课程框架的组件维护档案。概览、v0.x.x 状态、借鉴方向、系统级问题、决策记录、待办。
+category: registry
+type: registry
+created: 2026-06-05
+updated: 2026-06-12
+related:
+  - SPEC.md
+  - README.md
+  - template/components/
+---
+
+# 组件登记簿
+
+> 这是组件的**实时维护档案**。`SPEC.md` 是规范文档（讲"应该是什么样"），本文件是维护记录（讲"现在是什么样、打磨方向在哪"）。两者冲突时，**以本文件为准**——SPEC.md 需要跟着更新。
+>
+> 配套讨论画布：`content/components-showcase.md` —— 每个组件都有 2+ 个真实示例，跑 build 后可在 `dist/components-showcase.html` 看渲染效果。
+>
+> 字段契约散落在 `template/components/<name>.js` 顶部 JSDoc 里（**信息源唯一化**），不在本文件复述。
+
+---
+
+## 概览
+
+| # | 组件 | 版本 | 状态 | 首次可用 | 最近更新 |
+|---|---|---|---|---|---|
+| 1 | hero | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 |
+| 2 | quiz | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 |
+| 3 | quiz-track | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 4 | fill-blank | v0.2.1 | 🟢 打磨完成 | 2026-06-05 | 2026-06-08 |
+| 5 | step-guide | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 6 | compare | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 7 | concept-card | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 8 | callout | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 |
+| 9 | formula | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 10 | math-step | v0.2.1 | 🟢 打磨完成 | 2026-06-05 | 2026-06-12 |
+| 11 | geometry-3d | v0.1.7 | 🟡 首次可用（多能力迭代中） | 2026-06-08 | 2026-06-12 |
+| 12 | slider | v0.1.2 | 🟡 首次可用（form-B 联动 function-plot 已加） | 2026-06-10 | 2026-06-13 |
+| 13 | tetra-equiv | v0.1.0 | 🟡 首次可用 | 2026-06-11 | 2026-06-11 |
+| 14 | cut-anim | v0.1.0 | 🟡 首次可用 | 2026-06-11 | 2026-06-11 |
+| 15 | coords-2d | v0.1.0 | 🟡 首次可用 | 2026-06-13 | 2026-06-13 |
+| 16 | function-plot | v0.1.0 | 🟡 首次可用 | 2026-06-13 | 2026-06-13 |
+| 17 | intersection-marker | v0.1.0 | 🟡 首次可用 | 2026-06-13 | 2026-06-13 |
+| 18 | timeline | v0.1.0 | 🟡 首次可用 | 2026-06-15 | 2026-06-15 |
+| 19 | chart | v0.1.0 | 🟡 首次可用 | 2026-06-15 | 2026-06-15 |
+| 20 | _geom_utils | v0.2.0 | 🟡 内部工具（polyEval/Deriv/RealRoots + tetra 等） | 2026-06-11 | 2026-06-13 |
+
+**状态图例**：🟢 打磨完成 · 🟡 待打磨 · 🔴 打磨中 · ⚪ 弃用
+
+**版本号约定**：
+- **v0.1.0** — 首次可用，但字段/视觉/交互都还没经过讨论打磨
+- **v0.2.0+** — 经过至少 1 轮打磨，字段或视觉有调整
+- **v1.0.0** — 老板签字"打磨完成"，进入稳定状态
+- **v1.x.y** — bugfix 或微调，不破坏字段契约
+- 版本号跟随**组件本身的契约**变化，而不是 renderer.js 里的代码改动
+
+---
+
+## 借鉴方向（学习源：nexu-io/html-anything）
+
+**核心借鉴**：「**设计签名 + 铁律**」—— 每个 skill 配严选 palette（4 选 1）+ 字体分工（display / body / mono / 中文）+ 版式池 + 「绝不」清单（drop-shadow / 圆角 / 渐变 / 霓虹色）。相比"通用 HTML 默认风格 + 5 个自由切换主题"，html-anything 是"少而精 + 严选 + 克制"。
+
+### 全局打磨方向（适用于所有组件）
+
+1. **给每个主题配「设计签名」**（不只换色）—— 当前 5 个主题只是色调不同；html-anything 4 套配色各有 accent + paper + ink 三色 + 字体约束 + 铁律。**方向**：每个主题补"签名段"（accent / paper / ink / 字体 / 圆角策略 / 阴影策略）。
+2. **字号极端反差**—— display 9.6vw vs body 14-16px vs label 11px。**方向**：课件建立 4 级字号系统（display 4-5rem / h2 1.75-2rem / body 1rem / label 0.75rem uppercase）。
+3. **「绝不」清单**（铁律）—— dark 主题不要纯白文字（用 95% 白）；lavender 主题不要霓虹色 accent。
+4. **Ground texture**—— 1-2 个主题试 ground texture（lavender 加 dot pattern 9% / dark 加 grid 6%）。
+5. **Hairline 描边代替阴影**—— 默认 hairline 1px 描边代替 box-shadow（更印感、更克制）。
+6. **字体系统化分工**—— 4 种字体各司其职（display / body / 中文 / 数字 mono），组件 CSS 通过 CSS 变量引用。
+7. **「被排过版的纸」质感**—— detail 元素按"印感"打磨：metadata 用 hairline 分隔，footnote 用 1px 顶 rule + 0.8rem 灰字，page number 用 11px uppercase 角标。
+
+### 逐组件打磨方向（v0.2 路线图）
+
+> MVP 10 组件的"当前"+"下一步"放在这里（v0.1 阶段 geometry-3d 借鉴方向 7 个项目，2ba17a4 后已大半实现，单独成文 schema）。3D 体系（geometry-3d / slider / tetra-equiv / cut-anim）的字段细节看 `docs/*.md`。
+
+#### 1. hero *(v0.2.0 已打磨)*
+- **当前**：背景色 + 大标题 + 副标题 + 可选 CTA + emoji。
+- **借鉴**：S01 Cover「accent 全屏 + ASCII 呼吸点阵 + 反白标题 + 元数据 chrome（date / № / topic）」
+- **方向**：加 ground texture · 元数据 chrome（右下角 №N/M 章号 + 左下角 topic 标签）· display 字号（标题 4-5rem）· emoji 切到 SVG 图标。
+
+#### 2. quiz *(v0.2.0 已打磨)*
+- **借鉴**：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」
+- **方向**：题型分类标签（概念题 / 计算题 / 应用题）—— 给 quiz 加 `category` 字段？· 多选状态机（未选 / 部分选 / 全选错 / 全选对 / 提交后）的颜色规范 · feedback 折叠/展开默认决策。
+
+#### 3. quiz-track *(v0.2.0 已打磨)*
+- **当前**：题组 carousel，dots 容器加 hairline 时间轴（灰轴 + 已答段绿 hairline，宽度由 `--quiz-progress-width` 变量驱动），节点 hairline 描边 4 态（default/correct/partial/wrong），完成时 callout 内嵌 4 stat 总结（总题数/全对/部分对/答错），next 按钮 3 态分发。
+- **方向**：答对自动跳下一题（流畅感 vs 允许回头看）· 移动端/窄屏 prev/next 文字可改纯箭头 · 进度 hairline 当前按"已答总数"算，若想表达"连续答对"需换算法。
+
+#### 4. fill-blank *(v0.2.1 已打磨)*
+- **当前**：v0.2.0 加多空 `{{1}}` 占位 + 每空独立等价集合 + 旧 `answer: "H|O"` 写法兼容。v0.2.1 加占位编号硬校验（必须 `{{1}} {{2}} {{3}}` 连续，无跳号重复）。
+- **借鉴**：parchment 风格的填空「被填进纸里」（hairline 描边输入框，不用浮起的 box-shadow 输入框）。
+- **方向**：等价答案规则再扩（unicode 标准化 / 去中间空格）· 判分粒度（全对 vs 部分得分）· 显示/隐藏答案按钮。
+
+#### 5. step-guide *(v0.2.0 已打磨)*
+- **当前**：tab 切换，按钮组形式。`title` 走 processInline；`example` 字段默认展开 + 可折叠（HTML `<details>` 原生，零 JS）。
+- **下一步可选**：tab 视觉从"按钮组"改为"timeline 节点"· 当前 step 序号角标 · 移动端 tab 横滑 · example 代码高亮（hljs 集成）。
+
+#### 6. compare *(v0.2.0 已打磨)*
+- **当前**：左右两列 + 4 tag 颜色 + `mode` 字段控制语义（good-bad / before-after / neutral）+ "vs" 圆牌 + warn 加边框增强对比。
+- **下一步可选**：points 数量上限折叠（> 6 项时折叠）· 横向响应式（移动端两列改纵向）· "vs" 圆牌可换成箭头/方向指示。
+
+#### 7. concept-card *(v0.2.0 已打磨)*
+- **当前**：网格 + icon + 标题 + 描述。`title` 走 processInline；`iconType` 字段路由 emoji/svg/image 三种 icon 写法。
+- **下一步可选**：响应式（移动端 4 列降级到 2 列 / 1 列的断点）· 是否切到统一 SVG 图标库。
+
+#### 8. callout *(v0.2.0 已打磨)*
+- **当前**：5 种 type（tip / warning / info / danger / note），调色板：tip 绿 / warning 琥珀 / info 蓝 / danger 红 / note 紫。
+- **方向**：✅ 调色板定型（2026-06-05）· 每个 type 配一个 SVG icon 统一视觉签名 · 内容超过 N 行默认折叠？
+
+#### 9. formula *(v0.2.0 已打磨)*
+- **当前**：KaTeX 编译时 + caption 走 processInline + showExpr 折叠按钮 + 块级公式自动编号。
+- **下一步可选**：编号字体（当前用 0.88em italic）· 公式引用（"由公式 1.1 得..." 跨公式引用方案）· 公式锚点（点击编号跳到公式）。
+
+#### 10. math-step *(v0.2.1 已打磨)*
+- **当前**：v0.2.1 加 step 联动 geometry-3d（hover → setHighlight）· v0.2.0 4 折叠区统一琥珀色 + 默认展开 + hairline 进度条 + `celebrate: false` 开关。
+- **下一步可选**：单 step 内进度（"看完了提示"不算"完成"，是不是要二级进度？）· 折叠区支持折叠回默认（现在 `open` 是硬编码的）· 进度条完成态加点动效（避免太干）。
+
+#### 11. geometry-3d *(v0.1.7)*
+- **当前**：v0.1.7 已有 30+ 字段（vertices / planes / auxLines / derivedVertices / rightAngles / id），9 种几何体（triangular-prism v0.1.2 真正实现），触摸板 / Z 轴自转 / camera.up=+Z 校准 / per-instance 闭包 / 三角面 / math-step 联动。
+- **字段契约**：[`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)（v0.1.7，含 4 个示例：正方体 / 三角柱+辅助线池+math-step 联动 / slider 联动 / 错误回退）。
+- **v0.2+ 路线图**：`clippingPlane`（物理剖切）/ `views: "three"`（三视图）/ `unfold`（展开图）/ `mode` 状态机 + Raycaster 命中高亮。
+
+#### 12-14. slider / tetra-equiv / cut-anim *(v0.1)*
+- 三个 3D 联动组件，字段契约见 `docs/slider-schema.md` / `docs/tetra-equiv-schema.md` / `docs/cut-anim-schema.md`。
+- **v0.2 路线图**：slider 加键盘 ←/→ 微调 + 输入框数字回写；tetra-equiv 加"按底面积排序"图例 + 4 锥独立相机视角；cut-anim 加 3 段速（匀速 / 缓入缓出 / 弹跳）。
+- **体积影响**：约 730KB（Three.js + OrbitControls + CSS2DRenderer，esbuild 打 IIFE）。build.js 检测到 `.geom-3d` class 才注入；`--inline-three` 模式可强制内联（Alice 内网离线部署）。
+- **v0.2+ 路线图**：
+  - `clippingPlane` —— Three.js 物理剖切平面（注意：cut-anim 走的是透明度动画路线，不是 clippingPlane）
+  - `views: "three"` —— 三视图同步（主视图 + 左视图 + 俯视图）
+  - `unfold` —— 展开图 / 折叠动画
+  - `mode` 状态机 + Raycaster 命中高亮 —— v0.1 留作占位
+- **待办**：v0.2 空白区识别区扩大（双击空白命中率对正方体/圆锥偏小，加 padding / 5% 边界保护区）。
+
+### 跨组件悬而未决项（开放讨论中）
+
+- **emoji 命运**：保留 / 切到 lucide SVG / 用 ASCII 几何。影响 hero / concept-card / callout。
+- **圆角策略**：当前默认 8-12px / dark 主题待定 / 是否切 0 直角 vs 大元素 0+ 小元素 4px 混合。
+- **阴影策略**：默认全无（最克制）/ 默认 hairline 1px（印感）/ 保留 box-shadow（当前）。
+- **主题数量**：当前仅 `lavender` 一个真正实现 CSS（SPEC §6 误标 5 个，2026-06-12 已修）。要不要补 dark / gold？什么时候补？
+
+---
+
+## 已知系统级问题（影响多个组件）
+
+> 标"待打磨"前先看这里——这些是跨组件的、应该一起改的。
+
+1. **`processInline` 已支持 `$...$` 行内 LaTeX**（`_inline.js:30-44`）— 现状：quiz / callout / math-step 的 `content` 字段内 `$x^2$` 会被 KaTeX 编译。
+ 排除换行。(b) 兼容 `\(...\)` / `\[...\]` 标准语法。(c) ~~解析失败时给出编译期提示~~ → **2026-06-15 已实现**（见架构债 #2）。
 2. **架构债 #1：`_inline.js` 顶层硬 `require('katex')` 跟组件零依赖约束矛盾**（优先级 P2）— 现状：5 个组件在 `renderer.js` 模块树顶层被加载的副作用下"共享"闭包变量（ce129f7 注释承认）。升级路径：把 `katex` 导入下沉到 `processInline` 内部 lazy require，或拆 `_inline-math.js` 子模块按需加载。
-3. **架构债 #2：`build` 静默降级**（优先级 P1）— marked.parse / katex.renderToString 失败时 throwOnError:false / catch 吞掉异常，产物能跑但**学员看不到公式**。需要：(a) 编译期收集所有解析失败的位置 + 源 .md 行号。(b) 写到一个 build 报告文件，build exit code 在有未解析项时非 0。
-4. **架构债 #3：frontmatter `sections` ↔ 正文 `## h2` 不同步**（优先级 P1 · 教学链路 · **2026-06-12 部分修复**）— 现状 2 个 .md 中招（三角柱 demo 已修复）：
-   - ~~`triangular-prism-demo.md`：sections 3 章，正文 h2 3 章（"## 原题"漏写导致 sidebar 锚点错位）~~  → **2026-06-12 已加回 `## 原题`，现在 sections=3 / h2=3 匹配**
-   - `binary-card-trick.md`：sections 声明 6 章，正文 h2 7 章（"## 魔术前的准备"在 sections 之外）
-   - `math-step-test.md`：sections 4 个"x、"题号，正文是 4 个 `## 1、` 编号但格式不对齐（"## 三题总结"没在 sections 里）
-   - `how-to-create-skill.md`：sections 6 章，正文 h2 14 个（差 8 个孤儿 h2）
-   - **修复（2026-06-12，commit 2ba17a4）**：build.js 加 section 7.6 校验 —— sections 数量 ≠ h2 数量时 console.warn + 打印两列对照表，但**不**阻断 build（向后兼容）
-   - 影响：sections 是 hero 卡片下方的"章节目录"，学员点 `## xxx` 不会出现在目录里 = 教学链路断。后续：(a) 把 binary-card-trick / math-step-test 修了（用 build warning 引导）。(b) 长期看应该改成「h2 数量 != sections 数量时 build exit 1」，但目前向后兼容优先。
+3. **~~架构债 #2：`build` 静默降级~~（✅ 2026-06-15 已修复）** — marked.parse / katex.renderToString 失败时 throwOnError:false / catch 吞掉异常，产物能跑但**学员看不到公式**。**修复**：build.js 新增 `collectKatexErrors()` 在 build 期扫描产物 HTML 的 `katex-error` 标记，收集 ParseError + 源码，末尾汇总报告 + `process.exitCode = 1`。顺手修复了 gaokao-2020-jiangsu-q18.md 一个静默坏了好几轮的 formula（expr 多包了一对 `---
+title: 组件登记簿
+summary: Slidecraft 交互课程框架的组件维护档案。概览、v0.x.x 状态、借鉴方向、系统级问题、决策记录、待办。
+category: registry
+type: registry
+created: 2026-06-05
+updated: 2026-06-12
+related:
+  - SPEC.md
+  - README.md
+  - template/components/
+---
+
+# 组件登记簿
+
+> 这是组件的**实时维护档案**。`SPEC.md` 是规范文档（讲"应该是什么样"），本文件是维护记录（讲"现在是什么样、打磨方向在哪"）。两者冲突时，**以本文件为准**——SPEC.md 需要跟着更新。
+>
+> 配套讨论画布：`content/components-showcase.md` —— 每个组件都有 2+ 个真实示例，跑 build 后可在 `dist/components-showcase.html` 看渲染效果。
+>
+> 字段契约散落在 `template/components/<name>.js` 顶部 JSDoc 里（**信息源唯一化**），不在本文件复述。
+
+---
+
+## 概览
+
+| # | 组件 | 版本 | 状态 | 首次可用 | 最近更新 |
+|---|---|---|---|---|---|
+| 1 | hero | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 |
+| 2 | quiz | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 |
+| 3 | quiz-track | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 4 | fill-blank | v0.2.1 | 🟢 打磨完成 | 2026-06-05 | 2026-06-08 |
+| 5 | step-guide | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 6 | compare | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 7 | concept-card | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 8 | callout | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-05 |
+| 9 | formula | v0.2.0 | 🟢 打磨完成 | 2026-06-05 | 2026-06-06 |
+| 10 | math-step | v0.2.1 | 🟢 打磨完成 | 2026-06-05 | 2026-06-12 |
+| 11 | geometry-3d | v0.1.7 | 🟡 首次可用（多能力迭代中） | 2026-06-08 | 2026-06-12 |
+| 12 | slider | v0.1.2 | 🟡 首次可用（form-B 联动 function-plot 已加） | 2026-06-10 | 2026-06-13 |
+| 13 | tetra-equiv | v0.1.0 | 🟡 首次可用 | 2026-06-11 | 2026-06-11 |
+| 14 | cut-anim | v0.1.0 | 🟡 首次可用 | 2026-06-11 | 2026-06-11 |
+| 15 | coords-2d | v0.1.0 | 🟡 首次可用 | 2026-06-13 | 2026-06-13 |
+| 16 | function-plot | v0.1.0 | 🟡 首次可用 | 2026-06-13 | 2026-06-13 |
+| 17 | intersection-marker | v0.1.0 | 🟡 首次可用 | 2026-06-13 | 2026-06-13 |
+| 18 | timeline | v0.1.0 | 🟡 首次可用 | 2026-06-15 | 2026-06-15 |
+| 19 | chart | v0.1.0 | 🟡 首次可用 | 2026-06-15 | 2026-06-15 |
+| 20 | _geom_utils | v0.2.0 | 🟡 内部工具（polyEval/Deriv/RealRoots + tetra 等） | 2026-06-11 | 2026-06-13 |
+
+**状态图例**：🟢 打磨完成 · 🟡 待打磨 · 🔴 打磨中 · ⚪ 弃用
+
+**版本号约定**：
+- **v0.1.0** — 首次可用，但字段/视觉/交互都还没经过讨论打磨
+- **v0.2.0+** — 经过至少 1 轮打磨，字段或视觉有调整
+- **v1.0.0** — 老板签字"打磨完成"，进入稳定状态
+- **v1.x.y** — bugfix 或微调，不破坏字段契约
+- 版本号跟随**组件本身的契约**变化，而不是 renderer.js 里的代码改动
+
+---
+
+## 借鉴方向（学习源：nexu-io/html-anything）
+
+**核心借鉴**：「**设计签名 + 铁律**」—— 每个 skill 配严选 palette（4 选 1）+ 字体分工（display / body / mono / 中文）+ 版式池 + 「绝不」清单（drop-shadow / 圆角 / 渐变 / 霓虹色）。相比"通用 HTML 默认风格 + 5 个自由切换主题"，html-anything 是"少而精 + 严选 + 克制"。
+
+### 全局打磨方向（适用于所有组件）
+
+1. **给每个主题配「设计签名」**（不只换色）—— 当前 5 个主题只是色调不同；html-anything 4 套配色各有 accent + paper + ink 三色 + 字体约束 + 铁律。**方向**：每个主题补"签名段"（accent / paper / ink / 字体 / 圆角策略 / 阴影策略）。
+2. **字号极端反差**—— display 9.6vw vs body 14-16px vs label 11px。**方向**：课件建立 4 级字号系统（display 4-5rem / h2 1.75-2rem / body 1rem / label 0.75rem uppercase）。
+3. **「绝不」清单**（铁律）—— dark 主题不要纯白文字（用 95% 白）；lavender 主题不要霓虹色 accent。
+4. **Ground texture**—— 1-2 个主题试 ground texture（lavender 加 dot pattern 9% / dark 加 grid 6%）。
+5. **Hairline 描边代替阴影**—— 默认 hairline 1px 描边代替 box-shadow（更印感、更克制）。
+6. **字体系统化分工**—— 4 种字体各司其职（display / body / 中文 / 数字 mono），组件 CSS 通过 CSS 变量引用。
+7. **「被排过版的纸」质感**—— detail 元素按"印感"打磨：metadata 用 hairline 分隔，footnote 用 1px 顶 rule + 0.8rem 灰字，page number 用 11px uppercase 角标。
+
+### 逐组件打磨方向（v0.2 路线图）
+
+> MVP 10 组件的"当前"+"下一步"放在这里（v0.1 阶段 geometry-3d 借鉴方向 7 个项目，2ba17a4 后已大半实现，单独成文 schema）。3D 体系（geometry-3d / slider / tetra-equiv / cut-anim）的字段细节看 `docs/*.md`。
+
+#### 1. hero *(v0.2.0 已打磨)*
+- **当前**：背景色 + 大标题 + 副标题 + 可选 CTA + emoji。
+- **借鉴**：S01 Cover「accent 全屏 + ASCII 呼吸点阵 + 反白标题 + 元数据 chrome（date / № / topic）」
+- **方向**：加 ground texture · 元数据 chrome（右下角 №N/M 章号 + 左下角 topic 标签）· display 字号（标题 4-5rem）· emoji 切到 SVG 图标。
+
+#### 2. quiz *(v0.2.0 已打磨)*
+- **借鉴**：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」
+- **方向**：题型分类标签（概念题 / 计算题 / 应用题）—— 给 quiz 加 `category` 字段？· 多选状态机（未选 / 部分选 / 全选错 / 全选对 / 提交后）的颜色规范 · feedback 折叠/展开默认决策。
+
+#### 3. quiz-track *(v0.2.0 已打磨)*
+- **当前**：题组 carousel，dots 容器加 hairline 时间轴（灰轴 + 已答段绿 hairline，宽度由 `--quiz-progress-width` 变量驱动），节点 hairline 描边 4 态（default/correct/partial/wrong），完成时 callout 内嵌 4 stat 总结（总题数/全对/部分对/答错），next 按钮 3 态分发。
+- **方向**：答对自动跳下一题（流畅感 vs 允许回头看）· 移动端/窄屏 prev/next 文字可改纯箭头 · 进度 hairline 当前按"已答总数"算，若想表达"连续答对"需换算法。
+
+#### 4. fill-blank *(v0.2.1 已打磨)*
+- **当前**：v0.2.0 加多空 `{{1}}` 占位 + 每空独立等价集合 + 旧 `answer: "H|O"` 写法兼容。v0.2.1 加占位编号硬校验（必须 `{{1}} {{2}} {{3}}` 连续，无跳号重复）。
+- **借鉴**：parchment 风格的填空「被填进纸里」（hairline 描边输入框，不用浮起的 box-shadow 输入框）。
+- **方向**：等价答案规则再扩（unicode 标准化 / 去中间空格）· 判分粒度（全对 vs 部分得分）· 显示/隐藏答案按钮。
+
+#### 5. step-guide *(v0.2.0 已打磨)*
+- **当前**：tab 切换，按钮组形式。`title` 走 processInline；`example` 字段默认展开 + 可折叠（HTML `<details>` 原生，零 JS）。
+- **下一步可选**：tab 视觉从"按钮组"改为"timeline 节点"· 当前 step 序号角标 · 移动端 tab 横滑 · example 代码高亮（hljs 集成）。
+
+#### 6. compare *(v0.2.0 已打磨)*
+- **当前**：左右两列 + 4 tag 颜色 + `mode` 字段控制语义（good-bad / before-after / neutral）+ "vs" 圆牌 + warn 加边框增强对比。
+- **下一步可选**：points 数量上限折叠（> 6 项时折叠）· 横向响应式（移动端两列改纵向）· "vs" 圆牌可换成箭头/方向指示。
+
+#### 7. concept-card *(v0.2.0 已打磨)*
+- **当前**：网格 + icon + 标题 + 描述。`title` 走 processInline；`iconType` 字段路由 emoji/svg/image 三种 icon 写法。
+- **下一步可选**：响应式（移动端 4 列降级到 2 列 / 1 列的断点）· 是否切到统一 SVG 图标库。
+
+#### 8. callout *(v0.2.0 已打磨)*
+- **当前**：5 种 type（tip / warning / info / danger / note），调色板：tip 绿 / warning 琥珀 / info 蓝 / danger 红 / note 紫。
+- **方向**：✅ 调色板定型（2026-06-05）· 每个 type 配一个 SVG icon 统一视觉签名 · 内容超过 N 行默认折叠？
+
+#### 9. formula *(v0.2.0 已打磨)*
+- **当前**：KaTeX 编译时 + caption 走 processInline + showExpr 折叠按钮 + 块级公式自动编号。
+- **下一步可选**：编号字体（当前用 0.88em italic）· 公式引用（"由公式 1.1 得..." 跨公式引用方案）· 公式锚点（点击编号跳到公式）。
+
+#### 10. math-step *(v0.2.1 已打磨)*
+- **当前**：v0.2.1 加 step 联动 geometry-3d（hover → setHighlight）· v0.2.0 4 折叠区统一琥珀色 + 默认展开 + hairline 进度条 + `celebrate: false` 开关。
+- **下一步可选**：单 step 内进度（"看完了提示"不算"完成"，是不是要二级进度？）· 折叠区支持折叠回默认（现在 `open` 是硬编码的）· 进度条完成态加点动效（避免太干）。
+
+#### 11. geometry-3d *(v0.1.7)*
+- **当前**：v0.1.7 已有 30+ 字段（vertices / planes / auxLines / derivedVertices / rightAngles / id），9 种几何体（triangular-prism v0.1.2 真正实现），触摸板 / Z 轴自转 / camera.up=+Z 校准 / per-instance 闭包 / 三角面 / math-step 联动。
+- **字段契约**：[`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)（v0.1.7，含 4 个示例：正方体 / 三角柱+辅助线池+math-step 联动 / slider 联动 / 错误回退）。
+- **v0.2+ 路线图**：`clippingPlane`（物理剖切）/ `views: "three"`（三视图）/ `unfold`（展开图）/ `mode` 状态机 + Raycaster 命中高亮。
+
+#### 12-14. slider / tetra-equiv / cut-anim *(v0.1)*
+- 三个 3D 联动组件，字段契约见 `docs/slider-schema.md` / `docs/tetra-equiv-schema.md` / `docs/cut-anim-schema.md`。
+- **v0.2 路线图**：slider 加键盘 ←/→ 微调 + 输入框数字回写；tetra-equiv 加"按底面积排序"图例 + 4 锥独立相机视角；cut-anim 加 3 段速（匀速 / 缓入缓出 / 弹跳）。
+- **体积影响**：约 730KB（Three.js + OrbitControls + CSS2DRenderer，esbuild 打 IIFE）。build.js 检测到 `.geom-3d` class 才注入；`--inline-three` 模式可强制内联（Alice 内网离线部署）。
+- **v0.2+ 路线图**：
+  - `clippingPlane` —— Three.js 物理剖切平面（注意：cut-anim 走的是透明度动画路线，不是 clippingPlane）
+  - `views: "three"` —— 三视图同步（主视图 + 左视图 + 俯视图）
+  - `unfold` —— 展开图 / 折叠动画
+  - `mode` 状态机 + Raycaster 命中高亮 —— v0.1 留作占位
+- **待办**：v0.2 空白区识别区扩大（双击空白命中率对正方体/圆锥偏小，加 padding / 5% 边界保护区）。
+
+### 跨组件悬而未决项（开放讨论中）
+
+- **emoji 命运**：保留 / 切到 lucide SVG / 用 ASCII 几何。影响 hero / concept-card / callout。
+- **圆角策略**：当前默认 8-12px / dark 主题待定 / 是否切 0 直角 vs 大元素 0+ 小元素 4px 混合。
+- **阴影策略**：默认全无（最克制）/ 默认 hairline 1px（印感）/ 保留 box-shadow（当前）。
+- **主题数量**：当前仅 `lavender` 一个真正实现 CSS（SPEC §6 误标 5 个，2026-06-12 已修）。要不要补 dark / gold？什么时候补？
+
+---
+
+## 已知系统级问题（影响多个组件）
+
+> 标"待打磨"前先看这里——这些是跨组件的、应该一起改的。
+
+1. **`processInline` 已支持 `$...$` 行内 LaTeX**（`_inline.js:30-44`）— 现状：quiz / callout / math-step 的 `content` 字段内 `$x^2$` 会被 KaTeX 编译。
+）。
+4. **~~架构债 #3：frontmatter `sections` ↔ 正文 `## h2` 不同步~~（✅ 2026-06-15 已修复 · 教学链路）** — ~~sections 按 (i+1) 编号、h2 按出现顺序编号，数量不一致会锚点错位~~。
+   - **修复历程**：2026-06-12（commit 2ba17a4）先加 warn 校验；2026-06-15 所有现有课件修齐（2d-components-showcase 补"验证清单"章；binary-card-trick / math-step-test / how-to-create-skill 早已对齐——how-to 的代码块内 `##` 不被 marked 转 h2，产物实际只 6 个 h2），升级为 `console.error` + `process.exitCode = 1` strict 模式。
 5. **CTA 锚点 `#sec-xxx` 与 renderer 自动生成的 anchor 未对齐** — hero 的 `ctaHref` 跳到 `#sec-quiz-track` 这种，但 renderer 自动生成 anchor 的规则没文档化，跨 .md 复用时容易断。
 6. **emoji 跨平台渲染不一致** — concept-card 的 `icon`、hero 的 `emoji`、callout 的图标都受此影响。
 7. **compare 的 good/bad 左右排序约定未文档化**（GLM 5.1 评估 · 2026-06-05）— compare 有 4 种 tag，但 good/bad 哪个放左没明确规则。优先级：低，先定约定（建议 good 在左 / bad 在右 / warn 居中）。
@@ -254,13 +547,13 @@ Three.js + OrbitControls + CSS2DRenderer 打包后约 730KB，每个含 geometry
 
 **重评条件**：无。per-instance 是 1.x 后的稳定契约。
 
-### 12. build.js 锚点数量校验（2026-06-12，commit 2ba17a4）
+### 12. build.js 锚点数量校验（2026-06-12，commit 2ba17a4 · 2026-06-15 升级 strict）
 
 旧 build.js 无声支持「sections 数量 ≠ h2 数量」组合，但**sidebar 按 (i+1) 编号、正文按出现顺序编号** —— 两边数量不一致时，学员点 sidebar 跳转到错位的章节（或不存在 section-N）。
 
 **为什么这样选**：build 时 `if (sectionsCount > 0 && h2Count > 0 && sectionsCount !== h2Count) console.warn(...)` + 打印 sidebar 列表 + h2 列表两列对照。**不**改 exit code（向后兼容老课件），只 warn。
 
-**重评条件**：等所有现有课件都修了 sections/h2 对齐后，升级为 `exit 1`（strict 模式）。
+**2026-06-15 升级**：所有现有课件（含 2d-components-showcase 补"验证清单"章）已修齐 sections/h2，从 warn 升级为 `console.error` + `process.exitCode = 1`（strict 模式）。产物仍生成（可看），但 CI 会因 exit 1 报红。架构债 #4 收尾。
 
 ---
 

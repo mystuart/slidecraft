@@ -201,27 +201,29 @@ async function buildFile(inputPath) {
     console.warn('  参考 content/binary-card-trick.md 的 frontmatter 补 sections。');
   }
 
-  // 7.6) v0.1.8 校验：sections 数量必须 == h2 数量，否则锚点错位
+  // 7.6) strict 校验：sections 数量必须 == h2 数量，否则锚点错位
   // 之前 sections 按位置 (i+1) 编号、h2 也按位置 (1..N) 编号，两边数量不一致会无声错位
   // （如三角柱 demo 漏写 ## 原题 时 "原题"sidebar 跳到不存在的 section-1、"第(2)问"跳到 section-3 而非 section-4）
+  // 2026-06-15 升级：所有现有 .md 已修齐，从 warn 升级为 error + exit 1（架构债 #4 收尾）
   const sectionsCount = Array.isArray(fm.sections) ? fm.sections.length : 0;
   if (sectionsCount > 0 && h2Count > 0 && sectionsCount !== h2Count) {
-    console.warn(`! 锚点错位风险：${path.basename(inputPath)} frontmatter sections=${sectionsCount}，但正文 h2=${h2Count}。`);
-    console.warn('  侧边栏按 (i+1) 编号、正文按出现顺序编号 —— 数量不一致会导致锚点错位。');
+    console.error('! 锚点错位：' + path.basename(inputPath) + ' frontmatter sections=' + sectionsCount + '，但正文 h2=' + h2Count + '。');
+    console.error('  侧边栏按 (i+1) 编号、正文按出现顺序编号 —— 数量不一致会导致锚点错位。');
     // 给出 sections 列表便于排查
     (fm.sections || []).forEach(function(s, i) {
       const label = typeof s === 'string' ? s : (s && s.title ? s.title : '');
-      console.warn(`    sidebar #section-${i + 1} → "${label}"`);
+      console.error('    sidebar #section-' + (i + 1) + ' -> "' + label + '"');
     });
     // 给出 h2 列表（粗略匹配：去掉内层标签 + 截断 30 字符）
     const h2Texts = [];
     bodyHtml.replace(/<h2[^>]*>([\s\S]*?)<\/h2>/g, function(_, c) {
       const t = c.replace(/<[^>]+>/g, '').trim();
-      h2Texts.push(t.length > 30 ? t.slice(0, 30) + '…' : t);
+      h2Texts.push(t.length > 30 ? t.slice(0, 30) + '...' : t);
     });
     h2Texts.forEach(function(t, i) {
-      console.warn(`    正文 h2 #${i + 1}: "${t}"`);
+      console.error('    正文 h2 #' + (i + 1) + ': "' + t + '"');
     });
+    process.exitCode = 1;
   }
 
   // 8) 收集客户端 JS

@@ -8,6 +8,7 @@ sections:
   - 3. function-plot · 4 种非多项式（sin/cos/双曲线/抛物线）
   - 4. slider · 联动 function-plot
   - 5. 二次方程组图像解法（杀手特性）
+  - 6. 验证清单（GLM 评审 R7 + 端到端复测）
 ---
 
 # 2D 平面几何组件（v0.1.0）
