@@ -1,11 +1,11 @@
-# geometry-3d 组件 Schema（v0.1.7）
+# geometry-3d 组件 Schema（v0.1.8）
 
 > 目标：初高中立体几何教学 + 空间向量 + 解析几何的可视化
 > 参考借鉴：Mathigon textbooks、unconed/mathbox、euclid.js、Three.js demos
 > 核心约束：单 HTML 离线分发 / Markdown 写教案 / 不依赖 CDN
 > Three.js 默认坐标系 vs 项目约定：「B=原点，BA=+Y，BC=+X，**BB₁=+Z（垂直朝上**）」 —— 组件初始化时 `camera.up.set(0, 0, 1)` 校准。
 
-## 字段一览（v0.1.7 真实存在的字段）
+## 字段一览（v0.1.8 真实存在的字段）
 
 ### 基础结构
 

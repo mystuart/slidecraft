@@ -1,9 +1,9 @@
-# GLM-5.1 评审请求 · courseware 框架 2D 组件 v0.1.0
+# GLM-5.1 评审请求 · Slidecraft 2D 组件 v0.1.0
 
 > **评审范围**：2D 平面几何组件 4 个 + 1 个 slider 扩展
 > **生成日期**：2026-06-13
 > **生成人**：Mavis (mavis)
-> **目标版本**：courseware 框架 v0.1.0（含 coords-2d / function-plot / intersection-marker / slider 扩展）
+> **目标版本**：Slidecraft v0.1.0（含 coords-2d / function-plot / intersection-marker / slider 扩展）
 > **测试 demo**：4 个 markdown（`content/coords-2d-test.md` / `function-plot-test.md` / `function-plot-types-test.md` / `function-plot-slider-demo.md` / `function-plot-quadratic-demo.md`）
 
 ---
@@ -12,7 +12,7 @@
 
 ### 1.1 框架定位
 
-courseware 框架是**通用培训课件引擎**，**不是 DBA 专用**。目标用户群横跨 DBA / 数学家教 / 各种学科教师。3D 组件（geometry-3d / slider / trajectory / tetra-equiv / cut-anim）的真正用户是**数学家教老师**。本轮新增 2D 平面几何组件，服务对象同样是数学家教。
+Slidecraft 是**通用培训引擎**，**不是 DBA 专用**。目标用户群横跨 DBA / 数学家教 / 各种学科教师。3D 组件（geometry-3d / slider / trajectory / tetra-equiv / cut-anim）的真正用户是**数学家教老师**。本轮新增 2D 平面几何组件，服务对象同样是数学家教。
 
 ### 1.2 上一轮 GLM 评审结果
 
@@ -294,7 +294,7 @@ python3 -m http.server 8765 > /tmp/srv.log 2>&1 &
 ## 8. 关联
 
 - **之前 GLM 评审**：3D 组件 C1-C3 全部修好（commit 历史可查）
-- **courseware 框架**：https://github.com/itshen/learn-ai 风格
+- **Slidecraft**：https://github.com/itshen/learn-ai 风格
 - **AGENTS.md / SPEC.md**：`/Users/stuart/Studyspace/Alice/courseware/` 下
 - **本轮代码路径**：
   - `template/components/coords-2d.js`
@@ -599,7 +599,7 @@ build.js 把 clientJs 当**字符串**拼进 HTML —— **clientJs 内部的语
 2. **注入落地**：grep 产物 HTML 确认 `cwGeom_poly*` 已注入、本地 `function polyRealRoots` 定义为 0、二次公式 `disc` 分支在、`computeDiffCoeffs` 在、`d2Coeffs` 在、抛物线 `/p` 在。
 3. **数值正确性**：拿 demo 的真实多项式跑服务端 `polyRealRoots`（与客户端同逻辑）—— 相切 `[1,2,1]→[-1]`、两根 `[1,-2,-3]→[-1,3]`、无根 `[1,0,1]→[]`、不污染输入、三次极值分类正确。
 
-**教训 6：字符串拼接型框架（clientJs 当模板字符串）的验证，必须独立校验字符串内容，不能依赖外层 build 通过。** 这是 courseware 框架特有的坑，3D 组件那一轮也踩过（`\\s` 反斜杠转义）。
+**教训 6：字符串拼接型框架（clientJs 当模板字符串）的验证，必须独立校验字符串内容，不能依赖外层 build 通过。** 这是 Slidecraft 特有的坑，3D 组件那一轮也踩过（`\\s` 反斜杠转义）。
 
 ---
 

@@ -4,7 +4,7 @@
 > 16 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version: 1.2.0](https://img.shields.io/badge/version-1.2.0-blue.svg)](./COMPONENTS.md)
+[![Version: 1.3.0](https://img.shields.io/badge/version-1.3.0-blue.svg)](./COMPONENTS.md)
 [![Components: 16](https://img.shields.io/badge/components-16-green.svg)](./COMPONENTS.md)
 [![Output: single .html](https://img.shields.io/badge/output-single%20.html-brightgreen.svg)](./dist)
 
