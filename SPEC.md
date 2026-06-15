@@ -331,6 +331,7 @@ sections:
 
 **通用叙事（v1.3.0 新增，2026-06-15）**：
 - `timeline` — 时间线（vertical / horizontal 双模式，讲发展史 / 演进 / 流程节点，零运行时，v0.1.0）
+- `chart` — 数据图表（bar 柱状 / line 折线 / pie 饼图，编译时静态 SVG，零运行时，v0.1.0）
 
 **公共工具**（非组件）：
 - `_inline.js` — 行内 markdown 解析（processInline，KaTeX 集成）
@@ -339,7 +340,6 @@ sections:
 **后续可扩展**（不进入 MVP）：
 - `accordion`（折叠列表）—— 可用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 内容量大时再加
-- `chart`（数据图表：柱/折/饼）—— v1.4 候选
 - `geometry-3d` 进阶：剖切（`clippingPlane`）/ 三视图（`views: "three"`）/ 展开图（`unfold`）—— 路线图见 [`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)
 - `geometry-2d` 平面几何画板（点/线段/射线/角/多边形/圆/标签/角度/面积）—— 路线图见本组件研发（2026-06-13 概念确认，**二次方程组图像解法 killer feature 已间接实现**）
 

@@ -1,7 +1,10 @@
 /**
  * @component renderer
- * @version 0.2.3
+ * @version 0.2.4
  * @status 内部调度器，不参与组件登记
+ *
+ * v0.2.4 变更：
+ *   - 注册 chart 组件（v0.1.0 柱/折/饼静态 SVG）
  *
  * v0.2.3 变更：
  *   - 注册 timeline 组件（v0.1.0 时间线）
@@ -54,6 +57,7 @@ const coords2d = require('./coords-2d.js');
 const functionPlot = require('./function-plot.js');
 const intersectionMarker = require('./intersection-marker.js');
 const timeline = require('./timeline.js');
+const chart = require('./chart.js');
 
 // 语言标记 → 组件渲染器
 const COMPONENT_MAP = {
@@ -99,6 +103,7 @@ const COMPONENT_MAP = {
   'intersection': intersectionMarker,
   'intersectionmarker': intersectionMarker,
   'timeline': timeline,
+  'chart': chart,
 };
 
 const PLACEHOLDER_RE = /<!--\s*SC-COMPONENT-(\d+)\s*-->/g;
