@@ -76,7 +76,7 @@ courseware/
 title: 如何创作 SKILL
 subtitle: 从零开始，写出可复用的 AI 技能
 author: Alice
-theme: lavender      # 主题色：当前仅 lavender 真正实现 CSS（其他值静默回退到默认）
+theme: lavender      # 主题色：lavender（默认，薰衣草紫）/ dark（深色护眼）
 sections:
   - 开篇：什么是 SKILL
   - SKILL 的结构解剖
@@ -481,7 +481,9 @@ if (sectionsCount > 0 && h2Count > 0 && sectionsCount !== h2Count) {
 
 ## 6. 视觉风格
 
-- 主题：lavender（薰衣草紫）作为基调，呼应 Alice 风格
+- 主题：lavender（薰衣草紫，默认）/ dark（深色护眼），CSS 变量驱动，frontmatter theme 字段切换
+- 字号：四级系统（display / heading / body / label），main.css 顶部 --font-* 变量
+- 图标：callout 5 种 type 用内联 SVG（跨平台一致）
 - 字体：标题用思源黑体/Inter，正文用系统字体
 - 强调：内容驱动，不堆装饰
 - 响应式：优先桌面端，移动端可读

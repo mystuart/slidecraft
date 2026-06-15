@@ -24,6 +24,18 @@
   --color-info: #4a90c2;
   --color-info-bg: #e8f1f8;
 
+  /* 语义文字色：在对应 -bg 浅底上的可读深色文字（dark 主题覆盖为浅色） */
+  --color-on-primary: #ffffff;
+  --color-on-success: #2e6b50;
+  --color-on-danger: #8a3a3a;
+  --color-on-warning: #8a6a30;
+  --color-on-info: #2a5d80;
+  --color-code-bg: #1e1b2e;
+  /* 语义边框色：-bg 的稍深版（dark 主题覆盖） */
+  --color-success-border: #b8e0cc;
+  --color-danger-border: #f0c5c5;
+  --color-warning-border: #f0d99a;
+  --color-info-border: #cfdfee;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
@@ -34,9 +46,65 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
 
+  /* 四级字号系统（display / heading / body / label） */
+  --font-display: 3.5rem;   /* hero 大标题、封面视觉 */
+  --font-h1: 2.1rem;        /* 页面标题 */
+  --font-h2: 1.6rem;        /* 章节标题 */
+  --font-h3: 1.25rem;       /* 小节标题 */
+  --font-h4: 1.05rem;       /* 四级标题、题干 */
+  --font-body: 1rem;        /* 正文 */
+  --font-small: 0.9rem;     /* 次要文字、meta、tab */
+  --font-label: 0.75rem;    /* 角标、tag、小标签 */
+
+
   --sidebar-w: 260px;
   --content-max: 820px;
 }
+
+/* ============================================================
+   dark 主题：深色护眼
+   用法：frontmatter 加 theme: dark
+   设计原则：bg 比代码块 #1e1b2e 浅（保持代码块对比度）
+              text 用 95% 白（非纯白，不刺眼）—— 借鉴铁律
+   ============================================================ */
+[data-theme="dark"] {
+  --color-primary: #a995e0;
+  --color-primary-dark: #c4b2f0;
+  --color-primary-light: #4a3f6b;
+  --color-primary-bg: #2a2438;
+  --color-accent: #b896ff;
+  --color-bg: #1a1a24;
+  --color-surface: #252430;
+  --color-text: #e8e4f0;
+  --color-text-muted: #a8a0bc;
+  --color-border: #3a3548;
+
+  --color-success: #5ec9a0;
+  --color-success-bg: #1f3528;
+  --color-success-border: #2d4a3a;
+  --color-danger: #e07a7a;
+  --color-danger-bg: #3a2222;
+  --color-danger-border: #4d2e2e;
+  --color-warning: #e8b65a;
+  --color-warning-bg: #3a2e1a;
+  --color-warning-border: #4d3d24;
+  --color-info: #6ab0d8;
+  --color-info-bg: #1e2d3a;
+  --color-info-border: #2a4050;
+
+  /* 语义文字色翻转：深色底上用浅色文字 */
+  --color-on-primary: #1a1a24;
+  --color-on-success: #5ec9a0;
+  --color-on-danger: #e07a7a;
+  --color-on-warning: #e8b65a;
+  --color-on-info: #6ab0d8;
+  --color-code-bg: #131119;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
 
 /* ============================================================
    Reset & 基础排版
@@ -62,9 +130,9 @@ h1, h2, h3, h4 {
   color: var(--color-text);
   margin: 2em 0 0.6em;
 }
-h1 { font-size: 2.1rem; }
-h2 { font-size: 1.6rem; padding-bottom: 0.3em; border-bottom: 2px solid var(--color-primary-light); }
-h3 { font-size: 1.25rem; }
+h1 { font-size: var(--font-h1); }
+h2 { font-size: var(--font-h2); padding-bottom: 0.3em; border-bottom: 2px solid var(--color-primary-light); }
+h3 { font-size: var(--font-h3); }
 p { margin: 0.8em 0; }
 ul, ol { padding-left: 1.5em; }
 li { margin: 0.3em 0; }
@@ -77,7 +145,7 @@ code {
   color: var(--color-primary-dark);
 }
 pre {
-  background: #1e1b2e;
+  background: var(--color-code-bg);
   color: #e6e1f0;
   padding: 1em 1.2em;
   border-radius: var(--radius-md);
@@ -139,14 +207,14 @@ details summary { cursor: pointer; font-weight: 600; }
 }
 .sidebar-brand { margin-bottom: 0.7em; }
 .sidebar-title {
-  font-size: 0.95rem;
+  font-size: var(--font-body);
   font-weight: 700;
   color: var(--color-primary-dark);
   line-height: 1.2;
   letter-spacing: 0.01em;
 }
 .sidebar-subtitle {
-  font-size: 0.75rem;
+  font-size: var(--font-label);
   color: var(--color-text-muted);
   margin-top: 0.15em;
   line-height: 1.35;
@@ -166,7 +234,7 @@ details summary { cursor: pointer; font-weight: 600; }
   padding: 0.55em 0.7em;
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: var(--font-small);
   line-height: 1.4;
   border-left: 3px solid transparent;
   transition: all 0.15s ease;
@@ -192,7 +260,7 @@ details summary { cursor: pointer; font-weight: 600; }
   margin-top: auto;
   padding-top: 1.2em;
   border-top: 1px solid var(--color-border);
-  font-size: 0.8rem;
+  font-size: var(--font-label);
   color: var(--color-text-muted);
 }
 
@@ -234,13 +302,13 @@ details summary { cursor: pointer; font-weight: 600; }
   max-width: 640px;
 }
 .hero-emoji {
-  font-size: 3.5rem;
+  font-size: var(--font-display);
   line-height: 1;
   margin-bottom: 0.4em;
 }
 .hero-title {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 3.5rem;
+  font-size: var(--font-display);
   font-weight: 900;
   line-height: 1.1;
   margin: 0;
@@ -261,10 +329,10 @@ details summary { cursor: pointer; font-weight: 600; }
   margin-top: 2.5em;
   padding: 0.8em 1.8em;
   background: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-on-primary);
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--font-body);
   text-decoration: none;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
@@ -297,7 +365,7 @@ details summary { cursor: pointer; font-weight: 600; }
 }
 .quiz-category {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: var(--font-label);
   font-weight: 600;
   padding: 0.2em 0.7em;
   border-radius: 999px;
@@ -312,16 +380,16 @@ details summary { cursor: pointer; font-weight: 600; }
 .quiz-question {
   color: var(--color-text);
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: var(--font-h4);
   margin-bottom: 0.8em;
 }
 .quiz-hint {
   background: var(--color-info-bg);
-  border: 1px solid #cfdfee;
+  border: 1px solid var(--color-info-border);
   border-radius: var(--radius-sm);
   padding: 0.4em 0.8em;
   margin-bottom: 0.8em;
-  font-size: 0.9rem;
+  font-size: var(--font-small);
 }
 .quiz-hint summary { font-weight: 500; color: var(--color-info); }
 .quiz-options { display: flex; flex-direction: column; gap: 0.5em; }
@@ -359,7 +427,7 @@ details summary { cursor: pointer; font-weight: 600; }
   padding: 0.5em 1.2em;
   border: none;
   border-radius: var(--radius-sm);
-  font-size: 0.95rem;
+  font-size: var(--font-body);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -380,23 +448,23 @@ details summary { cursor: pointer; font-weight: 600; }
   margin-top: 1em;
   padding: 0.8em 1em;
   border-radius: var(--radius-sm);
-  font-size: 0.95rem;
+  font-size: var(--font-body);
   line-height: 1.5;
 }
 .quiz-feedback.is-correct {
   background: var(--color-success-bg);
-  color: #2e6b50;
-  border: 1px solid #b8e0cc;
+  color: var(--color-on-success);
+  border: 1px solid var(--color-success-border);
 }
 .quiz-feedback.is-wrong {
   background: var(--color-danger-bg);
-  color: #8a3a3a;
-  border: 1px solid #f0c5c5;
+  color: var(--color-on-danger);
+  border: 1px solid var(--color-danger-border);
 }
 .quiz-feedback.is-partial {
   background: var(--color-warning-bg);
-  color: #8a6a2e;
-  border: 1px solid #f0d99a;
+  color: var(--color-on-warning);
+  border: 1px solid var(--color-warning-border);
 }
 
 /* ============================================================
@@ -425,7 +493,7 @@ details summary { cursor: pointer; font-weight: 600; }
   border-bottom: 1px solid var(--color-border);
 }
 .quiz-carousel-counter {
-  font-size: 0.85rem;
+  font-size: var(--font-small);
   color: var(--color-text-muted);
   font-weight: 500;
 }
@@ -544,7 +612,7 @@ details summary { cursor: pointer; font-weight: 600; }
 }
 .quiz-carousel-summary[hidden] { display: none; }
 .quiz-carousel-summary-title {
-  font-size: 0.95rem;
+  font-size: var(--font-body);
   font-weight: 600;
   color: var(--color-primary);
   margin-bottom: 0.6em;
@@ -581,7 +649,7 @@ details summary { cursor: pointer; font-weight: 600; }
 .summary-stat--partial .summary-num { color: var(--color-warning); }
 .summary-stat--wrong .summary-num { color: var(--color-danger); }
 .summary-label {
-  font-size: 0.75rem;
+  font-size: var(--font-label);
   color: var(--color-text-muted);
   margin-top: 0.2em;
 }
@@ -600,7 +668,7 @@ details summary { cursor: pointer; font-weight: 600; }
 .quiz-carousel-prev,
 .quiz-carousel-next {
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: var(--font-small);
   font-weight: 500;
   padding: 0.5em 1em;
   border: 1px solid var(--color-border);
@@ -633,7 +701,7 @@ details summary { cursor: pointer; font-weight: 600; }
   margin: 1.5em 5%;  /* 左右 5% 留白 —— 跟 quiz 视觉宽度一致 */
   box-shadow: var(--shadow-sm);
 }
-.fill-blank-question { font-weight: 600; font-size: 1.05rem; margin-bottom: 0.8em; }
+.fill-blank-question { font-weight: 600; font-size: var(--font-h4); margin-bottom: 0.8em; }
 .fill-blank-input-row {
   display: flex;
   gap: 0.6em;
@@ -646,7 +714,7 @@ details summary { cursor: pointer; font-weight: 600; }
   padding: 0.55em 0.8em;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: 1rem;
+  font-size: var(--font-body);
   font-family: var(--font-sans);
   background: var(--color-bg);
   transition: border-color 0.15s ease;
@@ -668,7 +736,7 @@ details summary { cursor: pointer; font-weight: 600; }
   padding: 0.4em 0.8em;
   background: var(--color-bg);
   border-radius: var(--radius-sm);
-  font-size: 0.88rem;
+  font-size: var(--font-small);
   color: var(--color-text-muted);
 }
 .fill-blank-progress-text { font-weight: 500; }
@@ -693,7 +761,7 @@ details summary { cursor: pointer; font-weight: 600; }
 .fill-blank-ok { color: var(--color-success); font-weight: 600; }
 .fill-blank-err { color: var(--color-danger); font-weight: 600; }
 .fill-blank-partial { color: var(--color-warning); font-weight: 600; }
-.fill-blank-feedback { font-size: 0.95rem; margin-top: 0.4em; min-height: 1.4em; }
+.fill-blank-feedback { font-size: var(--font-body); margin-top: 0.4em; min-height: 1.4em; }
 .fill-blank button {
   padding: 0.5em 1.2em;
   border: none;
@@ -712,18 +780,18 @@ details summary { cursor: pointer; font-weight: 600; }
   margin-top: 0.8em;
   padding: 0.6em 0.9em;
   background: var(--color-warning-bg);
-  color: #8a6a30;
+  color: var(--color-on-warning);
   border-radius: var(--radius-sm);
-  font-size: 0.9rem;
+  font-size: var(--font-small);
 }
 .fill-blank-hint::before { content: "💡 "; }
 .fill-blank-answer {
   margin-top: 0.8em;
   padding: 0.6em 0.9em;
   background: var(--color-success-bg);
-  color: #2e6b50;
+  color: var(--color-on-success);
   border-radius: var(--radius-sm);
-  font-size: 0.9rem;
+  font-size: var(--font-small);
 }
 .fill-blank-answer::before { content: "✓ 参考答案："; font-weight: 600; }
 
@@ -760,7 +828,7 @@ details summary { cursor: pointer; font-weight: 600; }
   border: 1px solid var(--color-border);
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--font-small);
   font-weight: 500;
   color: var(--color-text-muted);
   transition: all 0.15s ease;
@@ -818,7 +886,7 @@ details summary { cursor: pointer; font-weight: 600; }
   background: var(--color-primary-bg);
   border-radius: var(--radius-sm);
   border-left: 3px solid var(--color-primary);
-  font-size: 0.95rem;
+  font-size: var(--font-body);
   overflow: hidden;
 }
 .step-guide-example > summary {
@@ -866,7 +934,7 @@ details summary { cursor: pointer; font-weight: 600; }
   background: var(--color-bg);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--font-small);
   color: var(--color-text-muted);
 }
 .step-guide-nav button:hover:not(:disabled) {
@@ -941,7 +1009,7 @@ details summary { cursor: pointer; font-weight: 600; }
 }
 .compare-label {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: var(--font-label);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -949,9 +1017,9 @@ details summary { cursor: pointer; font-weight: 600; }
   border-radius: 999px;
   margin-bottom: 0.8em;
 }
-.compare-tag-good { background: var(--color-success-bg); color: #2e6b50; }
-.compare-tag-bad { background: var(--color-danger-bg); color: #8a3a3a; }
-.compare-tag-warn { background: var(--color-warning-bg); color: #8a6a30; border: 1px solid #d4a73a; }
+.compare-tag-good { background: var(--color-success-bg); color: var(--color-on-success); }
+.compare-tag-bad { background: var(--color-danger-bg); color: var(--color-on-danger); }
+.compare-tag-warn { background: var(--color-warning-bg); color: var(--color-on-warning); border: 1px solid var(--color-warning); }
 .compare-tag-neutral { background: var(--color-primary-bg); color: var(--color-primary-dark); }
 .compare-col[data-tag="good"] { border-top: 3px solid var(--color-success); }
 .compare-col[data-tag="bad"] { border-top: 3px solid var(--color-danger); }
@@ -1031,19 +1099,19 @@ details summary { cursor: pointer; font-weight: 600; }
   box-shadow: var(--shadow-md);
 }
 .concept-card-icon {
-  font-size: 2.2rem;
+  font-size: var(--font-display);
   margin-bottom: 0.3em;
   display: inline-block; /* v0.2.0：emoji 字形不撑高行高，inline-block 更稳 */
   line-height: 1; /* v0.2.0：emoji 单独行高归 1 */
 }
 .concept-card-item-title {
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: var(--font-h4);
   color: var(--color-text);
   margin: 0 0 0.4em;
 }
 .concept-card-item-desc {
-  font-size: 0.9rem;
+  font-size: var(--font-small);
   color: var(--color-text-muted);
   line-height: 1.5;
   margin: 0;
@@ -1132,11 +1200,11 @@ details summary { cursor: pointer; font-weight: 600; }
 .formula-error {
   margin: 1.5em 5%;
   padding: 0.8em 1em;
-  background: #fff0f0;
-  border-left: 4px solid #d9534f;
+  background: var(--color-danger-bg);
+  border-left: 4px solid var(--color-danger);
   border-radius: var(--radius-md, 6px);
   font-size: 0.92em;
-  color: #a94442;
+  color: var(--color-on-danger);
   text-align: left;
 }
 .formula-error-msg {
@@ -1151,7 +1219,7 @@ details summary { cursor: pointer; font-weight: 600; }
   background: rgba(0,0,0,0.04);
   padding: 0.3em 0.5em;
   border-radius: 3px;
-  color: #6c2a28;
+  color: var(--color-on-danger);
   word-break: break-all;
 }
 @media print {
@@ -1171,19 +1239,20 @@ details summary { cursor: pointer; font-weight: 600; }
   align-items: flex-start;
 }
 .callout-icon {
-  font-size: 1.3rem;
-  line-height: 1;
+  width: 1.3rem;
+  height: 1.3rem;
   flex-shrink: 0;
-  margin-top: 0.15em;
+  margin-top: 0.1em;
 }
+.callout-icon svg { width: 100%; height: 100%; display: block; }
 .callout-body { flex: 1; }
 .callout-title {
   font-weight: 700;
   margin: 0 0 0.3em;
-  font-size: 1rem;
+  font-size: var(--font-body);
 }
 .callout-content {
-  font-size: 0.95rem;
+  font-size: var(--font-body);
   line-height: 1.6;
   margin: 0;
 }
@@ -1193,11 +1262,11 @@ details summary { cursor: pointer; font-weight: 600; }
 .callout-tip { background: var(--color-success-bg); border-color: var(--color-success); }
 .callout-tip .callout-title { color: var(--color-primary-dark); }
 .callout-warning { background: var(--color-warning-bg); border-color: var(--color-warning); }
-.callout-warning .callout-title { color: #8a6a30; }
+.callout-warning .callout-title { color: var(--color-on-warning); }
 .callout-info { background: var(--color-info-bg); border-color: var(--color-info); }
-.callout-info .callout-title { color: #2a5d80; }
+.callout-info .callout-title { color: var(--color-on-info); }
 .callout-danger { background: var(--color-danger-bg); border-color: var(--color-danger); }
-.callout-danger .callout-title { color: #8a3a3a; }
+.callout-danger .callout-title { color: var(--color-on-danger); }
 .callout-note { background: var(--color-primary-bg); border-color: var(--color-primary); }
 .callout-note .callout-title { color: var(--color-primary-dark); }
 
@@ -1222,7 +1291,7 @@ details summary { cursor: pointer; font-weight: 600; }
     margin: -1.5em -1.2em 1.5em;
   }
   .hero-visual { font-size: 10rem; margin-bottom: 1em; }
-  .hero-title { font-size: 2.2rem; }
+  .hero-title { font-size: var(--font-display); }
   .hero-emoji { font-size: 2.5rem; }
   .compare-grid { grid-template-columns: 1fr; }
   .concept-card-grid[data-cols="3"],
@@ -1358,7 +1427,7 @@ details summary { cursor: pointer; font-weight: 600; }
   padding: 0.4em 0.8em;
   background: var(--color-bg);
   border-radius: var(--radius-sm);
-  font-size: 0.88rem;
+  font-size: var(--font-small);
   color: var(--color-text-muted);
 }
 .math-step-progress-text { font-weight: 500; }
@@ -1415,7 +1484,7 @@ details summary { cursor: pointer; font-weight: 600; }
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
-  font-size: 0.85rem;
+  font-size: var(--font-small);
   color: var(--color-text-muted);
   cursor: pointer;
   user-select: none;
@@ -1450,9 +1519,9 @@ details summary { cursor: pointer; font-weight: 600; }
 .math-step-expandable > summary {
   cursor: pointer;
   padding: 0.5em 0.8em;
-  font-size: 0.9rem;
+  font-size: var(--font-small);
   font-weight: 600;
-  color: #8a6a30;
+  color: var(--color-on-warning);
   list-style: none;
   display: flex;
   align-items: center;
@@ -1464,7 +1533,7 @@ details summary { cursor: pointer; font-weight: 600; }
   content: "▸";
   margin-left: auto;
   font-size: 0.75em;
-  color: #8a6a30;
+  color: var(--color-on-warning);
   transition: transform 0.15s ease;
 }
 .math-step-expandable[open] > summary::after { transform: rotate(90deg); }
@@ -1473,7 +1542,7 @@ details summary { cursor: pointer; font-weight: 600; }
   padding: 0.4em 0.8em 0.7em;
   font-size: 0.92rem;
   line-height: 1.6;
-  color: #6e5320;
+  color: var(--color-on-warning);
   border-top: 1px solid rgba(217, 154, 58, 0.2);
 }
 
@@ -1482,15 +1551,15 @@ details summary { cursor: pointer; font-weight: 600; }
   margin-top: 0.6em;
   padding: 0.5em 0.8em;
   background: var(--color-success-bg);
-  border: 1px solid #b8e0cc;
+  border: 1px solid var(--color-success-border);
   border-left: 4px solid var(--color-success);
   border-radius: var(--radius-sm);
-  font-size: 0.95rem;
+  font-size: var(--font-body);
   line-height: 1.6;
 }
 .math-step-answer-label {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: var(--font-label);
   font-weight: 700;
   color: var(--color-success);
   background: white;
@@ -1504,11 +1573,11 @@ details summary { cursor: pointer; font-weight: 600; }
 .math-step-answer-body p:last-child { margin-bottom: 0; }
 
 .math-step-error {
-  background: #fff0f0;
-  border-left: 4px solid #d9534f;
+  background: var(--color-danger-bg);
+  border-left: 4px solid var(--color-danger);
   border-radius: var(--radius-md);
   padding: 0.8em 1em;
-  color: #a94442;
+  color: var(--color-on-danger);
   font-size: 0.92em;
   margin: 1.2em 0;
 }
@@ -1518,7 +1587,7 @@ details summary { cursor: pointer; font-weight: 600; }
   padding: 0.3em 0.5em;
   border-radius: 3px;
   font-size: 0.88em;
-  color: #6c2a28;
+  color: var(--color-on-danger);
   word-break: break-all;
 }
 
@@ -1551,7 +1620,7 @@ details summary { cursor: pointer; font-weight: 600; }
 .timeline-error {
   border-left: 4px solid var(--color-danger);
   color: var(--color-danger);
-  font-size: 0.9rem;
+  font-size: var(--font-small);
   background: var(--color-danger-bg);
 }
 .timeline-heading {
@@ -1606,7 +1675,7 @@ details summary { cursor: pointer; font-weight: 600; }
 }
 .timeline-title {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: var(--font-body);
   color: var(--color-text);
   margin-bottom: 0.2em;
   line-height: 1.4;
@@ -1691,7 +1760,7 @@ details summary { cursor: pointer; font-weight: 600; }
 .chart-error {
   border-left: 4px solid var(--color-danger);
   color: var(--color-danger);
-  font-size: 0.9rem;
+  font-size: var(--font-small);
   background: var(--color-danger-bg);
 }
 .chart-title {
@@ -1729,7 +1798,7 @@ details summary { cursor: pointer; font-weight: 600; }
   align-items: center;
   gap: 0.5em;
   padding: 0.3em 0;
-  font-size: 0.9rem;
+  font-size: var(--font-small);
 }
 .chart-legend-dot {
   width: 12px;
@@ -1741,7 +1810,7 @@ details summary { cursor: pointer; font-weight: 600; }
 .chart-legend-value {
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
-  font-size: 0.85rem;
+  font-size: var(--font-small);
 }
 @media (max-width: 600px) {
   .chart-pie-wrap { flex-direction: column; }

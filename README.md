@@ -161,7 +161,7 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 | `title` | ✅ | 页面标题、hero 大标题 |
 | `subtitle` | ❌ | 副标题、meta description |
 | `author` | ❌ | 作者名 |
-| `theme` | ❌ | 主题名（默认 lavender） |
+| `theme` | ❌ | 主题名：`lavender`（默认）/ `dark` |
 | `sections` | ✅ | 章节标题列表，自动生成侧边导航 |
 
 ---
@@ -171,7 +171,7 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 ### 换主题
 
 编辑 `template/styles/main.css` 顶部的 `:root[data-theme="..."]` 块，改 CSS 变量即可。
-想加新主题：复制 lavender 块、改变量值、在 frontmatter 里指定 `theme: 新名字`。
+已内置 `lavender`（浅色默认）和 `dark`（深色护眼）两套。想加新主题：复制其中一块、改变量值、在 frontmatter 里指定 `theme: 新名字`。
 
 ### 加新组件
 

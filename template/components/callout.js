@@ -1,6 +1,6 @@
 /**
  * @component callout
- * @version 0.2.0
+ * @version 0.3.0
  * @status 打磨完成
  *
  * 高亮块组件（5 种 type）
@@ -17,7 +17,7 @@
  *   - danger  红
  *   - note    紫（主题主色）
  *
- * 借鉴方向：每个 type 配统一 SVG icon / 内容超过 N 行默认折叠
+ * v0.3.0 变更：emoji 图标 → 内联 SVG（解决跨平台渲染不一致）
  * 详见 [COMPONENTS.md](../../COMPONENTS.md) § callout
  *
  * 已知问题：content 不支持内联 LaTeX（系统级问题 #1）。
@@ -27,11 +27,11 @@
 const { processInline, escapeHtml } = require('./_inline.js');
 
 const TYPE_META = {
-  tip:     { icon: '💡', label: '小贴士' },
-  warning: { icon: '⚠️', label: '注意' },
-  info:    { icon: 'ℹ️', label: '信息' },
-  danger:  { icon: '🚫', label: '危险' },
-  note:    { icon: '📌', label: '笔记' },
+  tip:     { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.5.4.8.8 1 1.3h6c.2-.5.5-.9 1-1.3A7 7 0 0 0 12 2z"/></svg>', label: '小贴士' },
+  warning: { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>', label: '注意' },
+  info:    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>', label: '信息' },
+  danger:  { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg>', label: '危险' },
+  note:    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.8V4h6v6.8l3 3.2H6l3-3.2z"/></svg>', label: '笔记' },
 };
 
 function render(data) {
