@@ -1974,6 +1974,65 @@ details summary { cursor: pointer; font-weight: 600; }
   .stat-card { break-inside: avoid; }
 }
 
+
+/* ============================================================
+   quote 引用语/金句组件（v0.1.0）
+   大字号 + 引号装饰 + 作者署名
+   ============================================================ */
+
+.quote {
+  position: relative;
+  margin: 2em 8%;
+  padding: 1.8em 1.5em 1.2em;
+  background: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.quote-error {
+  border-left: 4px solid var(--color-danger);
+  color: var(--color-danger);
+  font-size: var(--font-body);
+  background: var(--color-danger-bg);
+  padding: 0.8em 1em;
+}
+/* 大引号装饰 */
+.quote::before {
+  content: "\201C";
+  position: absolute;
+  top: -0.1em;
+  left: 0.2em;
+  font-size: 4rem;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1;
+  color: var(--color-primary);
+  opacity: 0.25;
+}
+.quote-text {
+  position: relative;
+  font-size: var(--font-h2);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--color-text);
+  letter-spacing: 0.01em;
+}
+.quote-footer {
+  margin-top: 0.8em;
+  font-size: var(--font-small);
+  color: var(--color-text-muted);
+}
+.quote-role {
+  color: var(--color-primary-dark);
+  font-style: italic;
+}
+.quote-center { text-align: center; }
+.quote-center .quote-text { padding: 0 1.5em; }
+.quote-left { text-align: left; }
+.quote-left::before { left: 0.2em; }
+@media print {
+  .quote { box-shadow: none; break-inside: avoid; }
+}
+
 /* @boundary geometry-3d.css — 3D 组件样式（.geom-3d-* / .slider-* / .tetra-equiv-* / .cut-anim-*）
  * 已迁移到 template/styles/geometry-3d.css，由 build.js 条件注入。
  * 本文件不允许出现以上四组前缀的选择器。

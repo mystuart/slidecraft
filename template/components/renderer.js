@@ -1,7 +1,10 @@
 /**
  * @component renderer
- * @version 0.2.6
+ * @version 0.2.7
  * @status 内部调度器，不参与组件登记
+ *
+ * v0.2.7 变更：
+ *   - 注册 quote 组件（v0.1.0 金句引用）
  *
  * v0.2.6 变更：
  *   - 注册 stat-grid 组件（v0.1.0 数据卡片墙）
@@ -65,6 +68,7 @@ const intersectionMarker = require('./intersection-marker.js');
 const timeline = require('./timeline.js');
 const tabs = require('./tabs.js');
 const statGrid = require('./stat-grid.js');
+const quote = require('./quote.js');
 const chart = require('./chart.js');
 
 // 语言标记 → 组件渲染器
@@ -115,6 +119,7 @@ const COMPONENT_MAP = {
   'tabs': tabs,
   'stat-grid': statGrid,
   'statgrid': statGrid,
+  'quote': quote,
 };
 
 const PLACEHOLDER_RE = /<!--\s*SC-COMPONENT-(\d+)\s*-->/g;
