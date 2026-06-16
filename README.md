@@ -1,11 +1,11 @@
 # Slidecraft
 
 > **写一个 Markdown，产出一个独立的 HTML 互动课件。**
-> 18 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好。
+> 23 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Version: 1.3.0](https://img.shields.io/badge/version-1.3.0-blue.svg)](./COMPONENTS.md)
-[![Components: 18](https://img.shields.io/badge/components-18-green.svg)](./COMPONENTS.md)
+[![Components: 18](https://img.shields.io/badge/components-23-green.svg)](./COMPONENTS.md)
 [![Output: single .html](https://img.shields.io/badge/output-single%20.html-brightgreen.svg)](./dist)
 
 ---
@@ -58,7 +58,7 @@ open dist/triangular-prism-demo.html
 | Marp | 浏览器 | 多文件 | ❌ | ⚠️ | ❌ |
 | Reveal.js | 浏览器 | 多文件 | ⚠️ | ✅ | ❌ |
 | Slidev | Node 服务 | 多文件 | ✅ | ✅ | ❌ |
-| **Slidecraft** | **零** | **单文件 HTML** | **✅ 18 个** | **✅ CSS 变量** | **✅** |
+| **Slidecraft** | **零** | **单文件 HTML** | **✅ 23 个** | **✅ CSS 变量** | **✅** |
 
 **Slidecraft 的核心差异**：产物是**单文件 HTML**，不是 Web 应用。这决定了它可以——
 
@@ -70,7 +70,7 @@ open dist/triangular-prism-demo.html
 
 ---
 
-## 18 个内嵌组件速览
+## 23 个内嵌组件速览
 
 完整 API 见 [`template/components/*.js`](./template/components/) 顶部 JSDoc。
 
@@ -83,6 +83,11 @@ open dist/triangular-prism-demo.html
 | | `compare` | 前后对比 |
 | | `timeline` | 时间线（历史 / 流程节点） |
 | | `chart` | 数据图表（柱 / 折 / 饼） |
+| | `tabs` | 标签页切换（并列对比） |
+| | `stat-grid` | 数据卡片墙（关键数字） |
+| | `quote` | 引用语 / 金句 |
+| | `diagram` | 流程图 / 关系图（SVG） |
+| | `code-runner` | 代码 + 输出对照 |
 | **练习** | `quiz` | 选择题（单/多选） |
 | | `quiz-track` | 题组 |
 | | `fill-blank` | 填空题 |
@@ -202,6 +207,11 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 | `content/gaokao-2020-jiangsu-q18.md` | 真实高考题 4 组件联动课件 |
 | `content/timeline-test.md` | 时间线组件（timeline）的 vertical/horizontal 模式 + 边界情况 |
 | `content/chart-test.md` | 数据图表（chart）的柱/折/饼三种类型 + 边界情况 |
+| `content/tabs-test.md` | 标签页切换（tabs）的多解法/多视角对照 |
+| `content/stat-grid-test.md` | 数据卡片墙（stat-grid）的数字冲击 + 趋势标记 |
+| `content/quote-test.md` | 引用语（quote）的金句 + 作者署名 |
+| `content/diagram-test.md` | 流程图（diagram）的决策树/系统架构 |
+| `content/code-runner-test.md` | 代码对照（code-runner）的代码 + 输出折叠 |
 
 ---
 

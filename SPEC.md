@@ -329,9 +329,14 @@ sections:
 - `intersection-marker` — 静态交点 / polynomialIntersection / polynomialDiscriminant（Δ 实时 + 韦达定理）（v0.1.0）
 - **杀手特性**：二次方程组图像解法 demo，拖滑块同时看曲线相交 + 交点坐标 + Δ 状态色 + 韦达和与积（C1-1 重根修复后真正可用）
 
-**通用叙事（v1.3.0 新增，2026-06-15）**：
+**通用叙事（v1.3.0 新增）**：
 - `timeline` — 时间线（vertical / horizontal 双模式，讲发展史 / 演进 / 流程节点，零运行时，v0.1.0）
 - `chart` — 数据图表（bar 柱状 / line 折线 / pie 饼图，编译时静态 SVG，零运行时，v0.1.0）
+- `tabs` — 标签页切换（并列对比：多解法/多视角/多平台，v0.1.0）
+- `stat-grid` — 数据卡片墙（关键数字 + 注释，冲击力表达，v0.1.0）
+- `quote` — 引用语/金句（大字号 + 引号装饰 + 作者署名，v0.1.0）
+- `diagram` — 流程图/关系图（编译时 SVG，3 形状 + 5 语义配色，v0.1.0）
+- `code-runner` — 代码+输出对照（预录制非真运行，折叠展开，v0.1.0）
 
 **公共工具**（非组件）：
 - `_inline.js` — 行内 markdown 解析（processInline，KaTeX 集成）
