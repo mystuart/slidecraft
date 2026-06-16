@@ -1,7 +1,10 @@
 /**
  * @component renderer
- * @version 0.2.7
+ * @version 0.2.8
  * @status 内部调度器，不参与组件登记
+ *
+ * v0.2.8 变更：
+ *   - 注册 diagram 组件（v0.1.0 流程图/关系图）
  *
  * v0.2.7 变更：
  *   - 注册 quote 组件（v0.1.0 金句引用）
@@ -69,6 +72,7 @@ const timeline = require('./timeline.js');
 const tabs = require('./tabs.js');
 const statGrid = require('./stat-grid.js');
 const quote = require('./quote.js');
+const diagram = require('./diagram.js');
 const chart = require('./chart.js');
 
 // 语言标记 → 组件渲染器
@@ -120,6 +124,8 @@ const COMPONENT_MAP = {
   'stat-grid': statGrid,
   'statgrid': statGrid,
   'quote': quote,
+  'diagram': diagram,
+  'flowchart': diagram,
 };
 
 const PLACEHOLDER_RE = /<!--\s*SC-COMPONENT-(\d+)\s*-->/g;

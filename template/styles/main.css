@@ -2033,6 +2033,48 @@ details summary { cursor: pointer; font-weight: 600; }
   .quote { box-shadow: none; break-inside: avoid; }
 }
 
+
+/* ============================================================
+   diagram 流程图/关系图组件（v0.1.0）
+   编译时生成静态 SVG
+   ============================================================ */
+
+.diagram {
+  margin: 1.5em 5%;
+  padding: 1.4em;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.diagram-error {
+  border-left: 4px solid var(--color-danger);
+  color: var(--color-danger);
+  font-size: var(--font-body);
+  background: var(--color-danger-bg);
+  padding: 0.8em 1em;
+}
+.diagram-heading {
+  font-weight: 700;
+  font-size: var(--font-h3);
+  color: var(--color-primary-dark);
+  margin: 0 0 1em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px dashed var(--color-border);
+}
+.diagram-body { width: 100%; overflow-x: auto; }
+.diagram-svg {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  margin: 0 auto;
+  font-family: var(--font-sans);
+}
+@media print {
+  .diagram { box-shadow: none; break-inside: avoid; }
+}
+
 /* @boundary geometry-3d.css — 3D 组件样式（.geom-3d-* / .slider-* / .tetra-equiv-* / .cut-anim-*）
  * 已迁移到 template/styles/geometry-3d.css，由 build.js 条件注入。
  * 本文件不允许出现以上四组前缀的选择器。
