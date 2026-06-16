@@ -1,5 +1,29 @@
 # GLM-5.1 评审请求 · Slidecraft 2D 组件 v0.1.0
 
+> ⚠️ **本文档是 2026-06-13 的历史归档**（评审请求 + GLM 回执 + 修复记录），**不是待办清单**。
+> 下面的「当前状态」是 2026-06-16 复盘时补的，便于区分哪些已落地、哪些还挂着。
+> 正文保持原样（行号因后续改动已漂移，引用的 `L546` 等不再准确，但决策推理仍有参考价值）。
+
+## 当前状态（2026-06-16 复盘）
+
+| 评审项 | 状态 | 落地位置 |
+|---|---|---|
+| **C0-1** 抛物线 orientation 画错 | ✅ 已修复（R1 的 4x 缩放也一并修） | `function-plot.js` `drawConicParabola` 用 `Math.sqrt(\|p·dx\|)` |
+| **C1-1** 重根漏掉（demo Δ=0 翻车） | ✅ 已修复 | `_geom_utils.js` `polyRealRoots` n==2 走二次公式 |
+| **C1-2** 三次极值全标同种 | ✅ 已修复 | `function-plot.js` 用二阶导判凹凸 |
+| **C2-1** polyRealRoots 跨组件重复 | ✅ 已修复 | 抽到 `_geom_utils.js` v0.2.0（R3） |
+| **C2-3** diff 计算三处重复 | ✅ 已修复 | `computeDiffCoeffs`（R5） |
+| **C3-1/3/4** 小修 | ✅ 已修复 | coeffs.slice / console.warn / 删减 0（R6） |
+| **C2-2** coords 不发 ready 事件 | ❌ **仍未做** | 下游 function-plot/intersection 仍各有 5/9 个 setTimeout 兜底 |
+| **C2-4/5** 无 destroy、document 监听 ×N | ❌ **仍未做** | 和 3D 组件 H4 同款债，待全局统一处理 |
+| **C3-2** renderDelta innerHTML | ⏸ 保持现状（无用户输入流入，不构成 XSS） |
+
+**结论**：R1-R6 已全部落地；R8 里「故意没动」的 C2-2 / C2-4 / C2-5 截至 2026-06-16 仍未做，仍是有效待办。C2-2 的风险（架构性改动需配套时序）判断依然成立。
+
+---
+
+
+
 > **评审范围**：2D 平面几何组件 4 个 + 1 个 slider 扩展
 > **生成日期**：2026-06-13
 > **生成人**：Mavis (mavis)
