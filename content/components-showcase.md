@@ -13,13 +13,20 @@ sections:
   - 8. callout · 高亮块
   - 9. formula · 公式
   - 10. math-step · 分步解题
+  - 11. timeline · 时间线
+  - 12. chart · 数据图表
+  - 13. tabs · 标签页切换
+  - 14. stat-grid · 数据卡片墙
+  - 15. quote · 引用语
+  - 16. diagram · 流程图
+  - 17. code-runner · 代码对照
   - 打磨方向预告
 ---
 
 ```hero
 {
   "title": "组件总览",
-  "subtitle": "10 个交互组件的真实示例 · 字段、视觉、交互逐个打磨",
+  "subtitle": "17 个交互组件的真实示例 · 字段、视觉、交互逐个打磨",
   "emoji": "🧩",
   "visual": { "value": "🧩", "rotated": -8 }
 }
@@ -600,6 +607,197 @@ sections:
 ```
 
 ---
+
+
+
+## 11. timeline · 时间线
+
+讲发展史 / 演进过程 / 流程节点。vertical（左轴线）和 horizontal（顶部轴线）双模式。
+
+```timeline
+{
+  "title": "计算机发展简史",
+  "mode": "vertical",
+  "items": [
+    {"time": "1946", "title": "ENIAC", "description": "第一台通用电子计算机。"},
+    {"time": "1971", "title": "Intel 4004", "description": "第一款微处理器，开启 PC 时代。", "tag": "里程碑"},
+    {"time": "2007", "title": "iPhone", "description": "智能手机普及。"},
+    {"time": "2022", "title": "ChatGPT", "description": "大语言模型进入大众视野。", "tag": "里程碑"}
+  ]
+}
+```
+
+横向模式（流程节点）：
+
+```timeline
+{
+  "title": "软件开发流程",
+  "mode": "horizontal",
+  "items": [
+    {"time": "① 需求", "title": "分析"},
+    {"time": "② 设计", "title": "架构"},
+    {"time": "③ 开发", "title": "编码"},
+    {"time": "④ 测试", "title": "验收"},
+    {"time": "⑤ 发布", "title": "上线", "tag": "交付"}
+  ]
+}
+```
+
+---
+
+## 12. chart · 数据图表
+
+柱状 / 折线 / 饼图，编译时静态 SVG，零运行时。
+
+```chart
+{
+  "type": "bar",
+  "title": "2024 浏览器市场份额（百万用户）",
+  "unit": "M",
+  "yAxisLabel": "用户数",
+  "data": [
+    {"label": "Chrome", "value": 3200},
+    {"label": "Safari", "value": 1100},
+    {"label": "Edge", "value": 210},
+    {"label": "Firefox", "value": 170}
+  ]
+}
+```
+
+折线（趋势）和饼图（占比）：
+
+```chart
+{
+  "type": "line",
+  "title": "月度销量趋势",
+  "data": [
+    {"label": "1月", "value": 120},
+    {"label": "2月", "value": 145},
+    {"label": "3月", "value": 132},
+    {"label": "4月", "value": 178},
+    {"label": "5月", "value": 195},
+    {"label": "6月", "value": 240}
+  ]
+}
+```
+
+```chart
+{
+  "type": "pie",
+  "title": "编程语言占比",
+  "data": [
+    {"label": "JavaScript", "value": 65},
+    {"label": "Python", "value": 51},
+    {"label": "TypeScript", "value": 38},
+    {"label": "Java", "value": 30},
+    {"label": "其他", "value": 25}
+  ]
+}
+```
+
+---
+
+## 13. tabs · 标签页切换
+
+并列对比（无顺序）。step-guide 是线性流程，tabs 是并列视角。
+
+```tabs
+{
+  "title": "求导数的理解",
+  "tabs": [
+    {"label": "直觉", "content": "导数就是**变化率**——函数在某点有多陡。"},
+    {"label": "形式", "content": "$f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$"},
+    {"label": "几何", "content": "导数 = 切线斜率。曲线越陡，导数绝对值越大。"}
+  ]
+}
+```
+
+---
+
+## 14. stat-grid · 数据卡片墙
+
+关键数字 + 注释，冲击力表达。科普/数据叙事标配。
+
+```stat-grid
+{
+  "title": "中国基本数据",
+  "stats": [
+    {"value": "14", "unit": "亿", "label": "人口"},
+    {"value": "960", "unit": "万 km²", "label": "国土面积"},
+    {"value": "5000", "unit": "年", "label": "文明史"},
+    {"value": "56", "label": "个民族"}
+  ]
+}
+```
+
+带趋势标记：
+
+```stat-grid
+{
+  "title": "本次考试统计",
+  "stats": [
+    {"value": "87", "unit": "%", "label": "及格率", "trend": "↑5%"},
+    {"value": "78", "label": "平均分", "trend": "↑3"},
+    {"value": "98", "label": "最高分"},
+    {"value": "12", "unit": "%", "label": "不及格率", "trend": "↓4%"}
+  ]
+}
+```
+
+---
+
+## 15. quote · 引用语 / 金句
+
+大字号 + 引号装饰 + 作者署名，提升内容氛围。
+
+```quote
+{
+  "text": "想象力比知识更重要，因为知识是有限的，而想象力概括着世界。",
+  "author": "爱因斯坦",
+  "role": "物理学家"
+}
+```
+
+---
+
+## 16. diagram · 流程图 / 关系图
+
+编译时生成静态 SVG，画"网状关系"——系统架构、决策流程。
+
+```diagram
+{
+  "title": "及格判定流程",
+  "width": 500,
+  "height": 320,
+  "nodes": [
+    {"id": "start", "label": "开始", "x": 250, "y": 40, "kind": "start"},
+    {"id": "check", "label": "分数≥60?", "x": 250, "y": 140, "shape": "diamond", "kind": "decision"},
+    {"id": "pass", "label": "及格", "x": 120, "y": 250, "kind": "process"},
+    {"id": "fail", "label": "补考", "x": 380, "y": 250, "kind": "end"}
+  ],
+  "edges": [
+    {"from": "start", "to": "check"},
+    {"from": "check", "to": "pass", "label": "是"},
+    {"from": "check", "to": "fail", "label": "否"}
+  ]
+}
+```
+
+---
+
+## 17. code-runner · 代码 + 输出对照
+
+预录制（非真运行），代码块 + ▶ 运行结果折叠对照。
+
+```code-runner
+{
+  "title": "列表推导式",
+  "lang": "python",
+  "code": "squares = [x**2 for x in range(5)]\nprint(squares)",
+  "output": "[0, 1, 4, 9, 16]",
+  "note": "列表推导式比 for 循环更 Pythonic。"
+}
+```
 
 ## 打磨方向预告
 

@@ -122,6 +122,34 @@ related:
 - **当前**：v0.2.1 加 step 联动 geometry-3d（hover → setHighlight）· v0.2.0 4 折叠区统一琥珀色 + 默认展开 + hairline 进度条 + `celebrate: false` 开关。
 - **下一步可选**：单 step 内进度（"看完了提示"不算"完成"，是不是要二级进度？）· 折叠区支持折叠回默认（现在 `open` 是硬编码的）· 进度条完成态加点动效（避免太干）。
 
+#### 11. timeline *(v0.1.0 首版)*
+- **当前**：vertical / horizontal 双模式 · 零运行时 · 打印友好。
+- **下一步可选**：节点 icon（emoji→SVG）· 当前节点高亮 · 节点点击展开详情 · horizontal 横滑时当前节点放大。
+
+#### 12. chart *(v0.1.0 首版)*
+- **当前**：bar / line / pie 三种 · 编译时静态 SVG · niceMax 漂亮刻度 · 8 色饼图色板。
+- **下一步可选**：多系列（bar 分组）· 堆叠 · hover 交互（需 clientJs）· 横向 bar · 数据标签位置自适应。
+
+#### 13. tabs *(v0.1.0 首版)*
+- **当前**：点击 label 切换 panel · 默认激活第一个 · 打印时全展开。
+- **下一步可选**：键盘 ←/→ 切换 · tab 可关闭 · 横向滚动（tab 多时）· **content 内嵌三反引号代码块**（当前 fenced code 嵌套问题）。
+
+#### 14. stat-grid *(v0.1.0 首版)*
+- **当前**：响应式网格 · value display 级 · trend ↑绿/↓红 自动识别 · LaTeX 支持。
+- **下一步可选**：value 动画 count-up · 对比型（vs 上期）· 图标 icon。
+
+#### 15. quote *(v0.1.0 首版)*
+- **当前**：大引号装饰 · text h2 级 · 居中/左对齐 · author + role。
+- **下一步可选**：多种引号风格（书名号/方括号）· 背景纹理 · 多条 quote 轮播。
+
+#### 16. diagram *(v0.1.0 首版)*
+- **当前**：3 形状（rect/round/diamond）· 5 语义配色 · 边带箭头+标签 · 编译时 SVG。
+- **下一步可选**：自动布局（避免作者手算坐标）· 曲线边 · 子图分组 · 节点 hover 高亮关联边。
+
+#### 17. code-runner *(v0.1.0 首版)*
+- **当前**：代码 + ▶ 运行结果折叠 · lang badge · note 注释 · 打印时展开。
+- **下一步可选**：语法高亮（需引入 highlight.js，权衡零依赖）· 多步执行 · 输出 diff（预期 vs 实际）。
+
 #### 11. geometry-3d *(v0.1.7)*
 - **当前**：v0.1.7 已有 30+ 字段（vertices / planes / auxLines / derivedVertices / rightAngles / id），9 种几何体（triangular-prism v0.1.2 真正实现），触摸板 / Z 轴自转 / camera.up=+Z 校准 / per-instance 闭包 / 三角面 / math-step 联动。
 - **字段契约**：[`docs/geometry-3d-schema.md`](./docs/geometry-3d-schema.md)（v0.1.7，含 4 个示例：正方体 / 三角柱+辅助线池+math-step 联动 / slider 联动 / 错误回退）。
