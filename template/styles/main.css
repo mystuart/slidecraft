@@ -1822,6 +1822,72 @@ details summary { cursor: pointer; font-weight: 600; }
   .chart { box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
 }
 
+
+/* ============================================================
+   tabs 标签页组件（v0.1.0）
+   并列查看多个视角（多解法/多平台对比）
+   ============================================================ */
+
+.tabs {
+  margin: 1.5em 5%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.tabs-error {
+  border-left: 4px solid var(--color-danger);
+  color: var(--color-danger);
+  font-size: var(--font-body);
+  background: var(--color-danger-bg);
+  padding: 0.8em 1em;
+}
+.tabs-heading {
+  font-weight: 700;
+  font-size: var(--font-h3);
+  color: var(--color-primary-dark);
+  padding: 0.9em 1.2em 0.6em;
+  border-bottom: 1px solid var(--color-border);
+}
+.tabs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 0 0.5em;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+.tabs-label {
+  padding: 0.6em 1.1em;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: all 0.15s ease;
+  margin-bottom: -1px;
+}
+.tabs-label:hover { color: var(--color-primary-dark); }
+.tabs-label.is-active {
+  color: var(--color-primary-dark);
+  border-bottom-color: var(--color-primary);
+}
+.tabs-panels { padding: 1.2em; }
+.tabs-panel { display: none; }
+.tabs-panel.is-active { display: block; }
+.tabs-content { font-size: var(--font-body); line-height: 1.7; }
+.tabs-content p:first-child { margin-top: 0; }
+.tabs-content p:last-child { margin-bottom: 0; }
+
+/* 打印：所有 tab 展开 */
+@media print {
+  .tabs-panel { display: block !important; break-inside: avoid; page-break-inside: avoid; }
+  .tabs-label { color: var(--color-text); border-bottom-color: var(--color-text-muted); }
+}
+
 /* @boundary geometry-3d.css — 3D 组件样式（.geom-3d-* / .slider-* / .tetra-equiv-* / .cut-anim-*）
  * 已迁移到 template/styles/geometry-3d.css，由 build.js 条件注入。
  * 本文件不允许出现以上四组前缀的选择器。
