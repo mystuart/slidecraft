@@ -1888,6 +1888,92 @@ details summary { cursor: pointer; font-weight: 600; }
   .tabs-label { color: var(--color-text); border-bottom-color: var(--color-text-muted); }
 }
 
+
+/* ============================================================
+   stat-grid 数据卡片墙组件（v0.1.0）
+   关键数字 + 注释，冲击力表达
+   ============================================================ */
+
+.stat-grid {
+  margin: 1.5em 5%;
+  padding: 1.4em;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.stat-grid-error {
+  border-left: 4px solid var(--color-danger);
+  color: var(--color-danger);
+  font-size: var(--font-body);
+  background: var(--color-danger-bg);
+  padding: 0.8em 1em;
+}
+.stat-grid-heading {
+  font-weight: 700;
+  font-size: var(--font-h3);
+  color: var(--color-primary-dark);
+  margin: 0 0 1em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px dashed var(--color-border);
+}
+.stat-grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1em;
+}
+.stat-card {
+  padding: 1.1em 0.8em;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.stat-value {
+  font-size: var(--font-display);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-primary-dark);
+  letter-spacing: -0.02em;
+}
+.stat-unit {
+  font-size: var(--font-h3);
+  font-weight: 600;
+  margin-left: 0.1em;
+  color: var(--color-primary);
+}
+.stat-trend {
+  display: inline-block;
+  font-size: var(--font-label);
+  font-weight: 700;
+  padding: 0.1em 0.5em;
+  border-radius: 999px;
+  margin: 0.3em 0;
+}
+.stat-trend-up {
+  color: var(--color-on-success);
+  background: var(--color-success-bg);
+}
+.stat-trend-down {
+  color: var(--color-on-danger);
+  background: var(--color-danger-bg);
+}
+.stat-label {
+  font-size: var(--font-small);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  margin-top: 0.3em;
+}
+@media print {
+  .stat-grid { box-shadow: none; break-inside: avoid; }
+  .stat-card { break-inside: avoid; }
+}
+
 /* @boundary geometry-3d.css — 3D 组件样式（.geom-3d-* / .slider-* / .tetra-equiv-* / .cut-anim-*）
  * 已迁移到 template/styles/geometry-3d.css，由 build.js 条件注入。
  * 本文件不允许出现以上四组前缀的选择器。

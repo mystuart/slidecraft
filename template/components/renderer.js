@@ -1,7 +1,10 @@
 /**
  * @component renderer
- * @version 0.2.5
+ * @version 0.2.6
  * @status 内部调度器，不参与组件登记
+ *
+ * v0.2.6 变更：
+ *   - 注册 stat-grid 组件（v0.1.0 数据卡片墙）
  *
  * v0.2.5 变更：
  *   - 注册 tabs 组件（v0.1.0 标签页切换）
@@ -61,6 +64,7 @@ const functionPlot = require('./function-plot.js');
 const intersectionMarker = require('./intersection-marker.js');
 const timeline = require('./timeline.js');
 const tabs = require('./tabs.js');
+const statGrid = require('./stat-grid.js');
 const chart = require('./chart.js');
 
 // 语言标记 → 组件渲染器
@@ -108,7 +112,10 @@ const COMPONENT_MAP = {
   'intersectionmarker': intersectionMarker,
   'timeline': timeline,
   'chart': chart,
-  'tabs': tabs,};
+  'tabs': tabs,
+  'stat-grid': statGrid,
+  'statgrid': statGrid,
+};
 
 const PLACEHOLDER_RE = /<!--\s*SC-COMPONENT-(\d+)\s*-->/g;
 
