@@ -1,7 +1,10 @@
 /**
  * @component renderer
- * @version 0.2.8
+ * @version 0.2.9
  * @status 内部调度器，不参与组件登记
+ *
+ * v0.2.9 变更：
+ *   - 注册 code-runner 组件（v0.1.0 代码+输出对照）
  *
  * v0.2.8 变更：
  *   - 注册 diagram 组件（v0.1.0 流程图/关系图）
@@ -73,6 +76,7 @@ const tabs = require('./tabs.js');
 const statGrid = require('./stat-grid.js');
 const quote = require('./quote.js');
 const diagram = require('./diagram.js');
+const codeRunner = require('./code-runner.js');
 const chart = require('./chart.js');
 
 // 语言标记 → 组件渲染器
@@ -126,6 +130,8 @@ const COMPONENT_MAP = {
   'quote': quote,
   'diagram': diagram,
   'flowchart': diagram,
+  'code-runner': codeRunner,
+  'coderunner': codeRunner,
 };
 
 const PLACEHOLDER_RE = /<!--\s*SC-COMPONENT-(\d+)\s*-->/g;
