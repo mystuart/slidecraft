@@ -312,19 +312,19 @@ async function buildFile(inputPath) {
   // CLI 入口
   // ============================================================
   async function main() {
-    const rawArgs = process.argv.slice(2);
-    const args = [];
-    for (const a of rawArgs) {
-      if (a === '--inline-three') {
-        INLINE_THREE = true;
-        console.log('[build] 模式：Three.js 内联（单文件离线部署）');
-      } else if (a === '--watch') {
-        // 占位 —— 真正的 --watch 留给后续实现
-        console.warn('[build] --watch 暂未实现，使用 `node build.js` 手动重跑');
-      } else {
-        args.push(a);
-      }
+  const rawArgs = process.argv.slice(2);
+  const args = [];
+  let WATCH = false;
+  for (const a of rawArgs) {
+    if (a === '--inline-three') {
+      INLINE_THREE = true;
+      console.log('[build] 模式：Three.js 内联（单文件离线部署）');
+    } else if (a === '--watch') {
+      WATCH = true;
+    } else {
+      args.push(a);
     }
+  }
 
     // 默认：编译 content/ 目录下所有 .md
     let targets;
@@ -374,6 +374,39 @@ async function buildFile(inputPath) {
     await buildFile(t);
   }
 
+  // --watch 模式：监听文件变化，debounce 后增量重 build，不退出
+  if (WATCH) {
+    console.log('');
+    console.log('[watch] 监听 ' + targets.length + ' 个文件，保存即重 build（Ctrl+C 退出）');
+    const changedFiles = new Set();
+    let debounceTimer = null;
+    function scheduleRebuild() {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        debounceTimer = null;
+        const files = Array.from(changedFiles);
+        changedFiles.clear();
+        buildErrors.length = 0; // 清空旧错误报告
+        for (const f of files) {
+          try {
+            await buildFile(f);
+          } catch (e) {
+            console.error('[watch] build 失败 ' + path.basename(f) + ': ' + e.message);
+          }
+        }
+      }, 300);
+    }
+    targets.forEach(t => {
+      fs.watch(t, { persistent: true }, (eventType) => {
+        if (eventType === 'change') {
+          changedFiles.add(t);
+          scheduleRebuild();
+        }
+      });
+    });
+    return; // watch 模式不退出进程，也不走错误报告的 exit code
+  }
+
   // 架构债 #3：汇总 KaTeX 解析错误报告
   // 产物已生成（可看），但有公式解析失败时报告出来 + exit code 1，
   // 让 CI / 作者能发现"公式没正确渲染"。
@@ -393,7 +426,13 @@ async function buildFile(inputPath) {
   }
 }
 
-main().catch(err => {
-  console.error('Build failed:', err);
-  process.exit(1);
-});
+// 允许被 require 测试（不触发 main）；直接运行时才 build
+if (require.main === module) {
+  main().catch(err => {
+    console.error('Build failed:', err);
+    process.exit(1);
+  });
+}
+
+// 导出供测试用（不触发 main）
+module.exports = { injectSectionIds, collectKatexErrors };

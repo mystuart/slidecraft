@@ -7,6 +7,8 @@
   "scripts": {
     "build": "node build.js",
     "build:watch": "node build.js --watch",
+    "dev": "node build.js --watch & python3 -m http.server 8000 --directory dist",
+    "test": "node --test \"test/**/*.test.js\"",
     "clean": "rm -rf dist/"
   },
   "dependencies": {

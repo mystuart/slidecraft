@@ -49,6 +49,14 @@ open dist/triangular-prism-demo.html
 > ```
 > 之后 build 会自动 hash 缓存破坏 + 拆外链（用 `--inline-three` 可强制内联做单文件离线部署）。
 
+**写课件时的开发循环：**
+
+```bash
+npm run dev      # watch + 静态服务（改 .md 自动重 build，浏览器刷新即可看效果）
+npm run build    # 一次性全量编译 content/ 下所有 .md
+npm test         # 跑测试（数值算法 / build 校验逻辑）
+```
+
 ---
 
 ## 跟同类工具比，Slidecraft 强在哪

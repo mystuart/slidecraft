@@ -316,4 +316,4 @@ function render(data) {
 </div>`;
 }
 
-module.exports = { render };
+module.exports = { render, niceMax };
