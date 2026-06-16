@@ -116,13 +116,27 @@ async function buildFile(inputPath) {
   // 1) 提取组件
   const { md: preprocessed, components } = renderer.processMarkdown(content);
 
-  // 2) 配置 marked
+  // 2) 配置 marked + 语法高亮（编译时，产物零运行时）
   const { marked } = await loadMarked();
+  const { highlight, highlightAuto } = require('./template/components/_highlight.js');
+  const mdRenderer = new marked.Renderer();
+  mdRenderer.code = function(code, infostring) {
+    // marked 5+ 可能传 ({text, lang}) 对象，兼容两种签名
+    if (typeof code === 'object') {
+      infostring = code.lang;
+      code = code.text;
+    }
+    const lang = (infostring || '').split(/\s+/)[0];
+    const highlighted = lang ? highlight(code, lang) : highlightAuto(code);
+    const langClass = lang ? ' class="hljs language-' + lang + '"' : ' class="hljs"';
+    return '<pre><code' + langClass + '>' + highlighted + '</code></pre>';
+  };
   marked.setOptions({
     gfm: true,
     breaks: false,
     headerIds: false,
     mangle: false,
+    renderer: mdRenderer,
   });
 
   // 3) 渲染剩余 markdown

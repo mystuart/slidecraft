@@ -1,6 +1,6 @@
 /**
  * @component code-runner
- * @version 0.1.0
+ * @version 0.1.1
  * @status 首次可用
  *
  * 代码 + 输出对照组件（预录制，非真运行）
@@ -17,6 +17,8 @@
  *   - output {string} 可选 · 预期输出（纯文本）
  *   - note   {string} 可选 · 输出下方的注释（走 processInline）
  *
+ * v0.1.1 变更：代码块接入 highlight.js 编译时语法高亮（lang 指定/自动检测）
+ *
  * v0.1.0 首版：
  *   - 代码块 + ▶ 运行结果折叠对照
  *   - 默认折叠输出，点击展开（clientJs）
@@ -27,6 +29,7 @@
  */
 
 const { processInline, escapeHtml } = require('./_inline.js');
+const { highlight } = require('./_highlight.js');
 
 function render(data) {
   if (!data || typeof data !== 'object') return '';
@@ -42,7 +45,8 @@ function render(data) {
   }
 
   const langBadge = lang ? '<span class="code-runner-lang">' + escapeHtml(lang) + '</span>' : '';
-  const codeBlock = '<pre class="code-runner-code"><code>' + escapeHtml(code) + '</code></pre>';
+  const highlightedCode = lang ? highlight(code, lang) : highlight(code, '');
+  const codeBlock = '<pre class="code-runner-code"><code class="hljs">' + highlightedCode + '</code></pre>';
 
   let outputSection = '';
   if (output) {

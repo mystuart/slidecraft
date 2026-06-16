@@ -153,6 +153,36 @@ pre {
   line-height: 1.5;
 }
 pre code { background: transparent; padding: 0; color: inherit; }
+
+/* ============================================================
+   highlight.js 浅色主题（编译时高亮，零运行时）
+   精简版：只覆盖常用 token，配色用主题变量保持一致
+   ============================================================ */
+.hljs { color: var(--color-text); background: transparent; }
+.hljs-comment, .hljs-quote { color: var(--color-text-muted); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-name, .hljs-tag {
+  color: var(--color-primary-dark); font-weight: 600;
+}
+.hljs-string, .hljs-attr, .hljs-template-string, .hljs-addition {
+  color: var(--color-on-success);
+}
+.hljs-number, .hljs-literal, .hljs-boolean, .hljs-bullet {
+  color: var(--color-on-warning);
+}
+.hljs-title, .hljs-section, .hljs-title.function_, .hljs-function .hljs-title {
+  color: var(--color-on-info); font-weight: 600;
+}
+.hljs-type, .hljs-class .hljs-title, .hljs-params {
+  color: var(--color-accent);
+}
+.hljs-variable, .hljs-attribute, .hljs-symbol, .hljs-regexp, .hljs-link {
+  color: var(--color-on-danger);
+}
+.hljs-deletion { color: var(--color-on-danger); }
+.hljs-meta { color: var(--color-text-muted); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+
 blockquote {
   border-left: 4px solid var(--color-primary);
   background: var(--color-primary-bg);
@@ -2119,12 +2149,13 @@ details summary { cursor: pointer; font-weight: 600; }
 .code-runner-code {
   margin: 0;
   padding: 1.1em 1.2em;
-  background: var(--color-code-bg);
+  background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-mono);
   font-size: 0.85rem;
   line-height: 1.6;
   overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
 }
 .code-runner-code code { background: none; padding: 0; color: inherit; }
 .code-runner-output-wrap {
@@ -2150,12 +2181,12 @@ details summary { cursor: pointer; font-weight: 600; }
   display: none;
   margin: 0;
   padding: 1em 1.2em;
-  background: var(--color-code-bg);
-  color: var(--color-text);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 0.85rem;
   line-height: 1.6;
-  border-top: 1px dashed var(--color-border);
+  border-top: 1px solid var(--color-border);
   overflow-x: auto;
   white-space: pre-wrap;
 }
