@@ -207,33 +207,24 @@ async function buildFile(inputPath) {
     console.error('  公式组件将无法正确渲染。请运行: npm install katex');
   }
 
-  // 6.6) 条件加载 3D 组件 CSS（仅当课件包含 geometry-3d 时注入，不含 3D 的课件零负担）
-  let geomCss = '';
-  const geomCssPath = path.join(ROOT, 'template/styles/geometry-3d.css');
-  if (bodyHtml.includes('class="geom-3d"') && fs.existsSync(geomCssPath)) {
-    geomCss = fs.readFileSync(geomCssPath, 'utf8');
+  // 6.6) 条件加载组件专属 CSS（表驱动）
+  // 仅当渲染产物含对应组件标记 class 时注入该组件 CSS，不含的组件零负担。
+  // 新增组件 CSS：往 COMPONENT_CSS 加一行即可，加载与拼接都自动处理（单一同步点）。
+  const COMPONENT_CSS = [
+    { marker: 'class="geom-3d"',       file: 'geometry-3d.css' },
+    { marker: 'class="coords-2d"',     file: 'coords-2d.css' },
+    { marker: 'class="function-plot"', file: 'function-plot.css' },
+    { marker: 'class="intersection"',  file: 'intersection-marker.css' },
+  ];
+  const componentCssParts = [];
+  for (const { marker, file } of COMPONENT_CSS) {
+    if (!bodyHtml.includes(marker)) continue;
+    const cssPath = path.join(ROOT, 'template/styles', file);
+    if (fs.existsSync(cssPath)) {
+      componentCssParts.push(fs.readFileSync(cssPath, 'utf8'));
+    }
   }
-
-  // 6.7) 条件加载 2D 组件 CSS（仅当课件包含 coords-2d 时注入）
-  let coords2dCss = '';
-  const coords2dCssPath = path.join(ROOT, 'template/styles/coords-2d.css');
-  if (bodyHtml.includes('class="coords-2d"') && fs.existsSync(coords2dCssPath)) {
-    coords2dCss = fs.readFileSync(coords2dCssPath, 'utf8');
-  }
-
-  // 6.8) 条件加载 function-plot 组件 CSS
-  let functionPlotCss = '';
-  const functionPlotCssPath = path.join(ROOT, 'template/styles/function-plot.css');
-  if (bodyHtml.includes('class="function-plot"') && fs.existsSync(functionPlotCssPath)) {
-    functionPlotCss = fs.readFileSync(functionPlotCssPath, 'utf8');
-  }
-
-  // 6.9) 条件加载 intersection-marker 组件 CSS
-  let intersectionCss = '';
-  const intersectionCssPath = path.join(ROOT, 'template/styles/intersection-marker.css');
-  if (bodyHtml.includes('class="intersection"') && fs.existsSync(intersectionCssPath)) {
-    intersectionCss = fs.readFileSync(intersectionCssPath, 'utf8');
-  }
+  const componentCss = componentCssParts.join('\n');
 
   // 7) 渲染侧边导航
   const nav = renderer.renderSideNav(fm.sections || [], fm.title, fm.subtitle, fm.author);
@@ -323,7 +314,7 @@ async function buildFile(inputPath) {
     .replace(/\{\{OG_IMAGE\}\}/g, () => buildOgImage(nav.titleTag, fm.subtitle || ''))
     .replace(/\{\{NAV_ITEMS\}\}/g, () => nav.items)
     .replace(/\{\{CONTENT\}\}/g, () => bodyHtml)
-    .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss + (geomCss ? '\n' + geomCss : '') + (coords2dCss ? '\n' + coords2dCss : '') + (functionPlotCss ? '\n' + functionPlotCss : '') + (intersectionCss ? '\n' + intersectionCss : ''))
+    .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss + (componentCss ? '\n' + componentCss : ''))
     .replace(/\{\{THREE_SCRIPT\}\}/g, () => threeBundleTag)
     .replace(/\{\{CLIENT_JS\}\}/g, () => threeBundleJs + '\n' + clientJs);
 
