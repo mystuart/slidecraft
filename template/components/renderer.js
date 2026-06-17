@@ -203,7 +203,30 @@ function processInlineFormulas(html) {
     return `\u0000SCINLINECODE${idx}\u0000`;
   });
 
-  // 2) 处理行内公式 $...$（不允许跨行）
+  // 2) 先保护 $...$ 块级公式占位（避免被行内 $...$ 正则错配，
+  //    也防止"$S_n=...$。中文，$O(1)$"这类相邻 display/inline 被串成
+  //    一个跨段匹配，把中文喂进 KaTeX 触发 unicodeTextInMathMode 告警）
+  const displayMath = [];
+  html = html.replace(/\$\$([^$]+?)\$\$/g, (m, expr) => {
+    const trimmed = String(expr).trim();
+    if (!trimmed) return m;
+    try {
+      const rendered = katex.renderToString(trimmed, {
+        throwOnError: false,
+        displayMode: true,
+        strict: 'ignore',
+      });
+      const idx = displayMath.length;
+      displayMath.push(rendered);
+      return `\u0000SCDISPLAYMATH${idx}\u0000`;
+    } catch (e) {
+      return m;
+    }
+  });
+
+  // 3) 处理行内公式 $...$（不允许跨行）
+  //    strict:'ignore' 关掉 KaTeX 对 \text{中文} 等合法用法的 stderr 告警
+  //    （与 formula.js:57 用法一致；告警本就无意义，CJK 在 \text{} 里合法）
   html = html.replace(/\$([^$\n]+?)\$/g, (match, expr) => {
     const trimmed = String(expr).trim();
     if (!trimmed) return match;
@@ -211,13 +234,17 @@ function processInlineFormulas(html) {
       return katex.renderToString(trimmed, {
         throwOnError: false,
         displayMode: false,
+        strict: 'ignore',
       });
     } catch (e) {
       return match; // 解析失败保持原样
     }
   });
 
-  // 3) 还原 <code>/<pre> 块
+  // 4) 还原 $...$ 块级公式
+  html = html.replace(/\u0000SCDISPLAYMATH(\d+)\u0000/g, (_, i) => displayMath[parseInt(i, 10)]);
+
+  // 5) 还原 <code>/<pre> 块
   html = html.replace(/\u0000SCINLINECODE(\d+)\u0000/g, (_, i) => codeBlocks[parseInt(i, 10)]);
 
   return html;

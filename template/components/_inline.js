@@ -1,6 +1,6 @@
 /**
  * @component _inline
- * @version 0.2.2
+ * @version 0.2.3
  * @status 内部工具，不参与组件登记
  *
  * 组件共用的内联 markdown 处理工具。
@@ -21,6 +21,9 @@
  *
  * v0.2.1 变更：JSDoc 同步 processInline 已支持 LaTeX（renderer.processInlineFormulas 升级后
  * 系统级问题 #1 已解决），之前说"不处理 $...$"过期。
+ *
+ * v0.2.3 变更：KaTeX 调用加 strict:'ignore'（关 \text{中文} 的 stderr 告警）；
+ * 先剥 $...$ 块级公式再匹配行内 $...$，修 "相邻 display/inline 被串成跨段匹配" 错配。
  *
  * 字段契约：内部工具，无字段。
  */
@@ -56,18 +59,44 @@ function processInline(s) {
   try { katex = require('katex'); } catch (e) { katex = null; }
 
   const mathSegments = [];
-  const rawWithPlaceholders = katex
-    ? raw.replace(/\$([^$\n]+)\$/g, (m, content) => {
-        try {
-          const html = katex.renderToString(content, { throwOnError: false, displayMode: false });
-          const idx = mathSegments.length;
-          mathSegments.push(html);
-          return `\x00MATH${idx}\x00`;
-        } catch (e) {
-          return m; // KaTeX 解析失败时保持原样
-        }
-      })
-    : raw; // katex 未安装：保留原文，让 $...$ 进 escapeHtml 后变成普通文本
+  let rawWithPlaceholders;
+  if (!katex) {
+    rawWithPlaceholders = raw; // katex 未安装：保留原文
+  } else {
+    // 0a) 先保护 $...$ 块级公式（v0.2.3）：避免被下面的行内 $...$ 正则错配。
+    //     同一行 $S_n=...$。中文，$O(1)$ 若不先剥 display，会串成一个跨段匹配，
+    //     把中文喂进 KaTeX 触发 unicodeTextInMathMode 告警（见 tabs-test.md:21）。
+    let work = raw.replace(/\$\$([^$]+?)\$\$/g, (m, content) => {
+      try {
+        const html = katex.renderToString(content, {
+          throwOnError: false,
+          displayMode: true,
+          strict: 'ignore',
+        });
+        const idx = mathSegments.length;
+        mathSegments.push(html);
+        return `\x00MATH${idx}\x00`;
+      } catch (e) {
+        return m;
+      }
+    });
+    // 0b) 行内 $...$（strict:'ignore' 关掉 \text{中文} 的 stderr 告警，与 formula.js 对齐）
+    work = work.replace(/\$([^$\n]+)\$/g, (m, content) => {
+      try {
+        const html = katex.renderToString(content, {
+          throwOnError: false,
+          displayMode: false,
+          strict: 'ignore',
+        });
+        const idx = mathSegments.length;
+        mathSegments.push(html);
+        return `\x00MATH${idx}\x00`;
+      } catch (e) {
+        return m; // KaTeX 解析失败时保持原样
+      }
+    });
+    rawWithPlaceholders = work;
+  }
 
   // 0.1) JSON 字面 \n / \t 转真实字符（LaTeX 已提取为占位符，不受影响）
   const rawDecoded = rawWithPlaceholders.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
