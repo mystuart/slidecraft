@@ -39,6 +39,7 @@ courseware/
 │   ├── index.html.tpl            # HTML 骨架模板
 │   ├── components/               # 各互动组件的渲染函数
 │   │   ├── _inline.js            # 公共：内联 markdown 处理（processInline）
+│   │   ├── _lifecycle.js         # 公共：组件生命周期基础设施（createLifecycle，可销毁句柄）
 │   │   ├── hero.js
 │   │   ├── quiz.js               # 含 quiz-track（数组模式）
 │   │   ├── fill-blank.js
@@ -339,8 +340,9 @@ sections:
 - `code-runner` — 代码+输出对照（预录制非真运行，折叠展开，v0.1.0）
 
 **公共工具**（非组件）：
-- `_inline.js` — 行内 markdown 解析（processInline，KaTeX 集成）
+- `_inline.js` — 行内 markdown 解析（processInline，KaTeX 集成，v0.2.3：先剥 `$...$` display 占位 + `strict:'ignore'`）
 - `_geom_utils.js` — 几何工具函数（顶点/面/法线计算 + polyEval / polyDeriv / polyRealRoots 多项式工具，供 geometry-3d / coords-2d / function-plot / intersection-marker 共用，v0.2.0）
+- `_lifecycle.js` — 组件生命周期基础设施（v0.1.0，2026-06-17）。`createLifecycle(root)` 返回 per-element 句柄，统一登记 document/window 监听 / observer / RAF / timeout / 自定义 disposer；`destroy()` 幂等回滚；全局 `__SC_LIFECYCLES` + `sc:destroy` 事件批量销毁。8 个组件接入（架构债 C2-4/5 + H4 清零）。**现有单页课件不触发 destroy = 行为零变化**，仅 SPA 嵌入 / 热重载 / 多实例场景受益。
 
 **后续可扩展**（不进入 MVP）：
 - `accordion`（折叠列表）—— 可用 `<details>` 替代

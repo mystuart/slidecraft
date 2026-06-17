@@ -15,10 +15,10 @@
 | **C2-3** diff 计算三处重复 | ✅ 已修复 | `computeDiffCoeffs`（R5） |
 | **C3-1/3/4** 小修 | ✅ 已修复 | coeffs.slice / console.warn / 删减 0（R6） |
 | **C2-2** coords 不发 ready 事件 | ✅ 已修复（2026-06-16） | `coords-2d.js` 发 `sc:coords2d:ready` 事件；function-plot / intersection 改订阅 ready，setTimeout 梯子从 14 个降到 2/3 个（仅剩 canvas 注入兜底，非时序猜测） |
-| **C2-4/5** 无 destroy、document 监听 ×N | ❌ **仍未做** | 和 3D 组件 H4 同款债，待全局统一处理 |
+| **C2-4/5** 无 destroy、document 监听 ×N | ✅ 已修复（2026-06-17） | 引入 `_lifecycle.js` 基础设施（`createLifecycle` 句柄 + 全局 `sc:destroy` 批量销毁），8 个泄漏组件全接入（4 个 2D + 4 个 3D，含 H4 同款债）；匿名 handler 全改具名，document/window 监听 + 永续 RAF + ResizeObserver + WebGL 资源全登记可销毁 |
 | **C3-2** renderDelta innerHTML | ⏸ 保持现状（无用户输入流入，不构成 XSS） |
 
-**结论**：R1-R6 已全部落地；R8 里 C2-2 已在 2026-06-16 落地（配套 consumer 先注册 listener、再查就绪状态，避开了时序漏信号的风险）；仅剩 C2-4 / C2-5 仍是有效待办，待和 3D 组件 H4 一起全局统一处理。
+**结论**：R1-R6 已全部落地；R8 里 C2-2（2026-06-16）与 C2-4/5（2026-06-17，与 3D 组件 H4 一起全局统一处理）均已落地。C2-x 系列架构债全部清零。
 
 ---
 

@@ -3,6 +3,40 @@
 本项目的所有重要变更记录。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，
 但 Slidecraft 的版本 = 功能里程碑（每加一个体系 +0.1）。
 
+## [1.4.0] — 2026-06-17
+
+### 架构债清零（C2-4/5 + H4：组件生命周期）
+- **新增 `_lifecycle.js` 基础设施**（内部工具）—— `createLifecycle(root)` per-element 句柄，统一登记 doc/win 监听 / observer / raf / timeout / 自定义 disposer；`destroy()` 幂等回滚；全局 `__SC_LIFECYCLES` + `sc:destroy` 事件批量销毁。
+- **8 个泄漏组件全接入**：coords-2d / function-plot / intersection-marker（5 个总线监听 + resize）/ geometry-3d（全局 keydown + 永续 RAF + ResizeObserver）/ cut-anim / trajectory / tetra-equiv / renderer scroll-spy。匿名 handler 全改具名。
+- **4 个 3D 组件额外登记 WebGL 资源释放** disposer（OrbitControls.dispose / geometry+material.dispose / renderer.dispose）。
+- **现有 UX 零影响**：destroy 仅在显式 `sc:destroy` 触发时跑，单页课件不触发 = 行为与今天完全一致。SPA 嵌入 / 热重载 / 多实例场景不再泄漏。
+
+### KaTeX 公式渲染修复
+- **`$...# Changelog
+
+本项目的所有重要变更记录。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，
+但 Slidecraft 的版本 = 功能里程碑（每加一个体系 +0.1）。
+
+ 正则错配 + CJK stderr 告警**（`_inline.js` v0.2.3、`renderer.js`）—— 原 regex 不识别 `$...$` display 分隔符，把 `$S_n=...$。中文，$O(1)# Changelog
+
+本项目的所有重要变更记录。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，
+但 Slidecraft 的版本 = 功能里程碑（每加一个体系 +0.1）。
+
+ 串成跨段匹配，中文喂进 KaTeX 触发 26 条 `unicodeTextInMathMode` 告警 + 垃圾 katex-error span。**修复**：先剥 `$...$` 占位保护再匹配行内；KaTeX 调用统一加 `strict: 'ignore'`。产物 -199KB（全是错配产生的垃圾 error span）。
+
+### build.js 重构
+- **CSS 注入改表驱动**（消除 4 处重复条件块）—— `COMPONENT_CSS` 清单表循环加载 + join 拼接，单一同步点。新增组件 CSS 只需往表里加一行。
+
+### 文档修复
+- **COMPONENTS.md 去重**（历史遗留腐烂）—— 整个大段内容重复 3 次 + 3 处被 YAML frontmatter 截断，无一份完整。重建为单一干净副本（618 → 326 行），从 3 份残卷拼回完整「已知系统级问题」1-9 条，新增决策记录 #13。
+
+### 版本号
+- 内部工具：`_inline` v0.2.3、`_lifecycle` v0.1.0（新增）、`renderer` v0.3.0
+- 组件接入：geometry-3d v0.1.9、cut-anim v0.1.3、trajectory v0.1.1、tetra-equiv v0.1.3、coords-2d v0.1.1、function-plot v0.1.1、intersection-marker v0.1.1
+
+### 测试
+- npm test: **38/38**（新增 13 个回归测试：6 个 KaTeX inline-math + 7 个 lifecycle）
+
 ## [1.3.0] — 2026-06-17
 
 ### 品牌
