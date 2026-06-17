@@ -1,7 +1,11 @@
 /**
  * @component renderer
- * @version 0.2.9
+ * @version 0.3.0
  * @status 内部调度器，不参与组件登记
+ *
+ * v0.3.0 变更：
+ *   - collectClientScript 注入 _lifecycle.js runtime 作为最前缀（架构债 C2-4/5 + H4）
+ *   - 生命周期基础设施：组件用 createLifecycle(root) 登记可释放资源，sc:destroy 批量销毁
  *
  * v0.2.9 变更：
  *   - 注册 code-runner 组件（v0.1.0 代码+输出对照）
@@ -53,6 +57,7 @@
  */
 
 const { escapeHtml } = require('./_inline.js');
+const { getLifecycleRuntime } = require('./_lifecycle.js');
 
 const hero = require('./hero.js');
 const quiz = require('./quiz.js');
@@ -258,14 +263,17 @@ function processInlineFormulas(html) {
  */
 function collectClientScript() {
   const seen = new Set();
-  return Object.values(COMPONENT_MAP)
-    .filter(c => {
-      if (seen.has(c)) return false;
-      seen.add(c);
-      return true;
-    })
-    .map(c => c.clientJs)
-    .filter(Boolean)
+  // 生命周期 runtime 作为最前缀：保证 createLifecycle 在任何组件 init 前可用。
+  // （架构债 C2-4/5 + H4：组件统一用 lifecycle 句柄登记可释放资源）
+  return [getLifecycleRuntime()]
+    .concat(Object.values(COMPONENT_MAP)
+      .filter(c => {
+        if (seen.has(c)) return false;
+        seen.add(c);
+        return true;
+      })
+      .map(c => c.clientJs)
+      .filter(Boolean))
     .concat([initSideNavScript()])
     .join('\n\n');
 }
