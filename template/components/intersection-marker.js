@@ -1,7 +1,11 @@
 /**
  * @component intersection-marker
- * @version 0.1.0
+ * @version 0.1.1
  * @status 最小可用版
+ *
+ * v0.1.1 变更：
+ *   - 接入生命周期基础设施：5 个总线监听（coords2d change/ready、funcplot change×2/ready）+ resize
+ *     + redraw RAF/timeout 全登记到句柄，destroy 可回滚（原全仓零 removeEventListener 的最严重 2D 泄漏点）
  *
  * v0.1.0 变更：
  *   - 第一版：在坐标系上画一组「交点」高亮
@@ -86,6 +90,7 @@ const clientJs = `
 ${geomUtilsJs}
 (function() {
   function initOne(root) {
+    var lc = createLifecycle(root);   // 生命周期句柄（架构债 C2-4/5）
     var cfg, meta;
     try {
       cfg = JSON.parse(root.getAttribute('data-config') || '{}');
@@ -145,13 +150,16 @@ ${geomUtilsJs}
     var canvas = null;
     var ctx = null;
 
-    document.addEventListener('sc:coords2d:change', function(ev) {
+    function onCoordsChange(ev) {
       if (!ev.target || ev.target.id !== coordsId) return;
       redraw();
-    });
-    window.addEventListener('resize', function() {
-      requestAnimationFrame(redraw);
-    });
+    }
+    lc.doc('sc:coords2d:change', onCoordsChange);
+    function onWinResize() {
+      var id = requestAnimationFrame(redraw);
+      lc.raf(id);
+    }
+    lc.win('resize', onWinResize);
 
     // polynomialIntersection 模式：监听 function-plot 变化 + 自动算交点
     function refreshPolynomialIntersections() {
@@ -187,16 +195,18 @@ ${geomUtilsJs}
 
     // 监听 function-plot 变化
     if (cfg.polynomialIntersection) {
-      document.addEventListener('sc:functionplot:change', function(ev) {
+      function onFuncPlotChangeInter(ev) {
         if (!ev.target || ev.target.id !== cfg.polynomialIntersection.functionPlotId) return;
         refreshPolynomialIntersections();
-      });
+      }
+      lc.doc('sc:functionplot:change', onFuncPlotChangeInter);
     }
     if (cfg.polynomialDiscriminant) {
-      document.addEventListener('sc:functionplot:change', function(ev) {
+      function onFuncPlotChangeDisc(ev) {
         if (!ev.target || ev.target.id !== cfg.polynomialDiscriminant.functionPlotId) return;
         refreshDiscriminant();
-      });
+      }
+      lc.doc('sc:functionplot:change', onFuncPlotChangeDisc);
     }
 
     // 判别式 Δ 计算 + 实时显示
@@ -311,8 +321,9 @@ ${geomUtilsJs}
       });
     }
     function redraw() {
-      if (!ensureCanvasInjected()) { setTimeout(redraw, 50); return; }
-      requestAnimationFrame(render);
+      if (!ensureCanvasInjected()) { var tid = setTimeout(redraw, 50); lc.timeout(tid); return; }
+      var rid = requestAnimationFrame(render);
+      lc.raf(rid);
     }
 
     // C2-2 修复：订阅 coords-2d ready 替代 setTimeout(50/200/500)
@@ -324,10 +335,11 @@ ${geomUtilsJs}
       firstRenderDone = true;
       render();
     }
-    document.addEventListener('sc:coords2d:ready', function(ev) {
+    function onCoordsReady(ev) {
       if (!ev.target || ev.target.id !== coordsId) return;
       firstRender();
-    });
+    }
+    lc.doc('sc:coords2d:ready', onCoordsReady);
     // 兜底：coords 已 ready 过（事件早于订阅）
     var coordsEl = getCoords();
     if (coordsEl && coordsEl.__scApi) {
@@ -385,10 +397,11 @@ ${geomUtilsJs}
         }
       }
       // 订阅关联 function-plot 的 ready（detail.coordsId 标识它属于哪个 coords）
-      document.addEventListener('sc:funcplot:ready', function(ev) {
+      function onFuncPlotReadyEv(ev) {
         var fpId = (cfg.polynomialIntersection || cfg.polynomialDiscriminant).functionPlotId;
         if (ev.target && ev.target.id === fpId) onFuncPlotReady();
-      });
+      }
+      lc.doc('sc:funcplot:ready', onFuncPlotReadyEv);
       // 兜底：function-plot 已 ready 过
       var fpId = (cfg.polynomialIntersection || cfg.polynomialDiscriminant).functionPlotId;
       var fpEl = fpId ? document.getElementById(fpId) : null;

@@ -1,7 +1,10 @@
 /**
  * @component function-plot
- * @version 0.1.0
- * @status 最小可用版（基于 coords-2d v0.1.0）
+ * @version 0.1.1
+ * @status 最小可用版（基于 coords-2d v0.1.1）
+ *
+ * v0.1.1 变更：
+ *   - 接入生命周期基础设施：2 个 coords2d 总线监听 + resize + redraw RAF/timeout 登记到句柄
  *
  * v0.1.0 变更：
  *   - 第一版：5 种曲线类型（polynomial / sine / cosine / conic_ellipse /
@@ -126,6 +129,7 @@ const clientJs = `
 ${geomUtilsJs}
 (function() {
   function initOne(root) {
+    var lc = createLifecycle(root);   // 生命周期句柄（架构债 C2-4/5）
     var cfg, meta;
     try {
       cfg = JSON.parse(root.getAttribute('data-config') || '{}');
@@ -172,14 +176,17 @@ ${geomUtilsJs}
     }
 
     // 监听 coords 变化（来自 setXRange / setYRange / 窗口 resize）
-    document.addEventListener('sc:coords2d:change', function(ev) {
+    function onCoordsChange(ev) {
       if (!ev.target || ev.target.id !== coordsId) return;
       redraw();
-    });
+    }
+    lc.doc('sc:coords2d:change', onCoordsChange);
     // 监听窗口缩放（coords-2d 自己会重画，我们跟画）
-    window.addEventListener('resize', function() {
-      requestAnimationFrame(redraw);
-    });
+    function onWinResize() {
+      var id = requestAnimationFrame(redraw);
+      lc.raf(id);
+    }
+    lc.win('resize', onWinResize);
 
     // ============== 关键点计算 ==============
     // polyEval / polyDeriv / polyRealRoots 来自 _geom_utils（cwGeom_ 前缀，顶部嵌入）
@@ -694,11 +701,13 @@ ${geomUtilsJs}
 
     function redraw() {
       if (!ensureCanvasInjected()) {
-        setTimeout(redraw, 50);
+        var retryId = setTimeout(redraw, 50);
+        lc.timeout(retryId);
         return;
       }
       // 等下一帧确保 coords 已画完
-      requestAnimationFrame(render);
+      var rafId = requestAnimationFrame(render);
+      lc.raf(rafId);
     }
 
     // 第一次画：C2-2 修复 —— 订阅 coords-2d 的 ready 事件，
@@ -717,10 +726,11 @@ ${geomUtilsJs}
       }));
     }
     // 订阅 ready（coords 画完通知）
-    document.addEventListener('sc:coords2d:ready', function(ev) {
+    function onCoordsReady(ev) {
       if (!ev.target || ev.target.id !== coordsId) return;
       firstRender();
-    });
+    }
+    lc.doc('sc:coords2d:ready', onCoordsReady);
     // 兜底：若组件初始化时 coords 已经 ready 过（事件早于订阅），直接尝试一次
     var coordsEl = getCoords();
     if (coordsEl && coordsEl.__scApi) {

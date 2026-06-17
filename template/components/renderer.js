@@ -359,6 +359,10 @@ function initSideNavScript() {
     }
   }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
   sections.forEach(function(s) { io.observe(s); });
+  // 登记到生命周期句柄（架构债 C2-4/5：scroll-spy observer 也应可销毁）
+  if (typeof createLifecycle === 'function') {
+    createLifecycle(document.documentElement).observer(io);
+  }
   // 初始激活第一个
   activate(0);
 })();

@@ -1,7 +1,10 @@
 /**
  * @component coords-2d
- * @version 0.1.0
+ * @version 0.1.1
  * @status 最小可用版（地基）
+ *
+ * v0.1.1 变更：
+ *   - 接入生命周期基础设施（createLifecycle）：resize 监听 + RAF 登记到句柄，destroy 可回滚
  *
  * v0.1.0 变更：
  *   - 第一版：Canvas 2D 网格 + 坐标轴 + 可选刻度数字
@@ -102,6 +105,7 @@ const clientJs = `
    */
 
   function initOne(root) {
+    var lc = createLifecycle(root);   // 生命周期句柄（架构债 C2-4/5）
     var cfg;
     var meta;
     try {
@@ -447,8 +451,9 @@ const clientJs = `
         resizeRaf = 0;
         redraw();
       });
+      lc.raf(resizeRaf);   // 登记以便 destroy 取消
     }
-    window.addEventListener('resize', onResize);
+    lc.win('resize', onResize);
 
     // 初始画 —— 画完后发 ready 事件（C2-2）
     redraw();
