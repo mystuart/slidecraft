@@ -14,11 +14,11 @@
 | **C2-1** polyRealRoots 跨组件重复 | ✅ 已修复 | 抽到 `_geom_utils.js` v0.2.0（R3） |
 | **C2-3** diff 计算三处重复 | ✅ 已修复 | `computeDiffCoeffs`（R5） |
 | **C3-1/3/4** 小修 | ✅ 已修复 | coeffs.slice / console.warn / 删减 0（R6） |
-| **C2-2** coords 不发 ready 事件 | ❌ **仍未做** | 下游 function-plot/intersection 仍各有 5/9 个 setTimeout 兜底 |
+| **C2-2** coords 不发 ready 事件 | ✅ 已修复（2026-06-16） | `coords-2d.js` 发 `sc:coords2d:ready` 事件；function-plot / intersection 改订阅 ready，setTimeout 梯子从 14 个降到 2/3 个（仅剩 canvas 注入兜底，非时序猜测） |
 | **C2-4/5** 无 destroy、document 监听 ×N | ❌ **仍未做** | 和 3D 组件 H4 同款债，待全局统一处理 |
 | **C3-2** renderDelta innerHTML | ⏸ 保持现状（无用户输入流入，不构成 XSS） |
 
-**结论**：R1-R6 已全部落地；R8 里「故意没动」的 C2-2 / C2-4 / C2-5 截至 2026-06-16 仍未做，仍是有效待办。C2-2 的风险（架构性改动需配套时序）判断依然成立。
+**结论**：R1-R6 已全部落地；R8 里 C2-2 已在 2026-06-16 落地（配套 consumer 先注册 listener、再查就绪状态，避开了时序漏信号的风险）；仅剩 C2-4 / C2-5 仍是有效待办，待和 3D 组件 H4 一起全局统一处理。
 
 ---
 
@@ -631,7 +631,7 @@ build.js 把 clientJs 当**字符串**拼进 HTML —— **clientJs 内部的语
 
 | 项 | 为什么留 |
 |----|---------|
-| **C2-2**（coords 发 ready 事件消除 setTimeout 梯子） | 架构性改动，且事件时序有坑：coords 的 initOne 先于 function-plot 跑（DOM 顺序），coords 初始 emit 时 fp 的 listener 还没注册 → 信号被漏掉。要彻底解决得配套改 consumer 的 listener 注册时机（先注册再查就绪状态），风险高于收益，单独一轮做。 |
+| ~~**C2-2**（coords 发 ready 事件消除 setTimeout 梯子）~~ | **2026-06-16 已落地**：`coords-2d.js` 发 `sc:coords2d:ready`，consumer 先注册 listener 再查就绪状态，避开了原来担心的时序漏信号。setTimeout 梯子从 14 个降到 2/3 个（仅剩 canvas 注入兜底）。原担心的事件时序坑已规避。 |
 | **C2-4 / C2-5**（无 destroy、document 监听器 ×N） | 和 3D 组件 H4 同款债，全局一致问题，统一处理。 |
 | **C3-2**（renderDelta innerHTML） | 当前无用户输入流入，实际不构成 XSS，保持现状。 |
 
