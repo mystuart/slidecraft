@@ -38,10 +38,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stuart-oz/slidecraft.git"
+    "url": "git+https://github.com/mystuart/slidecraft.git"
   },
-  "homepage": "https://github.com/stuart-oz/slidecraft#readme",
+  "homepage": "https://github.com/mystuart/slidecraft#readme",
   "bugs": {
-    "url": "https://github.com/stuart-oz/slidecraft/issues"
+    "url": "https://github.com/mystuart/slidecraft/issues"
   }
 }

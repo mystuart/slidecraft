@@ -29,7 +29,7 @@ The differentiator: **everything compiles to a single static HTML file** with ma
 ## 30-second quickstart
 
 ```bash
-git clone https://github.com/stuart-oz/slidecraft.git
+git clone https://github.com/mystuart/slidecraft.git
 cd slidecraft
 npm install
 node build.js content/triangular-prism-demo.md

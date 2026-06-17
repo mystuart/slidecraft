@@ -36,7 +36,7 @@
 ## 30 秒做出你的第一份课件
 
 ```bash
-git clone https://github.com/stuart-oz/slidecraft.git
+git clone https://github.com/mystuart/slidecraft.git
 cd slidecraft
 npm install
 node build.js content/triangular-prism-demo.md
