@@ -1,5 +1,7 @@
 # Slidecraft
 
+**中文** · [English](./README.en.md)
+
 > **写一个 Markdown，产出一个独立的 HTML 互动课件。**
 > 23 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好。
 
@@ -34,7 +36,7 @@
 ## 30 秒做出你的第一份课件
 
 ```bash
-git clone https://github.com/<your-name>/slidecraft.git
+git clone https://github.com/stuart-oz/slidecraft.git
 cd slidecraft
 npm install
 node build.js content/triangular-prism-demo.md
@@ -225,6 +227,8 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 
 ## 文档索引
 
+- [CHANGELOG.md](./CHANGELOG.md) — 版本变更记录
+- [README.en.md](./README.en.md) — English documentation
 - [SPEC.md](./SPEC.md) — 完整设计规范（理念、语法约定、内容大纲）
 - [COMPONENTS.md](./COMPONENTS.md) — 组件登记簿（v0.x.x 状态、打磨参考、决策依据）
 - [template/components/*.js](./template/components/) — 组件源码，字段契约在文件顶部 JSDoc

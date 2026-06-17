@@ -73,6 +73,36 @@ function collectKatexErrors(html) {
   return errors;
 }
 
+/**
+ * 生成 OG image（社交分享预览图）的 SVG data URI。
+ * 800×400 卡片：薰衣草紫背景 + Slidecraft wordmark + 课件标题/tagline。
+ * 内联到 HTML 的 <meta property="og:image">，零外部文件。
+ */
+function buildOgImage(title, subtitle) {
+  // 标题/副标题里剥 HTML 标签（titleTag 可能含 <span> 等）+ 转义 XML
+  const clean = (s) => String(s || '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+  const t = clean(title).slice(0, 40);
+  const s = clean(subtitle).slice(0, 60);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b7dd8"/>
+      <stop offset="1" stop-color="#6b5db0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#bg)"/>
+  <path d="M60 200 L100 160 L140 200 L100 240 Z" fill="none" stroke="white" stroke-width="3" opacity="0.4"/>
+  <text x="80" y="180" font-family="-apple-system,sans-serif" font-size="42" font-weight="800" fill="white">Slidecraft</text>
+  <text x="80" y="220" font-family="-apple-system,sans-serif" font-size="20" fill="white" opacity="0.85">${t}</text>
+  <text x="80" y="252" font-family="-apple-system,sans-serif" font-size="16" fill="white" opacity="0.7">${s}</text>
+</svg>`;
+  // URL 编码（data URI 要求）
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
 // ============================================================
 // 配置
 // ============================================================
@@ -290,6 +320,7 @@ async function buildFile(inputPath) {
     .replace(/\{\{SUBTITLE_TAG\}\}/g, () => nav.subtitleTag)
     .replace(/\{\{AUTHOR\}\}/g, () => nav.author)
     .replace(/\{\{THEME\}\}/g, () => escapeHtml(fm.theme || 'lavender'))
+    .replace(/\{\{OG_IMAGE\}\}/g, () => buildOgImage(nav.titleTag, fm.subtitle || ''))
     .replace(/\{\{NAV_ITEMS\}\}/g, () => nav.items)
     .replace(/\{\{CONTENT\}\}/g, () => bodyHtml)
     .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss + (geomCss ? '\n' + geomCss : '') + (coords2dCss ? '\n' + coords2dCss : '') + (functionPlotCss ? '\n' + functionPlotCss : '') + (intersectionCss ? '\n' + intersectionCss : ''))
