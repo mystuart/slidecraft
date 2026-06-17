@@ -1,7 +1,14 @@
 /**
  * @component geometry-3d
- * @version 0.1.8
+ * @version 0.1.9
  * @status 最小可用版
+ *
+ * v0.1.9 变更（生命周期接入，架构债 H4）：
+ *   - 全局 keydown 监听改具名 + 登记到句柄（多实例不再叠加拦截，destroy 移除）
+ *   - 永续 animate RAF 循环登记到句柄，destroy 可取消
+ *   - ResizeObserver 登记，destroy disconnect
+ *   - 新增 WebGL 资源释放 disposer：OrbitControls.dispose / geometry+material.dispose /
+ *     renderer.dispose / labelRenderer DOM 移除
  *
  * v0.1.8 变更（label-3d 落地）：
  *   - 新增 auxLabels 字段：长度/角度/直角标注池（CSS2D 文字标签）
@@ -152,6 +159,7 @@ const clientJs = `
   }
 
   function initOne(container) {
+    var lc = createLifecycle(container);   // 生命周期句柄（架构债 H4）
     var stage = container.querySelector('.geom-3d-stage');
     if (!stage) return;
 
@@ -1021,7 +1029,7 @@ const clientJs = `
       if (ev.target && ev.target.isContentEditable) return false;
       return true;
     }
-    document.addEventListener('keydown', function(ev) {
+    function onKeyDown(ev) {
       if (!shouldHandleKey(ev)) return;
       var key = ev.key;
       // 限流：长按也最多 60fps
@@ -1036,7 +1044,8 @@ const clientJs = `
         ev.preventDefault();
         lastKeyRotateTime = now;
       }
-    });
+    }
+    lc.doc('keydown', onKeyDown);   // 全局键监登记（多实例不再叠加拦截）
 
     // ---- 7.5) 双击复位 ----
     // 几何体根容器包围盒中心（用于"双击几何体 = 以它为中心重置"）
@@ -1105,16 +1114,37 @@ const clientJs = `
         if (labelRenderer) labelRenderer.setSize(w, h);
       });
       ro.observe(stage);
+      lc.observer(ro);   // 登记：destroy 时 disconnect
     }
 
-    // ---- 9) 渲染循环 ----
+    // ---- 9) 渲染循环（永续 RAF，登记到句柄以便 destroy 取消）----
+    var rafId = 0;
     function animate() {
-      requestAnimationFrame(animate);
+      rafId = requestAnimationFrame(animate);
+      lc.raf(rafId);   // 每帧登记最新 id（destroy cancelAnimationFrame 取消下一次调度）
       if (controls) controls.update();
       renderer.render(scene, camera);
       if (labelRenderer) labelRenderer.render(scene, camera);
     }
     animate();
+
+    // ---- 10) 销毁时释放 WebGL 资源 + OrbitControls（架构债 H4）----
+    lc.dispose(function() {
+      try { if (controls && typeof controls.dispose === 'function') controls.dispose(); } catch (e) {}
+      try {
+        scene.traverse(function(obj) {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) obj.material.forEach(function(m) { m.dispose(); });
+            else obj.material.dispose();
+          }
+        });
+      } catch (e) {}
+      try { renderer.dispose(); } catch (e) {}
+      try { if (labelRenderer && labelRenderer.domElement && labelRenderer.domElement.parentNode) {
+        labelRenderer.domElement.parentNode.removeChild(labelRenderer.domElement);
+      } } catch (e) {}
+    });
   }
 
   function resolveGeometryParamsClient(geomType, size) {

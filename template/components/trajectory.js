@@ -1,7 +1,12 @@
 /**
  * @component trajectory
- * @version 0.1.0
+ * @version 0.1.1
  * @status 最小可用版
+ *
+ * v0.1.1 变更（生命周期接入，架构债 H4）：
+ *   - sc:geom3d:change 监听登记到句柄（destroy 移除；原本已是具名 onGeomChange）
+ *   - 永续 animate RAF + ResizeObserver + 3 个初始拉取 setTimeout 登记到句柄
+ *   - 新增 WebGL 资源释放 disposer（geometry+material / renderer；本组件无 OrbitControls）
  *
  * 动点轨迹追踪组件 —— 在独立 canvas 里画出某个 3D 顶点走过的路径
  *
@@ -92,6 +97,7 @@ const clientJs = `
   window.__scTrajectoryLoaded = true;
 
   function initOne(root) {
+    var lc = createLifecycle(root);   // 生命周期句柄（架构债 H4）
     var THREE = window.__scThree;
     if (!THREE) {
       console.warn('[trajectory] window.__scThree 未找到，请确认 build.js 已注入 Three.js');
@@ -138,6 +144,7 @@ const clientJs = `
         camera.updateProjectionMatrix();
       });
       ro.observe(stage);
+      lc.observer(ro);
     }
 
     if (showAxes) {
@@ -250,17 +257,18 @@ const clientJs = `
       camera.lookAt(cx, cy, cz);
     }
 
-    // 渲染循环
+    // 渲染循环（永续 RAF，登记到句柄以便 destroy 取消）
     function animate() {
-      requestAnimationFrame(animate);
+      var rid = requestAnimationFrame(animate);
+      lc.raf(rid);
       renderer.render(scene, camera);
     }
     animate();
 
     // 拉初始点（可能源已就绪）
-    setTimeout(pullCurrent, 50);
-    setTimeout(pullCurrent, 200);
-    setTimeout(function() { fitCamera(); renderer.render(scene, camera); }, 300);
+    lc.timeout(setTimeout(pullCurrent, 50));
+    lc.timeout(setTimeout(pullCurrent, 200));
+    lc.timeout(setTimeout(function() { fitCamera(); renderer.render(scene, camera); }, 300));
 
     // 事件驱动：监听联动源的 sc:geom3d:change 立即 push 新点
     // 注意：linkedEl 可能在源未初始化时为 null，事件也会冒泡到 document
@@ -276,7 +284,21 @@ const clientJs = `
       if (linkedId && srcEl && srcEl.id !== linkedId) return;
       pushPoint(detail.name, detail.pos[0], detail.pos[1], detail.pos[2]);
     }
-    document.addEventListener('sc:geom3d:change', onGeomChange);
+    lc.doc('sc:geom3d:change', onGeomChange);
+
+    // 销毁时释放 WebGL 资源（架构债 H4；本组件无 OrbitControls）
+    lc.dispose(function() {
+      try {
+        scene.traverse(function(obj) {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) obj.material.forEach(function(m) { m.dispose(); });
+            else obj.material.dispose();
+          }
+        });
+      } catch (e) {}
+      try { renderer.dispose(); } catch (e) {}
+    });
   }
 
   function initAll() {

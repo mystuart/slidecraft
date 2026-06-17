@@ -1,7 +1,13 @@
 /**
  * @component cut-anim
- * @version 0.1.2
+ * @version 0.1.3
  * @status 最小可用版
+ *
+ * v0.1.3 变更（生命周期接入，架构债 H4）：
+ *   - 永续 renderLoop RAF + playhead animate RAF 登记到句柄，destroy 可取消
+ *   - ResizeObserver 登记，destroy disconnect
+ *   - 2 个 setTimeout（自动播放 / 不循环回 0）登记，destroy clearTimeout
+ *   - 新增 WebGL 资源释放 disposer（OrbitControls / geometry+material / renderer）
  *
  * 剖切动画组件 —— 「从三棱柱切下一刀得到三棱锥」的过程动画
  *
@@ -137,6 +143,7 @@ ${geomUtilsJs}
   ${EASING_FN}
 
   function initOne(root) {
+    var lc = createLifecycle(root);   // 生命周期句柄（架构债 H4）
     var THREE = window.__scThree;
     var OC = window.__scOrbitControls;
     if (!THREE) {
@@ -207,6 +214,7 @@ ${geomUtilsJs}
         camera.updateProjectionMatrix();
       });
       ro.observe(stage);
+      lc.observer(ro);
     }
 
     /**
@@ -478,14 +486,16 @@ ${geomUtilsJs}
       renderer.render(scene, camera);
       if (t < 1) {
         animState.raf = requestAnimationFrame(animate);
+        lc.raf(animState.raf);
       } else {
         animState.active = false;
         if (!loop) {
           // 不循环：回到 0
-          setTimeout(function() {
+          var tid = setTimeout(function() {
             setProgress(0);
             pullAndRender(0);
           }, 1500);
+          lc.timeout(tid);
         }
       }
     }
@@ -501,6 +511,7 @@ ${geomUtilsJs}
       }
       if (animState.raf) cancelAnimationFrame(animState.raf);
       animState.raf = requestAnimationFrame(animate);
+      lc.raf(animState.raf);
     }
 
     function reset() {
@@ -521,7 +532,8 @@ ${geomUtilsJs}
     //   空闲时只 render(scene) 沿用现有几何体，省 GC
     //   动画播放期间仍走独立 animate() 循环（线性插值进度条）
     function renderLoop() {
-      requestAnimationFrame(renderLoop);
+      var rid = requestAnimationFrame(renderLoop);
+      lc.raf(rid);   // 永续循环登记，destroy 可取消
       if (!animState.active) {
         if (api && api.__dirty) {
           api.__dirty = false;
@@ -537,6 +549,7 @@ ${geomUtilsJs}
     var linkedGeom3dEl = document.getElementById(linkedId);
     if (linkedGeom3dEl) {
       linkedGeom3dEl.addEventListener('sc:geom3d:change', function() { api.__dirty = true; });
+      // linkedGeom3dEl 是 per-element 监听，元素移除即销毁，不必登记到 lc
     }
 
     // 首帧强制 pullAndRender 一次（拿到初始坐标）
@@ -544,8 +557,24 @@ ${geomUtilsJs}
 
     // 自动播放（如果 playButton=false）
     if (!playButton) {
-      setTimeout(play, 500);
+      var autoTid = setTimeout(play, 500);
+      lc.timeout(autoTid);
     }
+
+    // 销毁时释放 WebGL 资源 + OrbitControls（架构债 H4）
+    lc.dispose(function() {
+      try { if (controls && typeof controls.dispose === 'function') controls.dispose(); } catch (e) {}
+      try {
+        scene.traverse(function(obj) {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) obj.material.forEach(function(m) { m.dispose(); });
+            else obj.material.dispose();
+          }
+        });
+      } catch (e) {}
+      try { renderer.dispose(); } catch (e) {}
+    });
   }
 
   function initAll() {

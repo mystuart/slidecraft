@@ -1,7 +1,12 @@
 /**
  * @component tetra-equiv
- * @version 0.1.2
+ * @version 0.1.3
  * @status 最小可用版
+ *
+ * v0.1.3 变更（生命周期接入，架构债 H4）：
+ *   - 永续 animate RAF 循环登记到句柄，destroy 可取消
+ *   - ResizeObserver 登记，destroy disconnect
+ *   - 新增 WebGL 资源释放 disposer（OrbitControls / geometry+material / renderer）
  *
  * 同体异构四面体组件 —— 同时显示「同一个四面体的 4 种不同摆法」
  *
@@ -104,6 +109,7 @@ ${geomUtilsJs}
   window.__scTetraEquivLoaded = true;
 
   function initOne(root) {
+    var lc = createLifecycle(root);   // 生命周期句柄（架构债 H4）
     var THREE = window.__scThree;
     var OC = window.__scOrbitControls;
     if (!THREE) {
@@ -168,6 +174,7 @@ ${geomUtilsJs}
         camera.updateProjectionMatrix();
       });
       ro.observe(stage);
+      lc.observer(ro);
     }
 
     // 4 个四面体 group（每 group = 1 个 fill mesh + 1 个 LineSegments 描边）
@@ -286,7 +293,8 @@ ${geomUtilsJs}
     //   其他帧只 render(scene) 用现有 geometry，省 GC + 重建 CPU
     //   对静态观察场景（学员不操作）CPU 占用降到接近 0
     function animate() {
-      requestAnimationFrame(animate);
+      var rid = requestAnimationFrame(animate);
+      lc.raf(rid);   // 永续循环登记，destroy 可取消
       if (api && api.__dirty) {
         api.__dirty = false;
         pullAndRender();
@@ -315,6 +323,21 @@ ${geomUtilsJs}
       linkedEl.__scTetraEquivBound = true; // 防重复注册（多个 tetra-equiv 绑同一源时）
       linkedEl.addEventListener('sc:geom3d:change', function() { api.__dirty = true; });
     }
+
+    // 销毁时释放 WebGL 资源 + OrbitControls（架构债 H4）
+    lc.dispose(function() {
+      try { if (controls && typeof controls.dispose === 'function') controls.dispose(); } catch (e) {}
+      try {
+        scene.traverse(function(obj) {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) obj.material.forEach(function(m) { m.dispose(); });
+            else obj.material.dispose();
+          }
+        });
+      } catch (e) {}
+      try { renderer.dispose(); } catch (e) {}
+    });
   }
 
   function initAll() {
