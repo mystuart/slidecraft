@@ -423,6 +423,19 @@ const clientJs = `
       }));
     }
 
+    // C2-2 修复：首次绘制完成后发 ready 事件（只发一次）。
+    // 下游（function-plot / intersection-marker）订阅此事件做首次渲染，
+    // 替代旧的 setTimeout(50/200/500) 猜测式时序。
+    var firstRenderDone = false;
+    function emitReadyOnce() {
+      if (firstRenderDone) return;
+      firstRenderDone = true;
+      root.dispatchEvent(new CustomEvent('sc:coords2d:ready', {
+        detail: { xRange: state.xRange.slice(), yRange: state.yRange.slice() },
+        bubbles: true,
+      }));
+    }
+
     // 暴露到 DOM 元素
     root.__scApi = api;
 
@@ -437,8 +450,9 @@ const clientJs = `
     }
     window.addEventListener('resize', onResize);
 
-    // 初始画
+    // 初始画 —— 画完后发 ready 事件（C2-2）
     redraw();
+    emitReadyOnce();
   }
 
   function initAll() {

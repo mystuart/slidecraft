@@ -315,13 +315,24 @@ ${geomUtilsJs}
       requestAnimationFrame(render);
     }
 
+    // C2-2 修复：订阅 coords-2d ready 替代 setTimeout(50/200/500)
+    // intersection 的 canvas 注入到 coords stage，等 coords 画完即可首次渲染。
+    var firstRenderDone = false;
     function firstRender() {
-      if (!ensureCanvasInjected()) { setTimeout(firstRender, 100); return; }
+      if (firstRenderDone) return;
+      if (!ensureCanvasInjected()) return;
+      firstRenderDone = true;
       render();
     }
-    setTimeout(firstRender, 50);
-    setTimeout(firstRender, 200);
-    setTimeout(firstRender, 500);
+    document.addEventListener('sc:coords2d:ready', function(ev) {
+      if (!ev.target || ev.target.id !== coordsId) return;
+      firstRender();
+    });
+    // 兜底：coords 已 ready 过（事件早于订阅）
+    var coordsEl = getCoords();
+    if (coordsEl && coordsEl.__scApi) {
+      firstRender();
+    }
 
     var api = {
       setPoints: function(pts) {
@@ -358,14 +369,30 @@ ${geomUtilsJs}
     };
     root.__scApi = api;
 
-    // 首帧：polynomialIntersection 模式 + polynomialDiscriminant 都各算一次
-    if (cfg.polynomialIntersection) {
-      setTimeout(refreshPolynomialIntersections, 100);
-      setTimeout(refreshPolynomialIntersections, 300);
-    }
-    if (cfg.polynomialDiscriminant) {
-      setTimeout(refreshDiscriminant, 100);
-      setTimeout(refreshDiscriminant, 300);
+    // C2-2 修复：polynomial 模式订阅 function-plot 的 ready，替代 setTimeout(100/300)
+    // funcplot:ready 保证曲线已画完，此时 refreshPolynomialIntersections / refreshDiscriminant
+    // 能正确读到 function-plot 的 coeffs。
+    if (cfg.polynomialIntersection || cfg.polynomialDiscriminant) {
+      var polyReadyDone = { inter: false, disc: false };
+      function onFuncPlotReady() {
+        if (cfg.polynomialIntersection && !polyReadyDone.inter) {
+          polyReadyDone.inter = true;
+          refreshPolynomialIntersections();
+        }
+        if (cfg.polynomialDiscriminant && !polyReadyDone.disc) {
+          polyReadyDone.disc = true;
+          refreshDiscriminant();
+        }
+      }
+      // 订阅关联 function-plot 的 ready（detail.coordsId 标识它属于哪个 coords）
+      document.addEventListener('sc:funcplot:ready', function(ev) {
+        var fpId = (cfg.polynomialIntersection || cfg.polynomialDiscriminant).functionPlotId;
+        if (ev.target && ev.target.id === fpId) onFuncPlotReady();
+      });
+      // 兜底：function-plot 已 ready 过
+      var fpId = (cfg.polynomialIntersection || cfg.polynomialDiscriminant).functionPlotId;
+      var fpEl = fpId ? document.getElementById(fpId) : null;
+      if (fpEl && fpEl.__scApi) onFuncPlotReady();
     }
   }
 

@@ -701,17 +701,31 @@ ${geomUtilsJs}
       requestAnimationFrame(render);
     }
 
-    // 第一次画：等 coords 画完
+    // 第一次画：C2-2 修复 —— 订阅 coords-2d 的 ready 事件，
+    // 替代旧的 setTimeout(50/200/500) 猜测式时序。
+    // ready 事件保证 coords 已 init + 首次绘制完成，此时 ensureCanvasInjected 必然成功。
+    var firstRenderDone = false;
     function firstRender() {
-      if (!ensureCanvasInjected()) {
-        setTimeout(firstRender, 100);
-        return;
-      }
+      if (firstRenderDone) return;
+      if (!ensureCanvasInjected()) return; // ready 已发但 coords 异常，放弃（不再重试）
+      firstRenderDone = true;
       render();
+      // C2-2：通知下游（intersection-marker）曲线已画完，可叠交点
+      root.dispatchEvent(new CustomEvent('sc:funcplot:ready', {
+        detail: { coordsId: coordsId },
+        bubbles: true,
+      }));
     }
-    setTimeout(firstRender, 50);
-    setTimeout(firstRender, 200);
-    setTimeout(firstRender, 500);
+    // 订阅 ready（coords 画完通知）
+    document.addEventListener('sc:coords2d:ready', function(ev) {
+      if (!ev.target || ev.target.id !== coordsId) return;
+      firstRender();
+    });
+    // 兜底：若组件初始化时 coords 已经 ready 过（事件早于订阅），直接尝试一次
+    var coordsEl = getCoords();
+    if (coordsEl && coordsEl.__scApi) {
+      firstRender();
+    }
 
     // ============== API ==============
 
