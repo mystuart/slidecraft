@@ -95,12 +95,12 @@ function buildOgImage(title, subtitle) {
   </defs>
   <rect width="800" height="400" fill="url(#bg)"/>
   <g transform="translate(40, 40)" opacity="0.95" font-family="-apple-system,sans-serif">
-    <!-- 层叠卡片 mark（同 assets/logo-mark.svg，放左上作品牌锚点） -->
-    <rect x="6" y="42" width="64" height="64" rx="13" fill="#ffffff" opacity="0.18"/>
-    <rect x="26" y="26" width="64" height="64" rx="13" fill="#ffffff" opacity="0.32"/>
-    <rect x="46" y="10" width="64" height="64" rx="13" fill="#ffffff"/>
-    <!-- S 居中于前层（46,10 ~ 110,74 → center 78,42） -->
-    <text x="78" y="42" font-size="44" font-weight="800" fill="#8b7dd8" text-anchor="middle" dominant-baseline="middle">S</text>
+    <!-- 层叠卡片 mark（手牌扇开，同 assets/logo-mark.svg，放左上作品牌锚点） -->
+    <rect x="6" y="42" width="64" height="64" rx="13" fill="#ffffff" opacity="0.18" transform="rotate(-9 38 74)"/>
+    <rect x="16" y="30" width="64" height="64" rx="13" fill="#ffffff" opacity="0.32" transform="rotate(-4 48 62)"/>
+    <rect x="26" y="18" width="64" height="64" rx="13" fill="#ffffff"/>
+    <!-- S 居中于前层（26,18 ~ 90,82 → local center 58,50） -->
+    <text x="58" y="50" font-size="44" font-weight="800" fill="#8b7dd8" text-anchor="middle" dominant-baseline="middle">S</text>
   </g>
   <text x="200" y="180" font-family="-apple-system,sans-serif" font-size="42" font-weight="800" fill="white">Slidecraft</text>
   <text x="200" y="220" font-family="-apple-system,sans-serif" font-size="20" fill="white" opacity="0.85">${t}</text>

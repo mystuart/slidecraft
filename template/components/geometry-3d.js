@@ -1,7 +1,12 @@
 /**
  * @component geometry-3d
- * @version 0.1.9
+ * @version 0.2.0
  * @status 最小可用版
+ *
+ * v0.2.0 变更（autoRotate）：
+ *   - 新增 autoRotate / autoRotateSpeed 字段（OrbitControls 原生能力）
+ *   - 教学场景"展示旋转立体" + landing 装饰。默认关，配 autoRotate:true 开启
+ *   - 无需改 animate()——它已调 controls.update()，autoRotate 在 update() 内生效
  *
  * v0.1.9 变更（生命周期接入，架构债 H4）：
  *   - 全局 keydown 监听改具名 + 登记到句柄（多实例不再叠加拦截，destroy 移除）
@@ -34,6 +39,8 @@
  *   - faceColor     {string}   可选 · 面填充色（默认 #cce0ff）
  *   - vertexColor   {string}   可选 · 顶点球颜色（默认 #ff6b35）
  *   - opacity       {number}   可选 · 面填充透明度（0-1，默认 0.85）
+ *   - autoRotate    {bool}     可选 · 是否自动旋转（默认 false，OrbitControls 原生能力）
+ *   - autoRotateSpeed {number} 可选 · 自动旋转速度（默认 2.0，OrbitControls 标准；landing 装饰建议 1.0-1.5）
  *   - labels        {array}    可选 · 顶点标签 [text, [x,y,z], color?, fontSize?]
  *   - planes        {array}    可选 · 半透面 [{id, vertices:[lbl1,lbl2,lbl3], color, opacity}]
  *   - auxLines      {array}    可选 · 预置辅助线池 [{id, from, to, style, color, width, label}]
@@ -986,6 +993,12 @@ const clientJs = `
         };
       }
       controls.update();
+      // autoRotate（v0.2.0）：OrbitControls 原生能力，animate() 已调 controls.update() 自动生效
+      // 教学场景"展示一个旋转的立体" / landing 装饰用。默认关，配 autoRotate: true 开启
+      if (data.autoRotate) {
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = data.autoRotateSpeed || 2.0;
+      }
     }
 
     // ---- 7.4) 第三轴旋转（绕 Z 轴自转，OrbitControls 不暴露） ----
