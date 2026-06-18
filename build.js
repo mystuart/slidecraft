@@ -94,10 +94,17 @@ function buildOgImage(title, subtitle) {
     </linearGradient>
   </defs>
   <rect width="800" height="400" fill="url(#bg)"/>
-  <path d="M60 200 L100 160 L140 200 L100 240 Z" fill="none" stroke="white" stroke-width="3" opacity="0.4"/>
-  <text x="80" y="180" font-family="-apple-system,sans-serif" font-size="42" font-weight="800" fill="white">Slidecraft</text>
-  <text x="80" y="220" font-family="-apple-system,sans-serif" font-size="20" fill="white" opacity="0.85">${t}</text>
-  <text x="80" y="252" font-family="-apple-system,sans-serif" font-size="16" fill="white" opacity="0.7">${s}</text>
+  <g transform="translate(40, 40)" opacity="0.95" font-family="-apple-system,sans-serif">
+    <!-- 层叠卡片 mark（同 assets/logo-mark.svg，放左上作品牌锚点） -->
+    <rect x="6" y="42" width="64" height="64" rx="13" fill="#ffffff" opacity="0.18"/>
+    <rect x="26" y="26" width="64" height="64" rx="13" fill="#ffffff" opacity="0.32"/>
+    <rect x="46" y="10" width="64" height="64" rx="13" fill="#ffffff"/>
+    <!-- S 居中于前层（46,10 ~ 110,74 → center 78,42） -->
+    <text x="78" y="42" font-size="44" font-weight="800" fill="#8b7dd8" text-anchor="middle" dominant-baseline="middle">S</text>
+  </g>
+  <text x="200" y="180" font-family="-apple-system,sans-serif" font-size="42" font-weight="800" fill="white">Slidecraft</text>
+  <text x="200" y="220" font-family="-apple-system,sans-serif" font-size="20" fill="white" opacity="0.85">${t}</text>
+  <text x="200" y="252" font-family="-apple-system,sans-serif" font-size="16" fill="white" opacity="0.7">${s}</text>
 </svg>`;
   // URL 编码（data URI 要求）
   return 'data:image/svg+xml,' + encodeURIComponent(svg);
