@@ -222,6 +222,7 @@ async function buildFile(inputPath) {
     { marker: 'class="coords-2d"',     file: 'coords-2d.css' },
     { marker: 'class="function-plot"', file: 'function-plot.css' },
     { marker: 'class="intersection"',  file: 'intersection-marker.css' },
+    { marker: 'landing-hero',          file: 'landing.css' },
   ];
   const componentCssParts = [];
   for (const { marker, file } of COMPONENT_CSS) {

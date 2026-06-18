@@ -1,0 +1,167 @@
+/* @boundary landing.css — 落地页专属样式（仅 content/index.md 用）
+ *
+ * 守卫规则（CI 可扫）：
+ *   - 本文件只允许 .landing-* 选择器
+ *   - 不允许覆盖其他组件的核心样式（只能定位/遮挡）
+ *
+ * Lusion 风格：深色背景 + 文字与 3D 交叠（文字 z-index 在 3D 之上）
+ * 由 build.js 条件注入：仅当页面含 class="landing-hero" 时加载。
+ */
+
+/* ===== Hero 区：全屏深色 + 文字穿 3D ===== */
+.landing-hero {
+  position: relative;
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  background: #1a1a24;
+}
+
+/* 左侧文字区，z-index 高于 3D，文字"穿过去" */
+.landing-hero-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 640px;
+  padding: 4em 4em 4em 2em;
+  margin-left: 4%;
+}
+
+.landing-hero-title {
+  font-size: clamp(3.5rem, 9vw, 6.5rem);
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  margin: 0 0 0.3em 0;
+  letter-spacing: -0.04em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+}
+
+.landing-hero-subtitle {
+  font-size: clamp(1.3rem, 2.4vw, 1.8rem);
+  color: #ffffff;
+  opacity: 0.92;
+  margin: 0 0 1.2em 0;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.landing-hero-tagline {
+  font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+  color: #b8b0d0;
+  line-height: 1.7;
+  margin: 0 0 2.5em 0;
+  max-width: 480px;
+}
+
+/* CTA 按钮组 */
+.landing-hero-cta {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+}
+
+.landing-btn {
+  display: inline-block;
+  padding: 0.85em 1.8em;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+}
+
+.landing-btn-primary {
+  background: #8b7dd8;
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(139, 125, 216, 0.4);
+}
+
+.landing-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(139, 125, 216, 0.55);
+}
+
+.landing-btn-ghost {
+  background: transparent;
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.landing-btn-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+/* ===== 装饰 3D 三角柱：绝对定位浮在右侧背景，z-index 低于文字 ===== */
+.landing-hero + .geom-3d,
+.landing-hero ~ .geom-3d {
+  position: absolute;
+  top: 50%;
+  right: 2%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 42%;
+  max-width: 560px;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  opacity: 0.92;
+  pointer-events: auto;
+}
+
+/* 装饰态：去掉卡片 chrome，背景透明融入 hero */
+.landing-hero ~ .geom-3d .geom-3d-stage {
+  height: 60vh;
+  max-height: 540px;
+  background: transparent;
+}
+
+/* 隐藏交互提示徽章（装饰用，不需要"拖动旋转"提示） */
+.landing-hero ~ .geom-3d .geom-3d-hint {
+  display: none;
+}
+
+/* ===== 响应式：窄屏 3D 缩到背景位、文字居中 ===== */
+@media (max-width: 900px) {
+  .landing-hero {
+    min-height: auto;
+    padding: 3em 0 0 0;
+    flex-direction: column;
+  }
+
+  .landing-hero-inner {
+    order: 2;
+    padding: 2em 1.5em;
+    margin-left: 0;
+    text-align: center;
+    max-width: 100%;
+  }
+
+  .landing-hero-cta {
+    justify-content: center;
+  }
+
+  /* 窄屏：3D 放到文字上方，居中缩小，作为视觉引子 */
+  .landing-hero ~ .geom-3d {
+    position: relative;
+    order: 1;
+    top: auto;
+    right: auto;
+    transform: none;
+    width: 70%;
+    max-width: 360px;
+    margin: 2em auto 0 auto;
+    opacity: 0.7;
+  }
+
+  .landing-hero ~ .geom-3d .geom-3d-stage {
+    height: 280px;
+    max-height: 280px;
+  }
+}
