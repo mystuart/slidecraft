@@ -9,8 +9,16 @@
  */
 
 /* ===== Hero 区：全屏深色 + 文字穿 3D ===== */
+/* landing.css 只在含 landing-hero 的页面注入，所以给 article 加 position: relative
+   不影响其它页面（它们不加载本文件）。这让 geom-3d 的 absolute 定位相对 article 顶部，
+   对齐 hero 区，而不是相对整个文档乱跑。 */
+.article {
+  position: relative;
+}
+
 .landing-hero {
   position: relative;
+  z-index: 2;
   min-height: 88vh;
   display: flex;
   align-items: center;
@@ -96,13 +104,14 @@
   transform: translateY(-2px);
 }
 
-/* ===== 装饰 3D 三角柱：绝对定位浮在右侧背景，z-index 低于文字 ===== */
-.landing-hero + .geom-3d,
+/* ===== 装饰 3D 三角柱：绝对定位浮在 hero 右侧背景，z-index 低于文字 ===== */
+/* top 用 vh 单位（视口高度），对齐 hero 区（88vh 高，柱子居中在 44vh 处）。
+   不用 top:50%（那是相对 article 整页高度，会把柱子推到页面中部下方）。 */
 .landing-hero ~ .geom-3d {
   position: absolute;
-  top: 50%;
+  top: 0;
   right: 2%;
-  transform: translateY(-50%);
+  height: 88vh;
   z-index: 1;
   width: 42%;
   max-width: 560px;
@@ -113,13 +122,16 @@
   background: transparent;
   opacity: 0.92;
   pointer-events: auto;
+  display: flex;
+  align-items: center;
 }
 
 /* 装饰态：去掉卡片 chrome，背景透明融入 hero */
 .landing-hero ~ .geom-3d .geom-3d-stage {
   height: 60vh;
-  max-height: 540px;
+  max-height: 520px;
   background: transparent;
+  width: 100%;
 }
 
 /* 隐藏交互提示徽章（装饰用，不需要"拖动旋转"提示） */
