@@ -5,9 +5,10 @@
 > Write one Markdown, ship one self-contained interactive HTML.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Components: 23](https://img.shields.io/badge/components-23-green.svg)](./COMPONENTS.md)
+[![Version: 1.4.0](https://img.shields.io/badge/version-1.4.0-blue.svg)](./COMPONENTS.md)
+[![Components: 24](https://img.shields.io/badge/components-24-green.svg)](./COMPONENTS.md)
 
-**23 built-in components · single-file output · zero runtime · themable · print-friendly.**
+**24 built-in components · single-file output · zero runtime · themable · print-friendly.**
 
 Slidecraft is a Markdown-to-HTML compiler for interactive teaching material. You write structured Markdown with frontmatter and fenced component blocks; it compiles to one self-contained `.html` file you can email, host anywhere, or open offline. No JS framework, no build server, no runtime dependencies.
 
@@ -15,14 +16,14 @@ Slidecraft is a Markdown-to-HTML compiler for interactive teaching material. You
 
 ## Why Slidecraft
 
-| | Marp / Slidev | reveal.js | Reveal/Pandoc | **Slidecraft** |
-|---|---|---|---|---|
-| Runtime deps | Bundler / Vue | JS lib | JS lib | **Zero** |
-| Output | Deck / SPA | SPA | SPA | **Single HTML file** |
-| Components | ✅ (plugins) | ✅ (plugins) | ❌ | **✅ 23 built-in** |
-| Math (LaTeX) | via plugin | manual | ✅ | **✅ KaTeX, compile-time** |
-| 3D geometry | ❌ | ❌ | ❌ | **✅ Three.js, opt-in** |
-| Print / PDF | partial | ❌ | ✅ | **✅** |
+| | Marp | Slidev | reveal.js | Pandoc | **Slidecraft** |
+|---|---|---|---|---|---|
+| Runtime deps | Bundler | Vue / Vite | JS lib | None (CLI) | **Zero** |
+| Output | Deck / SPA | SPA | SPA | HTML / LaTeX | **Single HTML file** |
+| Components | ❌ | ✅ (plugins) | ✅ (plugins) | ❌ | **✅ 24 built-in** |
+| Math (LaTeX) | ❌ | via plugin | manual | ✅ | **✅ KaTeX, compile-time** |
+| 3D geometry | ❌ | ❌ | ❌ | ❌ | **✅ Three.js, opt-in** |
+| Print / PDF | partial | ❌ | ❌ | ✅ | **✅** |
 
 The differentiator: **everything compiles to a single static HTML file** with math rendered, 3D optional, zero runtime. Open it on any device, no server.
 
@@ -44,7 +45,7 @@ npm run build    # build all .md in content/
 npm test         # run tests (numeric algorithms + build validation)
 ```
 
-## Component overview (23 built-in)
+## Component overview (24 built-in)
 
 | Category | Component | What it does |
 |---|---|---|
@@ -69,7 +70,10 @@ npm test         # run tests (numeric algorithms + build validation)
 | | `coords-2d` | 2D coordinate system |
 | | `function-plot` | Function plotting |
 | | `intersection-marker` | Intersection points |
-| | + 2 more (slider, trajectory, tetra-equiv, cut-anim) | |
+| | `slider` | Slider (form-B: 3D vertex / 2D function coupling) |
+| | `trajectory` | Trajectory animation (slider-driven path) |
+| | `tetra-equiv` | Equivalent-volume tetrahedra |
+| | `cut-anim` | Cross-section animation |
 
 Full API: see [`template/components/*.js`](./template/components/) JSDoc headers, or [COMPONENTS.md](./COMPONENTS.md) (Chinese).
 
@@ -106,7 +110,7 @@ Any fenced code block with a component name becomes interactive:
 ```
 ````
 
-See [`content/components-showcase.md`](./content/components-showcase.md) → `dist/components-showcase.html` for live examples of all 17+ components.
+See [`content/components-showcase.md`](./content/components-showcase.md) → `dist/components-showcase.html` for live examples of all 24 components.
 
 ## Themes
 

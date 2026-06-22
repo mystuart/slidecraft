@@ -1,12 +1,13 @@
 {
   "name": "slidecraft",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
-  "description": "Interactive Slidecraft handouts from Markdown. 23 components · single-file · zero runtime.",
+  "description": "Interactive Slidecraft handouts from Markdown. 24 components · single-file · zero runtime.",
   "main": "build.js",
   "scripts": {
     "build": "node build.js",
     "build:watch": "node build.js --watch",
+    "build:three": "node_modules/.bin/esbuild three-bundle.js --bundle --format=iife --target=es2020 --minify --outfile=three-bundle.iife.js",
     "dev": "node build.js --watch & python3 -m http.server 8000 --directory dist",
     "test": "node --test \"test/**/*.test.js\"",
     "clean": "rm -rf dist/"

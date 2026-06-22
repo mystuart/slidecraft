@@ -12,17 +12,7 @@
 - **现有 UX 零影响**：destroy 仅在显式 `sc:destroy` 触发时跑，单页课件不触发 = 行为与今天完全一致。SPA 嵌入 / 热重载 / 多实例场景不再泄漏。
 
 ### KaTeX 公式渲染修复
-- **`$...# Changelog
-
-本项目的所有重要变更记录。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，
-但 Slidecraft 的版本 = 功能里程碑（每加一个体系 +0.1）。
-
- 正则错配 + CJK stderr 告警**（`_inline.js` v0.2.3、`renderer.js`）—— 原 regex 不识别 `$...$` display 分隔符，把 `$S_n=...$。中文，$O(1)# Changelog
-
-本项目的所有重要变更记录。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，
-但 Slidecraft 的版本 = 功能里程碑（每加一个体系 +0.1）。
-
- 串成跨段匹配，中文喂进 KaTeX 触发 26 条 `unicodeTextInMathMode` 告警 + 垃圾 katex-error span。**修复**：先剥 `$...$` 占位保护再匹配行内；KaTeX 调用统一加 `strict: 'ignore'`。产物 -199KB（全是错配产生的垃圾 error span）。
+- **行内 `$...$` 正则错配 + CJK stderr 告警**（`_inline.js` v0.2.3、`renderer.js`）—— 原 regex 不识别 `$...$` display 分隔符，把 `$S_n=...$。中文，$O(1)$` 这种「行内公式 + 中文句号 + 第二个行内公式」串成跨段匹配，中文喂进 KaTeX 触发 26 条 `unicodeTextInMathMode` 告警 + 垃圾 katex-error span。**修复**：先剥 `$...$` 占位保护再匹配行内；KaTeX 调用统一加 `strict: 'ignore'`。产物 -199KB（全是错配产生的垃圾 error span）。
 
 ### build.js 重构
 - **CSS 注入改表驱动**（消除 4 处重复条件块）—— `COMPONENT_CSS` 清单表循环加载 + join 拼接，单一同步点。新增组件 CSS 只需往表里加一行。
@@ -44,7 +34,7 @@
 - 版本号体系收敛：项目版本 = 里程碑号（1.0=MVP / 1.2=3D / 1.3=2D+通用叙事）
 - 内部占位符 `CW-*` → `SC-*`，过时命令引用修正
 
-### 新组件（组件数 16 → 23）
+### 新组件（组件数 17 → 24）
 - **timeline** — 时间线（vertical/horizontal 双模式，历史/流程）
 - **chart** — 数据图表（bar/line/pie 编译时静态 SVG）
 - **tabs** — 标签页切换（并列对比：多解法/多视角）
