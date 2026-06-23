@@ -1,14 +1,18 @@
 # Slidecraft
 
-[中文](./README.md) · **English**
+<p align="left">
+  <img src="./assets/logo.svg" alt="Slidecraft" width="240">
+</p>
+
+[中文](./README.md) · **English** · **[🎬 Live demo (landing)](https://mystuart.github.io/slidecraft/)**
 
 > Write one Markdown, ship one self-contained interactive HTML.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Version: 1.4.0](https://img.shields.io/badge/version-1.4.0-blue.svg)](./COMPONENTS.md)
-[![Components: 24](https://img.shields.io/badge/components-24-green.svg)](./COMPONENTS.md)
+[![Version: 1.5.0](https://img.shields.io/badge/version-1.5.0-blue.svg)](./CHANGELOG.md)
+[![Components: 25](https://img.shields.io/badge/components-25-green.svg)](./COMPONENTS.md)
 
-**24 built-in components · single-file output · zero runtime · themable · print-friendly.**
+**25 built-in components · single-file output · zero runtime · themable · print-friendly.**
 
 Slidecraft is a Markdown-to-HTML compiler for interactive teaching material. You write structured Markdown with frontmatter and fenced component blocks; it compiles to one self-contained `.html` file you can email, host anywhere, or open offline. No JS framework, no build server, no runtime dependencies.
 
@@ -20,7 +24,7 @@ Slidecraft is a Markdown-to-HTML compiler for interactive teaching material. You
 |---|---|---|---|---|---|
 | Runtime deps | Bundler | Vue / Vite | JS lib | None (CLI) | **Zero** |
 | Output | Deck / SPA | SPA | SPA | HTML / LaTeX | **Single HTML file** |
-| Components | ❌ | ✅ (plugins) | ✅ (plugins) | ❌ | **✅ 24 built-in** |
+| Components | ❌ | ✅ (plugins) | ✅ (plugins) | ❌ | **✅ 25 built-in** |
 | Math (LaTeX) | ❌ | via plugin | manual | ✅ | **✅ KaTeX, compile-time** |
 | 3D geometry | ❌ | ❌ | ❌ | ❌ | **✅ Three.js, opt-in** |
 | Print / PDF | partial | ❌ | ❌ | ✅ | **✅** |
@@ -45,7 +49,7 @@ npm run build    # build all .md in content/
 npm test         # run tests (numeric algorithms + build validation)
 ```
 
-## Component overview (24 built-in)
+## Component overview (25 built-in)
 
 | Category | Component | What it does |
 |---|---|---|
@@ -110,7 +114,7 @@ Any fenced code block with a component name becomes interactive:
 ```
 ````
 
-See [`content/components-showcase.md`](./content/components-showcase.md) → `dist/components-showcase.html` for live examples of all 24 components.
+See [`content/components-showcase.md`](./content/components-showcase.md) → `dist/components-showcase.html` for live examples of all 25 components.
 
 ## Themes
 

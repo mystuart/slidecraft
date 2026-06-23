@@ -1,8 +1,8 @@
 {
   "name": "slidecraft",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
-  "description": "Interactive Slidecraft handouts from Markdown. 24 components · single-file · zero runtime.",
+  "description": "Interactive Slidecraft handouts from Markdown. 25 components · single-file · zero runtime.",
   "main": "build.js",
   "scripts": {
     "build": "node build.js",

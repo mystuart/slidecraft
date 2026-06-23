@@ -1,13 +1,17 @@
 # Slidecraft
 
-**中文** · [English](./README.en.md)
+<p align="left">
+  <img src="./assets/logo.svg" alt="Slidecraft" width="240">
+</p>
+
+**中文** · [English](./README.en.md) · **[🎬 在线 demo（landing）](https://mystuart.github.io/slidecraft/)**
 
 > **写一个 Markdown，产出一个独立的 HTML 互动课件。**
-> 24 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好。
+> 25 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version: 1.4.0](https://img.shields.io/badge/version-1.4.0-blue.svg)](./COMPONENTS.md)
-[![Components: 24](https://img.shields.io/badge/components-24-green.svg)](./COMPONENTS.md)
+[![Version: 1.5.0](https://img.shields.io/badge/version-1.5.0-blue.svg)](./CHANGELOG.md)
+[![Components: 25](https://img.shields.io/badge/components-25-green.svg)](./COMPONENTS.md)
 [![Output: single .html](https://img.shields.io/badge/output-single%20.html-brightgreen.svg)](./dist)
 
 ---
@@ -67,7 +71,7 @@ npm test         # 跑测试（数值算法 / build 校验逻辑）
 | Marp | 浏览器 | 多文件 | ❌ | ⚠️ | ❌ |
 | Reveal.js | 浏览器 | 多文件 | ⚠️ | ✅ | ❌ |
 | Slidev | Node 服务 | 多文件 | ✅ | ✅ | ❌ |
-| **Slidecraft** | **零** | **单文件 HTML** | **✅ 24 个** | **✅ CSS 变量** | **✅** |
+| **Slidecraft** | **零** | **单文件 HTML** | **✅ 25 个** | **✅ CSS 变量** | **✅** |
 
 **Slidecraft 的核心差异**：产物是**单文件 HTML**，不是 Web 应用。这决定了它可以——
 
@@ -79,7 +83,7 @@ npm test         # 跑测试（数值算法 / build 校验逻辑）
 
 ---
 
-## 24 个内嵌组件速览
+## 25 个内嵌组件速览
 
 完整 API 见 [`template/components/*.js`](./template/components/) 顶部 JSDoc。
 
@@ -214,7 +218,7 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 | 文件 | 看点 |
 |---|---|
 | `content/index.md` | 项目 landing page（dark 主题，链向 showcase） |
-| `content/components-showcase.md` | 14 个组件 × 30+ 变体的大型 showcase |
+| `content/components-showcase.md` | 17 种组件 × 39 个 block 的大型 showcase |
 | `content/2d-components-showcase.md` | 2D 组件完整展示 |
 | `content/binary-card-trick.md` | 二进制与纸牌魔术的 6 章节课件 |
 | `content/dark-theme-test.md` | dark 主题视觉验证（背景/文字/边框可读性） |
@@ -254,7 +258,7 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 
 ## 路线图
 
-当前 24 个组件之外的候选（与 [SPEC.md §4.10](./SPEC.md#410-组件清单) 同步）：
+当前 25 个组件之外的候选（与 [SPEC.md §4.10](./SPEC.md#410-组件清单) 同步）：
 
 - `accordion`（折叠列表）—— 当前用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 内容量大时再加

@@ -3,6 +3,31 @@
 本项目的所有重要变更记录。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，
 但 Slidecraft 的版本 = 功能里程碑（每加一个体系 +0.1）。
 
+## [1.5.0] — 2026-06-18
+
+### 品牌升级（feat(brand) · 7412ef6）
+- **层叠卡片 Logo 定型**——`assets/logo.svg` / `logo-mark.svg` / `logo-mono-white.svg` / `logo-mark-32.svg` 4 件资产，"craft + slide" 双关语义 + Lusion 几何积木风格。Wordmark 跟 UI 字体统一（system sans 800），mark 永远 `#8b7dd8` 实心 + 白 S。
+- **favicon 32×32 优化版**——内联到 `template/index.html.tpl`（data URI），去掉半透深度层，16px 仍清晰。
+- **OG image 动态生成**——`build.js:buildOgImage()`，每个课件自动生成专属 Open Graph 图。
+- **品牌规范文档**——[`docs/brand.md`](./docs/brand.md)（89 行）锁定 logo 概念 / 资产清单 / 配色 / 排版 / 使用规则 / 设计决策记录，避免后人误改。
+
+### Landing 落地页（feat(landing) · 165c422 + e26c456 + 2010248）
+- **GitHub Pages 根页**——`content/index.md`（dark 主题），作为项目 landing，链向 showcase / 2d-showcase / binary-card-trick / how-to-create-skill 等亮点课件。
+- **Lusion 风格层叠布局**——`template/styles/landing.css`，卡片层叠 + 几何积木感 + 3D 旋转装饰（用 `autoRotate: true` 的 geometry-3d 做主视觉），与品牌 mark 视觉同源。
+- **CSS 表驱动自动接入**——`build.js:COMPONENT_CSS` 加 `landing-hero` marker → 自动注入 landing.css，无需改 build.js 其他地方。
+- **三角柱定位修复**（2010248）——landing 用 `<article class="landing-hero">` 包裹 3D 组件，相对 article 而非整页定位，hero 卡片缩放/位移时三角柱跟随。
+
+### geometry-3d autoRotate（feat(geometry-3d) · e9da11f · v0.1.9 → v0.2.0）
+- **新增 `autoRotate` / `autoRotateSpeed` 字段**——OrbitControls 原生能力，`animate()` 已调 `controls.update()` 自动生效。
+- **默认关**，配 `autoRotate: true` 开启。`autoRotateSpeed` 默认 2.0（OrbitControls 标准），landing 装饰建议 1.0-1.5。
+- **教学场景**：「展示旋转立体」/ 「演示正 n 面体对称性」/ landing 装饰。
+
+### npm 脚本完善
+- **`build:three` 暴露成 npm script**（package.json）—— 之前 build.js 第 306 行有 esbuild 命令字符串，但只埋在内部分支用，没暴露成 npm script。`npm run build:three` 现在一键打包 Three.js bundle。
+
+### 文档
+- 全部 README / CHANGELOG / package.json / docs/ 校对同步到本版本（**25 个组件数对齐**，quiz-track 算独立组件名）
+
 ## [1.4.0] — 2026-06-17
 
 ### 架构债清零（C2-4/5 + H4：组件生命周期）

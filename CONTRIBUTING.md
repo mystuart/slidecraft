@@ -8,13 +8,16 @@
 |------|------|----------|
 | `content/*.md` | 课件源文件 | 最高（换话题只改这里） |
 | `template/components/*.js` | 互动组件渲染器 | 中（加新组件时） |
-| `template/styles/main.css` | 所有样式 | 中（调主题/加组件样式） |
+| `template/styles/main.css` | 所有样式 + 主题 CSS 变量 | 中（调主题时） |
+| `template/styles/<组件>.css` | 组件专属 CSS（条件加载） | 低（仅新增组件 / 大改组件样式） |
+| `assets/` | Logo / favicon / OG image 等品牌资产 | 低 |
 | `template/index.html.tpl` | HTML 骨架 | 低 |
 | `build.js` | 编译脚本 | 低 |
 | `SPEC.md` | 设计规范（语法约定、组件清单、决策日志） | 低 |
 | `README.md` | 项目说明 | 低 |
 | `CONTRIBUTING.md` | 本文档 | 低 |
 | `COMPONENTS.md` | 组件登记簿（v0.x.x 状态、打磨参考、决策依据） | 低 |
+| `docs/` | 进阶 schema 与设计文档 | 低 |
 
 完整设计理念见 [SPEC.md](./SPEC.md)，组件状态见 [COMPONENTS.md](./COMPONENTS.md)。
 
@@ -30,12 +33,16 @@
 2. 在 `template/components/renderer.js` 里**两处**注册：
    - 顶部 `require` 块加一行：`const myComponent = require('./my-component.js');`
    - `COMPONENT_MAP` 加一条：`'my-component': myComponent,`（可顺手加 `mycomponent` / `my_component` 别名，写法参见同文件其他组件）
-3. 在 `template/styles/main.css` 加 `.my-component` 相关样式
+3. **CSS 表驱动注册**（不是写 if 块）：
+   - 新建 `template/styles/my-component.css`
+   - 在 `build.js` 的 `COMPONENT_CSS` 表里**加一行**：`{ marker: 'class="my-component"', file: 'my-component.css' },`（marker 是组件渲染产物的特征 class，build 会按需自动注入，未用到的课件零负担）
 4. 在 `template/components/my-component.js` **顶部 JSDoc 块**写字段表 + v0.x.x 版本号（信息源唯一化，避免再开一份散落文档）
 5. 在 [COMPONENTS.md](./COMPONENTS.md) 概览表加一条登记
 6. 如果有客户端 JS，在组件模块里导出 `clientJs` 字符串，并在 `renderer.js` 的 `collectClientScript()` 里加进拼接数组
 
-如果新组件需要复杂内联渲染（不只是 escape 后插文本），考虑复用 `template/components/_inline.js` 的 `processInline` 函数，避免重写 markdown 处理逻辑。
+> **为什么用表驱动而不是 if 块**：组件多了之后，每个组件的「marker 检测 + CSS 注入」会堆出 N 个重复条件分支。`COMPONENT_CSS` 表是单一同步点，加新组件只动一行，**改动的局部化让 build.js 永远保持可读**。
+>
+> **复杂内联渲染**：如果新组件需要复杂内联渲染（不只是 escape 后插文本），考虑复用 `template/components/_inline.js` 的 `processInline` 函数，避免重写 markdown 处理逻辑。
 
 ### 调整主题
 

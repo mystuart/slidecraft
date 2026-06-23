@@ -1,11 +1,14 @@
-# geometry-3d 组件 Schema（v0.1.8）
+# geometry-3d 组件 Schema（v0.2.0）
 
 > 目标：初高中立体几何教学 + 空间向量 + 解析几何的可视化
 > 参考借鉴：Mathigon textbooks、unconed/mathbox、euclid.js、Three.js demos
 > 核心约束：单 HTML 离线分发 / Markdown 写教案 / 不依赖 CDN
 > Three.js 默认坐标系 vs 项目约定：「B=原点，BA=+Y，BC=+X，**BB₁=+Z（垂直朝上**）」 —— 组件初始化时 `camera.up.set(0, 0, 1)` 校准。
 
-## 字段一览（v0.1.8 真实存在的字段）
+> **v0.2.0 变更**（commit e9da11f）：
+> - 新增 `autoRotate` / `autoRotateSpeed` 字段（OrbitControls 原生能力）—— 教学场景"展示旋转立体" + landing 装饰。默认关，配 `autoRotate: true` 开启。无需改 animate()，它已调 controls.update()，autoRotate 在 update() 内自动生效。
+
+## 字段一览（v0.2.0 真实存在的字段）
 
 ### 基础结构
 
@@ -152,6 +155,17 @@
 }
 ```
 
+### 自动旋转 `autoRotate`（v0.2.0 新增）
+
+| 字段 | 类型 | 默认 | 说明 |
+|------|------|------|------|
+| `autoRotate` | bool | `false` | 是否自动旋转（OrbitControls 原生能力） |
+| `autoRotateSpeed` | number | `2.0` | 旋转速度（OrbitControls 标准；landing 装饰建议 1.0-1.5） |
+
+> **实现**：animate() 已调 `controls.update()`，`controls.autoRotate = true` 后自动生效。无需在 animate 里手动调。**默认关**——教学场景默认关（学生主动操作旋转），配 `autoRotate: true` 开启用于「展示旋转立体」/ landing 装饰。
+>
+> **互动共存**：开启 autoRotate 后，用户拖动 / 滚轮缩放仍正常工作（OrbitControls 默认行为），松手继续自转。
+
 ### 教学化补充
 
 | 字段 | 类型 | 说明 |
@@ -161,15 +175,16 @@
 | `showDimensions` | bool | 是否标注长宽高 |
 | `dimensionUnit` | string | 长度单位，默认 `""` |
 
-## 交互（v0.1.7）
+## 交互（v0.2.0）
 
 - **拖动旋转**（azimuth + polar，OrbitControls 默认）
 - **Shift+拖动平移**（OrbitControls 默认）
 - **滚轮缩放**（OrbitControls 默认）
 - **A/D 或 ←/→ 键绕 Z 轴自转**（v0.1.6 新增，绕 BB₁ 方向，立体几何教学需求）
+- **自动旋转**（v0.2.0 新增，配 `autoRotate: true`）—— OrbitControls 原生自转，用户拖动/滚轮仍可介入
 - **双击几何体** = 以该几何体包围盒中心重置视角
 - **双击空白** = 全局复位到 schema 里 `camera.position` 初始视角
-- **右下角操作提示徽章**：🖱 拖动 / ⌨ A/D ←/→ / ⇧ Shift+拖动 / 🖲 滚轮 / ⏺ 双击
+- **右下角操作提示徽章**：🖱 拖动 / ⌨ A/D ←/→ / ⇧ Shift+拖动 / 🖲 滚轮 / 🌀 自动旋转（如开启） / ⏺ 双击
 
 ## 客户端 API（per-instance 闭包）
 

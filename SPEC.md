@@ -313,8 +313,9 @@ sections:
 - `math-step` — 分步解题（v0.2.1，step 高亮联动 geometry-3d）
 
 **3D 体系（v1.2.0 新增）**：
-- `geometry-3d` — 立体几何 3D 渲染（v0.1.7，WebGL/Three.js；触摸板 / Z 轴自转 / 三角面 / 派生顶点 / 辅助线池 / per-instance 闭包）
+- `geometry-3d` — 立体几何 3D 渲染（v0.2.0，WebGL/Three.js；触摸板 / Z 轴自转 / 三角面 / 派生顶点 / 辅助线池 / per-instance 闭包 / `autoRotate` 自转）
 - `slider` — 滑块联动 3D 命名顶点 + function-plot 参数（v0.1.2，新增 form-B 联动 2D）
+- `trajectory` — 轨迹动画（slider 联动画路径，v0.1.1）
 - `tetra-equiv` — 同体异构四面体（v0.1，等体积法可视化）
 - `cut-anim` — 剖切动画（v0.1，从多面体切出三棱锥）
 
