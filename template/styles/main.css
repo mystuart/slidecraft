@@ -1167,7 +1167,7 @@ details summary { cursor: pointer; font-weight: 600; }
   transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
 }
 .concept-card-item:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 .concept-card-icon {
@@ -1306,6 +1306,7 @@ details summary { cursor: pointer; font-weight: 600; }
   padding: 1em 1.2em;
   border-radius: var(--radius-md);
   border-left: 4px solid;
+  box-shadow: var(--shadow-sm);
   display: flex;
   gap: 0.8em;
   align-items: flex-start;
@@ -1332,15 +1333,20 @@ details summary { cursor: pointer; font-weight: 600; }
 .callout-content p:last-child { margin-bottom: 0; }
 
 .callout-tip { background: var(--color-success-bg); border-color: var(--color-success); }
-.callout-tip .callout-title { color: var(--color-primary-dark); }
+.callout-tip .callout-title { color: var(--color-on-success); }   /* 修：原 primary-dark 紫，与 success 语义不一致 */
+.callout-tip .callout-icon { color: var(--color-success); }
 .callout-warning { background: var(--color-warning-bg); border-color: var(--color-warning); }
 .callout-warning .callout-title { color: var(--color-on-warning); }
+.callout-warning .callout-icon { color: var(--color-warning); }
 .callout-info { background: var(--color-info-bg); border-color: var(--color-info); }
 .callout-info .callout-title { color: var(--color-on-info); }
+.callout-info .callout-icon { color: var(--color-info); }
 .callout-danger { background: var(--color-danger-bg); border-color: var(--color-danger); }
 .callout-danger .callout-title { color: var(--color-on-danger); }
+.callout-danger .callout-icon { color: var(--color-danger); }
 .callout-note { background: var(--color-primary-bg); border-color: var(--color-primary); }
 .callout-note .callout-title { color: var(--color-primary-dark); }
+.callout-note .callout-icon { color: var(--color-primary); }
 
 /* ============================================================
    响应式：移动端
@@ -2005,7 +2011,7 @@ details summary { cursor: pointer; font-weight: 600; }
   transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
 }
 .stat-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 .stat-value {
@@ -2253,6 +2259,41 @@ details summary { cursor: pointer; font-weight: 600; }
  * 本文件不允许出现以上四组前缀的选择器。
  * CI 守卫：grep -Pn '^\.(geom-3d|slider|tetra-equiv|cut-anim)' main.css 应无输出。
  */
+
+/* ============================================================
+   卡片 hover 一致性 + 按钮 active 按压（UI 升级 2/4）
+   把已有的 hover-lift idiom（concept-card / stat-card）扩展到更多卡片，
+   让交互感统一而非割裂。-1px 微抬 + shadow 升级 = premium 感不是\"弹\"。
+   ============================================================ */
+
+/* 扩展 hover lift 到原本静态的卡片（quiz / callout / step-guide / timeline-item / diagram）。
+   transition 用 token，属性显式（避免 transition:all 的 jank）。 */
+.quiz, .callout, .step-guide, .timeline-item, .diagram {
+  transition: transform var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out);
+}
+.quiz:hover, .callout:hover, .step-guide:hover,
+.timeline-item:hover, .diagram:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* 按钮 active 按压 snap（Apple/Linear 手感，最便宜的高级感）。
+   点击瞬间 scale(0.98) + 80ms snap，松开回弹。
+   仅 :active 触发，不影响 hover/默认态。 */
+button, .hero-cta, .quiz-check, .quiz-reset,
+.step-guide-tab, .tabs-label, .formula-source-toggle,
+.code-runner-toggle, .fill-blank-submit {
+  transition: transform var(--dur-base) var(--ease-out),
+              background var(--dur-fast) var(--ease-std),
+              box-shadow var(--dur-base) var(--ease-out);
+}
+button:active, .hero-cta:active, .quiz-check:active, .quiz-reset:active,
+.step-guide-tab:active, .tabs-label:active, .formula-source-toggle:active,
+.code-runner-toggle:active, .fill-blank-input:active {
+  transform: scale(0.98);
+  transition-duration: 80ms;
+}
 
 /* ============================================================
    动效无障碍 + 打印归零（全局兜底）
