@@ -1092,8 +1092,8 @@ details summary { cursor: pointer; font-weight: 600; }
   display: inline-block;
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--color-text-muted);
-  background: var(--color-code-bg);
+  color: var(--color-primary-dark);
+  background: var(--color-primary-bg);
   padding: 0.2em 0.8em;
   border-radius: 999px;
   margin-bottom: 0.7em;
@@ -1264,10 +1264,10 @@ details summary { cursor: pointer; font-weight: 600; }
   font-size: 0.78em;
   font-style: normal;
   padding: 0.15em 0.6em;
-  background: var(--color-code-bg, #f3f1f9);
-  border: 1px solid var(--color-border, #e3e0ee);
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-border);
   border-radius: 999px;
-  color: var(--color-text-muted);
+  color: var(--color-primary-dark);
   cursor: pointer;
   font-family: inherit;
   transition: background var(--dur-fast) var(--ease-std), color var(--dur-fast) var(--ease-std), border-color var(--dur-fast) var(--ease-std);
