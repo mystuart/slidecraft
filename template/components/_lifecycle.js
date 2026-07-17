@@ -111,4 +111,45 @@ function createLifecycle(rootEl) {
 `;
 }
 
-module.exports = { getLifecycleRuntime };
+// 卡片进场（IntersectionObserver + data-reveal）。
+// 与 createLifecycle 同源：observer 登记到 lifecycle，SPA 嵌入可销毁。
+// 走相同根号 [data-reveal] 入口，stagger 按"同父级兄弟序"设 --reveal-i，
+// 超过 6 走 min 截断（避免长列表越等越久）。reduced-motion 块在 main.css
+// 强制显示 + transform:none，所以即使不触发 observer 也无副作用。
+function getRevealRuntime() {
+  return `
+(function() {
+  var els = document.querySelectorAll('[data-reveal]');
+  if (els.length === 0 || !('IntersectionObserver' in window)) return;
+  // 同父级兄弟分组，按 DOM 顺序设 --reveal-i
+  var grouped = new Map();
+  els.forEach(function(el) {
+    var parent = el.parentElement;
+    if (!parent) return;
+    if (!grouped.has(parent)) grouped.set(parent, []);
+    grouped.get(parent).push(el);
+  });
+  grouped.forEach(function(siblings) {
+    siblings.forEach(function(el, i) {
+      el.style.setProperty('--reveal-i', i);
+    });
+  });
+  // observer：进入视口加 is-visible，触发后 unobserve（一次性）
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('is-visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+  els.forEach(function(el) { io.observe(el); });
+  // 登记到 lifecycle 句柄（SPA 嵌入 / 热重载场景可销毁）
+  if (typeof createLifecycle === 'function') {
+    createLifecycle(document.documentElement).observer(io);
+  }
+})();
+`;
+}
+
+module.exports = { getLifecycleRuntime, getRevealRuntime };

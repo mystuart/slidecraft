@@ -41,7 +41,7 @@ function renderStat(s) {
     const cls = isDown ? 'stat-trend-down' : 'stat-trend-up';
     trendHtml = `<span class="stat-trend ${cls}">${processInline(t)}</span>`;
   }
-  return `<div class="stat-card">
+  return `<div class="stat-card" data-reveal>
     <div class="stat-value">${processInline(value)}${unit ? `<span class="stat-unit">${processInline(unit)}</span>` : ''}</div>
     ${trendHtml}
     <div class="stat-label">${processInline(label)}</div>

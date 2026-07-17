@@ -57,7 +57,7 @@
  */
 
 const { escapeHtml } = require('./_inline.js');
-const { getLifecycleRuntime } = require('./_lifecycle.js');
+const { getLifecycleRuntime, getRevealRuntime } = require('./_lifecycle.js');
 
 const hero = require('./hero.js');
 const quiz = require('./quiz.js');
@@ -265,7 +265,7 @@ function collectClientScript() {
   const seen = new Set();
   // 生命周期 runtime 作为最前缀：保证 createLifecycle 在任何组件 init 前可用。
   // （架构债 C2-4/5 + H4：组件统一用 lifecycle 句柄登记可释放资源）
-  return [getLifecycleRuntime()]
+  return [getLifecycleRuntime(), getRevealRuntime()]
     .concat(Object.values(COMPONENT_MAP)
       .filter(c => {
         if (seen.has(c)) return false;

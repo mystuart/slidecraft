@@ -38,7 +38,7 @@ function renderItem(item, idx) {
   const description = item.description || '';
   const tag = item.tag ? `<span class="timeline-tag">${processInline(item.tag)}</span>` : '';
 
-  return `<li class="timeline-item">
+  return `<li class="timeline-item" data-reveal>
     <div class="timeline-marker"></div>
     <div class="timeline-time">${processInline(time)}</div>
     <div class="timeline-body">

@@ -72,7 +72,7 @@ function render(data) {
   return `<div class="concept-card" data-concept-id="${escapeHtml(id)}">
   <div class="concept-card-title">${processInline(title)}</div>
   <div class="concept-card-grid" data-cols="${columns}">
-    ${cards.map(c => `<div class="concept-card-item">
+    ${cards.map(c => `<div class="concept-card-item" data-reveal>
       ${renderIcon(c.icon, c.iconType)}
       <h3 class="concept-card-item-title">${processInline(c.title || '')}</h3>
       <p class="concept-card-item-desc">${processInline(c.desc || '')}</p>

@@ -35,7 +35,7 @@ function render(data) {
   const visualHtml = visual && visual.value
     ? `<div class="hero-visual" style="transform: rotate(${visual.rotated || 0}deg)">${escapeHtml(visual.value)}</div>`
     : '';
-  return `<section class="hero" id="hero">
+  return `<section class="hero" id="hero" data-reveal>
   <div class="hero-inner">
     ${emoji ? `<div class="hero-emoji">${escapeHtml(emoji)}</div>` : ''}
     <h1 class="hero-title">${escapeHtml(title)}</h1>
