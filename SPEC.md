@@ -18,14 +18,14 @@
 - **框架层（HTML/JS/CSS）**：导航、样式、各类互动组件的渲染逻辑
 - **编译时**：build 脚本读 markdown → 解析自定义组件 → 注入 HTML 模板 → 每个 markdown 输出一份独立 HTML（`dist/<name>.html`）
 
-下次换话题：复制整个 `courseware/` 文件夹 → 改 `content/xxx.md` → 跑 `node build.js` → 完事。
+下次换话题：复制整个 `slidecraft/` 文件夹 → 改 `content/xxx.md` → 跑 `node build.js` → 完事。
 
 ---
 
 ## 2. 文件结构
 
 ```
-courseware/
+slidecraft/
 ├── SPEC.md                       # 本文档（设计规范）
 ├── README.md                     # 使用说明
 ├── COMPONENTS.md                 # 组件登记簿（v0.x.x 状态、打磨参考、决策依据）
