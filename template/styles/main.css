@@ -397,18 +397,27 @@ details summary { cursor: pointer; font-weight: 600; }
   display: inline-block;
   margin-top: 2.5em;
   padding: 0.8em 1.8em;
-  background: var(--color-primary);
+  /* 2-stop 同色相渐变（紫→深紫），非彩虹；背景放大 200% 供 hover 偏移 */
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)) no-repeat;
+  background-size: 200% 200%;
+  background-position: 0% 0%;
   color: var(--color-on-primary);
   border-radius: 999px;
   font-weight: 600;
   font-size: var(--font-body);
   text-decoration: none;
-  transition: transform var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+  /* 软发光（同色相 tinted shadow，非霓虹）—— 全场唯一渐变元素，孤立的高光时刻（Lusion 原则） */
+  box-shadow: 0 4px 14px rgba(108, 93, 184, 0.25);
+  transition: transform var(--dur-base) var(--ease-out),
+              background-position var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out);
 }
 .hero-cta:hover {
-  opacity: 0.88;
+  /* 加深而非 opacity 变淡：渐变偏移到深端 + shadow 扩 + 微抬 */
+  background-position: 100% 100%;
   text-decoration: none;
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(108, 93, 184, 0.35);
 }
 .hero-visual {
   font-size: 22rem;
