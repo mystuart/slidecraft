@@ -306,7 +306,8 @@ details summary { cursor: pointer; font-weight: 600; }
   line-height: 1.4;
   border-left: 3px solid transparent;
   transition: background var(--dur-fast) var(--ease-std),
-              color var(--dur-fast) var(--ease-std);
+              color var(--dur-fast) var(--ease-std),
+              transform var(--dur-base) var(--ease-out);
 }
 .side-nav a::before {
   content: counter(nav-counter) ". ";
@@ -334,6 +335,7 @@ details summary { cursor: pointer; font-weight: 600; }
   background: var(--color-primary-bg);
   color: var(--color-primary-dark);
   text-decoration: none;
+  transform: translateY(-1px);   /* 微抬呼应整页\"活着\"的交互感（与卡片 hover 同 idiom） */
 }
 .side-nav a.is-active {
   background: var(--color-primary-bg);
