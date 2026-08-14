@@ -6,7 +6,7 @@
     <rect x="11" y="14" width="34" height="34" rx="7" fill="#ffffff" opacity="0.55" transform="rotate(-4 28 31)"/>
     <rect x="16" y="8" width="34" height="34" rx="7" fill="#ffffff"/>
     <!-- S 用品牌紫（与白前层对比，反相版的视觉锚点） -->
-    <text x="33" y="25" font-size="24" font-weight="800" fill="#8b7dd8" text-anchor="middle" dominant-baseline="middle">S</text>
+    <text x="33" y="25" font-size="24" font-weight="800" fill="#7e6cc8" text-anchor="middle" dominant-baseline="middle">S</text>
     <!-- wordmark -->
     <text x="66" y="42" font-size="30" font-weight="800" fill="#ffffff" letter-spacing="-0.5">Slidecraft</text>
   </g>

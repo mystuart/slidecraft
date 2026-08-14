@@ -123,7 +123,7 @@ Slidecraft v1.3.0 新增 4 个 2D 组件：坐标系 + 函数图像 + 交点 + �
       "id": "f1",
       "type": "polynomial",
       "params": { "coeffs": [1, -2, -3] },
-      "color": "#8b7dd8",
+      "color": "#7e6cc8",
       "width": 2.5,
       "label": "y = x² - 2x - 3"
     }
@@ -236,7 +236,7 @@ v0.1.0 共 5 种曲线，本节验证非多项式的 4 种：sine / cosine / con
       "id": "s1",
       "type": "sine",
       "params": { "amp": 1, "freq": 1, "phase": 0, "offset": 0 },
-      "color": "#8b7dd8",
+      "color": "#7e6cc8",
       "width": 2.5
     }
   ],
@@ -475,7 +475,7 @@ v0.1.0 共 5 种曲线，本节验证非多项式的 4 种：sine / cosine / con
       "id": "e3",
       "type": "conic_ellipse",
       "params": { "a": 3, "b": 2 },
-      "color": "#8b7dd8",
+      "color": "#7e6cc8",
       "width": 2.5
     }
   ]
@@ -540,7 +540,7 @@ v0.1.0 共 5 种曲线，本节验证非多项式的 4 种：sine / cosine / con
       "id": "parabola",
       "type": "polynomial",
       "params": { "coeffs": [1, 0, 0] },
-      "color": "#8b7dd8",
+      "color": "#7e6cc8",
       "width": 2.5
     },
     {

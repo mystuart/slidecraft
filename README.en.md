@@ -9,7 +9,7 @@
 > Write one Markdown, ship one self-contained interactive HTML.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Version: 1.5.0](https://img.shields.io/badge/version-1.5.0-blue.svg)](./CHANGELOG.md)
+[![Version: 1.5.0](https://img.shields.io/badge/version-1.6.0-blue.svg)](./CHANGELOG.md)
 [![Components: 25](https://img.shields.io/badge/components-25-green.svg)](./COMPONENTS.md)
 
 **25 built-in components · single-file output · zero runtime · themable · print-friendly.**

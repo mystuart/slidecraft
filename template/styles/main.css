@@ -10,7 +10,8 @@
   --color-primary-light: #cfc4ec;
   --color-primary-bg: #f4f1fb;
   --color-accent: #b78af0;
-  --color-accent-warm: #c9944a;         /* 暖金 secondary：数字、序号、小高光 */
+  --color-accent-warm: #c9944a;         /* 暖金 secondary（仅装饰：光条/背景点缀） */
+  --color-accent-warm-text: #8a6420;    /* 文字用暖金（code/nav 序号，AA 4.85:1 达标） */
   --color-accent-warm-bg: #faf3e8;
   --color-bg: #f5f3fa;
   --color-surface: #ffffff;
@@ -45,7 +46,7 @@
   --radius-lg: 20px;
   /* 背景纹理 token：dot grid + 顶部色晕（body 用，dark 主题覆盖） */
   --bg-dots: rgba(107, 101, 128, 0.05);
-  --bg-wash: rgba(139, 125, 216, 0.06);
+  --bg-wash: rgba(126, 108, 200, 0.06);
   /* 分层阴影 v2：三层递进，blur 更大 alpha 更低，深度更「透气」 */
   --shadow-sm:
     0 1px 2px rgba(60, 40, 120, 0.05),
@@ -96,6 +97,7 @@
   --color-primary-bg: #2a2438;
   --color-accent: #b896ff;
   --color-accent-warm: #d4a86a;
+  --color-accent-warm-text: #d4a86a;   /* dark 底上原值已达标（6.52:1），与装饰色同值 */
   --color-accent-warm-bg: #33291a;
   --color-bg: #1a1a24;
   --color-surface: #252430;
@@ -215,7 +217,7 @@ code {
   padding: 0.15em 0.45em;
   border-radius: var(--radius-sm);
   font-size: 0.88em;
-  color: var(--color-accent-warm);
+  color: var(--color-accent-warm-text);   /* 文字用暖金：浅色主题 AA 达标（原 #c9944a 仅 2.44:1） */
   font-weight: 500;
 }
 pre {
@@ -388,7 +390,7 @@ details summary { cursor: pointer; font-weight: 600; }
 }
 .side-nav a::before {
   content: counter(nav-counter, decimal-leading-zero);
-  color: var(--color-accent-warm);
+  color: var(--color-accent-warm-text);   /* 小字用暖金文字版（AA 达标） */
   font-weight: 700;
   font-size: 0.82em;
   margin-right: 0.5em;
@@ -2564,14 +2566,17 @@ button:active, .hero-cta:active, .quiz-check:active, .quiz-reset:active,
    进场后立即设 is-visible，320ms fade + 8px 上滑；stagger 60ms × 同父级兄弟序。
    --reveal-i 由 _lifecycle.js runtime 注入（每父级内 0..N，超过 6 走 min 截断）。 */
 @media (prefers-reduced-motion: no-preference) {
-  [data-reveal] {
+  /* 隐藏态以 html.js-reveal 为前提（_lifecycle.js runtime 确认 IO 可用后添加）。
+     渐进增强：JS 挂掉 / 被拦截 / 不支持 IntersectionObserver 时不加 class，
+     元素直接可见——内容永不因动画而丢失。 */
+  html.js-reveal [data-reveal] {
     opacity: 0;
     transform: translateY(8px);
     transition: opacity 320ms var(--ease-out),
                 transform 320ms var(--ease-out);
     transition-delay: calc(min(var(--reveal-i, 0), 6) * 60ms);
   }
-  [data-reveal].is-visible {
+  html.js-reveal [data-reveal].is-visible {
     opacity: 1;
     transform: none;
   }
@@ -2610,6 +2615,17 @@ button:active, .hero-cta:active, .quiz-check:active, .quiz-reset:active,
   [data-reveal] {
     opacity: 1 !important;
   }
+  /* 装饰性伪元素光条/渐变线打印归零（省墨 + 黑白打印不出灰条）。
+     内容性伪元素（callout::before 语义色条、a[href]::after 链接展开）保留。 */
+  h2::after, .sidebar-brand::after, .sidebar-footer::before,
+  .step-guide-title::after, .math-step-title::after, .math-step::before,
+  .timeline-heading::after, .chart-title::after, .stat-grid-heading::after,
+  .diagram-heading::after, .hero::after, .quiz::before, .quiz-carousel::before,
+  .fill-blank::before, blockquote::before {
+    display: none !important;
+  }
+  /* code/pre 的暖金底打印还原为灰底（色块耗墨且黑白下不友好） */
+  code { background: #f2f2f2 !important; color: #333 !important; }
   /* focus ring 在纸上没意义，去掉 */
   :focus-visible { outline: none; }
 }

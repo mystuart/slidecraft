@@ -3,6 +3,34 @@
 本项目的所有重要变更记录。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，
 但 Slidecraft 的版本 = 功能里程碑（每加一个体系 +0.1）。
 
+## [1.6.0] — 2026-06-18
+
+### UI/UX 全局升级（token → hover → CTA → 进场动画，4 commits + Bunny 2 commits）
+
+**设计 token 地基**：
+- 动效 token（`--ease-out/-std` + `--dur-fast/base/slow`），统一全场 22 处散落的 duration/easing
+- 分层阴影 v2（ambient + directional 三层栈，紫色 tint）
+- 全局 `:focus-visible`（修全场零 focus ring + `outline:none` 无替代）—— WCAG 2.4.13
+- `transition: all` 全部改显式属性；`prefers-reduced-motion` + print 全局兜底
+
+**交互一致性**：
+- 卡片 hover lift 统一 -1px + shadow 升级（quiz/callout/step-guide/timeline/diagram 补齐）
+- 按钮 `:active` 按压 snap（scale 0.98 + 80ms）
+- callout 补 shadow、tip 标题色修语义、图标 per-type 染色
+- sidebar 滑动高亮条（`::after` scaleY）+ hover 微抬
+
+**视觉质感（Bunny）**：
+- 品牌紫加深 `#8b7dd8→#7e6cc8`、新增暖金 secondary（`accent-warm`）
+- body dot grid 纹理 + 顶部色晕（iOS 触屏降级 scroll，桌面保留 fixed 视差）
+- 全部 `border-left 4px` 实心 → primary→accent 渐变光条（12 处统一品牌签名）
+- 组件标题 dashed 下划线 → 渐变短线；radius 7/12/20；sidebar 渐变背景 + leading-zero 序号
+- hero CTA 渐变发光（全场唯一渐变元素）；卡片交错进场（IntersectionObserver + stagger，data-reveal）
+
+**本轮 5.3 复审修复**：
+- **品牌色分裂修复**：Bunny 改了 main.css primary 但 logo/favicon/OG/landing/brand.md 未同步——全量统一到 `#7e6cc8`（含 rgba 形式的 bg-wash）
+- **data-reveal 渐进增强**：进场动画隐藏态改以 `html.js-reveal` 为前提（JS 挂掉/被拦截/无 IO 时内容直接可见，18 个产物页面的内容丢失风险清零）
+- **暖金文字对比度**：code/nav 序号 `#c9944a`（2.44:1 不达标）→ 新 token `--color-accent-warm-text: #8a6420`（4.85:1 AA 达标），dark 主题维持 6.52:1
+
 ## [1.5.0] — 2026-06-18
 
 ### 品牌升级（feat(brand) · 7412ef6）

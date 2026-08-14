@@ -121,6 +121,10 @@ function getRevealRuntime() {
 (function() {
   var els = document.querySelectorAll('[data-reveal]');
   if (els.length === 0 || !('IntersectionObserver' in window)) return;
+  // 渐进增强标记：确认 JS 已执行 + IO 可用后才加 class。
+  // main.css 的 [data-reveal] 隐藏态以 html.js-reveal 为前提——
+  // JS 挂掉 / 被拦截 / 不支持 IO 时不加 class，元素直接可见，内容永不丢失。
+  document.documentElement.classList.add('js-reveal');
   // 同父级兄弟分组，按 DOM 顺序设 --reveal-i
   var grouped = new Map();
   els.forEach(function(el) {

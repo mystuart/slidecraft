@@ -33,12 +33,14 @@ favicon 已内联到 `template/index.html.tpl`（data URI），OG image 由 `bui
 
 | 角色 | Hex | 用法 |
 |------|-----|------|
-| **品牌紫（primary）** | `#8b7dd8` | mark 前层实心、wordmark 主色、CTA 按钮 |
-| **深紫（primary-dark）** | `#6c5db8` | mark 后层角（favicon 深度暗示）、渐变深端 |
+| **品牌紫（primary）** | `#7e6cc8` | mark 前层实心、wordmark 主色、CTA 按钮 |
+| **深紫（primary-dark）** | `#5f4dab` | mark 后层角（favicon 深度暗示）、渐变深端 |
 | **白** | `#ffffff` | mark 前层的 `S`、反相版全色 |
 | **文字主色** | `#2a2538` | wordmark 在浅色背景（= `--color-text`） |
 
-**与主题系统的关系**：品牌紫 `#8b7dd8` = `--color-primary`（lavender 主题）。dark 主题用 `#a995e0`，logo mark 不随主题变色——**mark 永远是 `#8b7dd8` 实心 + 白 S**，保证跨主题一致性。深色背景改用 `logo-mono-white.svg`。
+**与主题系统的关系**：品牌紫 `#7e6cc8` = `--color-primary`（lavender 主题）。dark 主题用 `#a995e0`，logo mark 不随主题变色——**mark 永远是 `#7e6cc8` 实心 + 白 S**，保证跨主题一致性。深色背景改用 `logo-mono-white.svg`。
+
+> **变更记录**：2026-06-18 品牌紫 `#8b7dd8` → `#7e6cc8`、深紫 `#6c5db8` → `#5f4dab`（视觉质感升级，main.css / logo SVG / favicon / OG image / landing 全量同步）。历史课件产物里的旧色 logo 以 build 时间为准，重 build 即统一。
 
 ---
 
@@ -62,7 +64,7 @@ favicon 已内联到 `template/index.html.tpl`（data URI），OG image 由 `bui
 
 ### ❌ 误用
 
-- **不改色**：mark 永远 `#8b7dd8` + 白 S。不要换成其他主题色 / 渐变 / 描边
+- **不改色**：mark 永远 `#7e6cc8` + 白 S。不要换成其他主题色 / 渐变 / 描边
 - **不拉伸**：保持比例，不要压扁 / 拉长
 - **不加投影**：logo 本身用层叠制造深度，外加 drop-shadow 会显脏
 - **不旋转**：mark 的阶梯方向是设计语言的一部分，不要翻转 / 旋转

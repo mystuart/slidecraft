@@ -83,7 +83,7 @@
 }
 
 .landing-btn-primary {
-  background: #8b7dd8;
+  background: #7e6cc8;
   color: #ffffff;
   /* 软化对齐 hero-cta：数值/颜色/alpha 完全一致（两处 CTA 风格统一） */
   box-shadow: 0 4px 14px rgba(108, 93, 184, 0.25);

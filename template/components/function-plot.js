@@ -354,7 +354,7 @@ ${geomUtilsJs}
       var yRange = coordsApi.getYRange();
 
       var coeffs = fn.params.coeffs || [];
-      var color = fn.color || '#8b7dd8';
+      var color = fn.color || '#7e6cc8';
       var w = fn.width || 2;
       ctx.strokeStyle = color;
       ctx.lineWidth = w;
@@ -388,7 +388,7 @@ ${geomUtilsJs}
       var phase = fn.params.phase || 0;
       var offset = fn.params.offset || 0;
       var f = fn.type === 'sine' ? Math.sin : Math.cos;
-      var color = fn.color || '#8b7dd8';
+      var color = fn.color || '#7e6cc8';
       var w = fn.width || 2;
       var scale = coordsApi.getScale();
       if (!scale) return;
@@ -418,7 +418,7 @@ ${geomUtilsJs}
       var a = fn.params.a != null ? fn.params.a : 1;
       var b = fn.params.b != null ? fn.params.b : 1;
       var cx = fn.params.cx || 0, cy = fn.params.cy || 0;
-      var color = fn.color || '#8b7dd8';
+      var color = fn.color || '#7e6cc8';
       var w = fn.width || 2;
       ctx.strokeStyle = color;
       ctx.lineWidth = w;
@@ -508,7 +508,7 @@ ${geomUtilsJs}
       var b = fn.params.b != null ? fn.params.b : 1;
       var cx = fn.params.cx || 0, cy = fn.params.cy || 0;
       var xRange = coordsApi.getXRange();
-      var color = fn.color || '#8b7dd8';
+      var color = fn.color || '#7e6cc8';
       var w = fn.width || 2;
       ctx.strokeStyle = color;
       ctx.lineWidth = w;
@@ -567,7 +567,7 @@ ${geomUtilsJs}
       var vy = fn.params.vertex ? fn.params.vertex[1] : 0;
       var xRange = coordsApi.getXRange();
       var yRange = coordsApi.getYRange();
-      var color = fn.color || '#8b7dd8';
+      var color = fn.color || '#7e6cc8';
       var w = fn.width || 2;
       ctx.strokeStyle = color;
       ctx.lineWidth = w;

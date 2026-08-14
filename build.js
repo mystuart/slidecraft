@@ -89,7 +89,7 @@ function buildOgImage(title, subtitle) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#8b7dd8"/>
+      <stop offset="0" stop-color="#7e6cc8"/>
       <stop offset="1" stop-color="#6b5db0"/>
     </linearGradient>
   </defs>
@@ -100,7 +100,7 @@ function buildOgImage(title, subtitle) {
     <rect x="16" y="30" width="64" height="64" rx="13" fill="#ffffff" opacity="0.32" transform="rotate(-4 48 62)"/>
     <rect x="26" y="18" width="64" height="64" rx="13" fill="#ffffff"/>
     <!-- S 居中于前层（26,18 ~ 90,82 → local center 58,50） -->
-    <text x="58" y="50" font-size="44" font-weight="800" fill="#8b7dd8" text-anchor="middle" dominant-baseline="middle">S</text>
+    <text x="58" y="50" font-size="44" font-weight="800" fill="#7e6cc8" text-anchor="middle" dominant-baseline="middle">S</text>
   </g>
   <text x="200" y="180" font-family="-apple-system,sans-serif" font-size="42" font-weight="800" fill="white">Slidecraft</text>
   <text x="200" y="220" font-family="-apple-system,sans-serif" font-size="20" fill="white" opacity="0.85">${t}</text>

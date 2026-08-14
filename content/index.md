@@ -35,7 +35,7 @@ sections:
   "showEdges": true,
   "showFaces": true,
   "edgeColor": "#4a4260",
-  "faceColor": "#8b7dd8",
+  "faceColor": "#7e6cc8",
   "opacity": 0.85,
   "camera": { "position": [3.2, 2.6, 3.8], "target": [0, 0, 0.8], "fov": 45 }
 }
