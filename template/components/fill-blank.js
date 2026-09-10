@@ -1,6 +1,6 @@
 /**
  * @component fill-blank
- * @version 0.2.1
+ * @version 0.3.1
  * @status 打磨完成
  *
  * 填空题组件（单空 / 多空）
@@ -16,6 +16,16 @@
  *   - mode        {'reveal'|'practice'}   可选 · 答错时是否显示 hint/答案。默认 'reveal'，'practice' 答错只显示对错。
  *
  * 比对规则：不区分大小写、忽略首尾空格；按位置独立判 ✓ / ✗。
+ *
+ * v0.3.1 变更：
+ *   - 修复「单空省占位」模式静默空转：题面无 {{n}} 占位时（如 "……等于十进制 __" 旧写法），
+ *     blankCount=0 导致 answers 被截成 []、渲染出 0 个输入框。现在整题视为一个空，
+ *     输入框附在题面末尾（binary-card-trick / how-to-create-skill 各 2 道题受益）
+ *   - answers/answer 字段缺失改为 throw（没有答案的填空题没有意义）
+ *
+ * v0.3.0 变更：
+ *   - 学习进度持久化：输入中的值实时保存（checked:false），提交判分后保存判分态（checked:true），
+ *     刷新/重开自动恢复——checked 时重放 check() 走同一套判分/反馈链路。重做即清除。
  *
  * v0.2.1 变更：
  *   - 修复占位编号乱序/跳号/重复时 input 索引错位的 bug：render 时校验编号必须 1, 2, 3 ... 连续且唯一，违反则 throw 自描述错误
@@ -40,7 +50,14 @@ function normalizeBlanksSpec(question, answers) {
   while ((m = re.exec(question)) !== null) {
     numbers.push(parseInt(m[1], 10));
   }
-  const blankCount = numbers.length;
+  let blankCount = numbers.length;
+
+  // answers 缺失直接报错（fill-blank 没有答案就没有意义，静默渲染只会产出空转的题）
+  if (answers === undefined || answers === null) {
+    throw new Error(
+      `[fill-blank] 缺少 answers（或旧字段 answer）。题目必须有答案才能判分。`
+    );
+  }
 
   // 校验 1：编号必须从 1 开始连续（{{1}} {{2}} {{3}} ...）
   for (let i = 0; i < numbers.length; i++) {
@@ -63,6 +80,12 @@ function normalizeBlanksSpec(question, answers) {
     seen.add(numbers[i]);
   }
 
+  // SPEC 承诺：单空可省占位——题面一个 {{n}} 都没有时，整题视为一个空，
+  // 输入框附在题面末尾。此前该模式渲染出 0 个输入框（blankCount=0 → answers 被截成 []），
+  // binary-card-trick / how-to-create-skill 里的 `__` 写法全部静默空转（v0.3.1 修复）。
+  const noPlaceholder = blankCount === 0;
+  if (noPlaceholder) blankCount = 1;
+
   // answers 数组归一化：每项是 string[]（等价集合）
   let normAnswers;
   if (Array.isArray(answers)) {
@@ -80,7 +103,7 @@ function normalizeBlanksSpec(question, answers) {
   while (normAnswers.length < blankCount) normAnswers.push(['']);
   if (normAnswers.length > blankCount) normAnswers = normAnswers.slice(0, blankCount);
 
-  return { blankCount, normAnswers, re };
+  return { blankCount, normAnswers, re, noPlaceholder };
 }
 
 function render(data) {
@@ -89,14 +112,15 @@ function render(data) {
   const hint = data.hint || '';
   const placeholder = data.placeholder || '在此输入答案';
   const mode = data.mode === 'practice' ? 'practice' : 'reveal';
-  const { blankCount, normAnswers, re } = normalizeBlanksSpec(question, data.answers !== undefined ? data.answers : data.answer);
+  const { blankCount, normAnswers, re, noPlaceholder } = normalizeBlanksSpec(question, data.answers !== undefined ? data.answers : data.answer);
 
   // 把 {{n}} 替换成 <input class="fill-blank-input" data-blank-idx="n">
+  // 无占位单空模式：输入框附在题面末尾（v0.3.1，修复 `__` 写法静默空转）
   // 题面其余文字走 escapeHtml 防 XSS
-  const questionHtml = escapeHtml(question).replace(re, (_, n) => {
-    const idx = parseInt(n, 10) - 1;
-    return `<input class="fill-blank-input" type="text" data-blank-idx="${idx}" placeholder="${escapeHtml(placeholder)}" autocomplete="off">`;
-  });
+  const inputHtml = (idx) => `<input class="fill-blank-input" type="text" data-blank-idx="${idx}" placeholder="${escapeHtml(placeholder)}" autocomplete="off">`;
+  const questionHtml = noPlaceholder
+    ? escapeHtml(question) + ' ' + inputHtml(0)
+    : escapeHtml(question).replace(re, (_, n) => inputHtml(parseInt(n, 10) - 1));
 
   const controlsHtml = blankCount > 1 ? `
     <div class="fill-blank-progress">
@@ -134,6 +158,13 @@ document.querySelectorAll('.fill-blank').forEach(function(fb) {
   var answer = fb.querySelector('.fill-blank-answer');
   var countEl = fb.querySelector('.fill-blank-progress-count');
   var barEl = fb.querySelector('.fill-blank-progress-bar');
+  var progressId = 'fillblank:' + (fb.getAttribute('data-fillblank-id') || '');
+
+  function persistValues(checked) {
+    if (!window.__SCProgress) return;
+    var vals = Array.prototype.map.call(inputs, function(i) { return i.value; });
+    window.__SCProgress.save(progressId, { values: vals, checked: !!checked });
+  }
 
   function normalize(s) {
     return String(s || '').trim().toLowerCase();
@@ -191,6 +222,7 @@ document.querySelectorAll('.fill-blank').forEach(function(fb) {
       feedback.innerHTML = '';
       hideAnswer();
       updateProgress();
+      persistValues(false);
       return;
     }
     feedback.className = 'fill-blank-feedback';
@@ -213,6 +245,8 @@ document.querySelectorAll('.fill-blank').forEach(function(fb) {
       }
     }
     updateProgress();
+    // 提交后保存判分态（恢复时重放 check()，反馈/进度条与真人提交完全一致）
+    persistValues(true);
   }
 
   submit.addEventListener('click', check);
@@ -223,6 +257,8 @@ document.querySelectorAll('.fill-blank').forEach(function(fb) {
     inp.addEventListener('input', function() {
       inp.classList.remove('is-correct', 'is-wrong');
       hideAnswer();
+      // 输入中的内容实时保存（未判分态），刷新后还在
+      persistValues(false);
     });
   });
   reset.addEventListener('click', function() {
@@ -231,8 +267,20 @@ document.querySelectorAll('.fill-blank').forEach(function(fb) {
     feedback.innerHTML = '';
     hideAnswer();
     updateProgress();
+    if (window.__SCProgress) window.__SCProgress.clear(progressId);
     if (inputs[0]) inputs[0].focus();
   });
+
+  // 进度恢复：先回填输入值；已判分过的重放一次 check()
+  if (window.__SCProgress) {
+    var saved = window.__SCProgress.load(progressId);
+    if (saved && Array.isArray(saved.values)) {
+      inputs.forEach(function(inp, i) {
+        if (saved.values[i] != null) inp.value = saved.values[i];
+      });
+      if (saved.checked) check();
+    }
+  }
 });
 `;
 
