@@ -447,6 +447,29 @@ details summary { cursor: pointer; font-weight: 600; }
   background: linear-gradient(90deg, var(--color-border-strong), transparent);
 }
 
+/* ---- 移动端目录汉堡按钮（<900px 由 html.js-nav 激活，无 JS 不渲染按钮） ---- */
+.sidebar-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  margin-left: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-std),
+              transform var(--dur-fast) var(--ease-std);
+}
+.sidebar-toggle:active {
+  transform: scale(0.96);
+}
+
 .content {
   flex: 1;
   padding: 2.5em 3em 5em;
@@ -879,6 +902,25 @@ details summary { cursor: pointer; font-weight: 600; }
   font-size: var(--font-label);
   color: var(--color-text-muted);
   margin-top: 0.2em;
+}
+/* 复制成绩按钮：文本成绩单回发老师（微信/邮件直接粘贴） */
+.quiz-summary-copy {
+  margin-top: 0.8em;
+  padding: 0.45em 1em;
+  font-size: var(--font-small);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-std),
+              transform var(--dur-fast) var(--ease-std);
+}
+.quiz-summary-copy:hover {
+  background: var(--color-primary-bg);
+}
+.quiz-summary-copy:active {
+  transform: scale(0.98);
 }
 @keyframes quiz-summary-in {
   from { opacity: 0; transform: translateY(-4px); }
@@ -1548,12 +1590,61 @@ details summary { cursor: pointer; font-weight: 600; }
    ============================================================ */
 @media (max-width: 900px) {
   .layout { flex-direction: column; }
+  /* 吸顶栏：微信/手机打开时目录收进汉堡，不再把整页 TOC 灌在正文前。
+     渐进增强：html.js-nav 由 JS 添加，无 JS 时保持旧的纵向堆叠布局。 */
   .sidebar {
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 60;
     width: 100%;
     height: auto;
+    max-height: 40vh;
+    overflow-y: auto;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
+    padding: 0.7em 1em;
+  }
+  html.js-nav .sidebar {
+    max-height: none;
+    overflow: visible;
+  }
+  html.js-nav .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.8em;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  html.js-nav .sidebar-brand::after { display: none; }
+  html.js-nav .sidebar-title {
+    flex: 1;
+    min-width: 0;
+    /* 标题超长时省略，保证右侧汉堡按钮不被挤出屏幕 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  html.js-nav .sidebar-subtitle { display: none; }
+  html.js-nav .sidebar-footer { display: none; }
+  html.js-nav .sidebar-toggle { display: inline-flex; }
+  /* 目录抽屉：fixed 全屏面板，吸顶栏（z-index 60）在其上保持可点关闭 */
+  html.js-nav .side-nav {
+    display: none;
+  }
+  html.js-nav .sidebar[data-nav-open="1"] .side-nav {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    padding: 1.2em 1.4em 2.5em;
+    background: var(--color-surface);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  html.js-nav .sidebar[data-nav-open="1"] .side-nav a {
+    padding: 0.9em 0.7em;
+    font-size: 1rem;
   }
   .content { padding: 1.5em 1.2em 3em; }
   .hero {
@@ -1585,6 +1676,7 @@ details summary { cursor: pointer; font-weight: 600; }
   .hero-cta,
   .quiz-nav,
   .quiz-actions,
+  .quiz-summary-copy,
   .quiz-carousel-header,
   .quiz-carousel-nav,
   .fill-blank-input-row,
@@ -2628,4 +2720,244 @@ button:active, .hero-cta:active, .quiz-check:active, .quiz-reset:active,
   code { background: #f2f2f2 !important; color: #333 !important; }
   /* focus ring 在纸上没意义，去掉 */
   :focus-visible { outline: none; }
+}
+
+/* ============================================================
+   框架 UI 2.0（v1.8.0）：阅读进度条 / 返回顶部 / 代码卡片 / 主题切换
+   全部 JS 渐进增强注入，无 JS 不存在；打印态隐藏；颜色全走 token。
+   ============================================================ */
+
+/* 阅读进度条：顶边 3px 渐变，scaleX 由 scroll 监听驱动（rAF 节流） */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 80;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+/* 返回顶部：滚动 >600px 浮现，右下角圆钮 */
+.back-to-top {
+  position: fixed;
+  right: 1.4em;
+  bottom: 1.4em;
+  z-index: 70;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity var(--dur-base) var(--ease-out),
+              transform var(--dur-base) var(--ease-out),
+              visibility var(--dur-base),
+              background var(--dur-fast) var(--ease-std);
+}
+.back-to-top.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.back-to-top:hover {
+  background: var(--color-primary-bg);
+}
+
+/* 主题切换按钮：桌面在 sidebar footer，移动端在吸顶 brand 行（断点二选一） */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-std),
+              color var(--dur-fast) var(--ease-std);
+}
+.theme-toggle:hover {
+  background: var(--color-primary-bg);
+  color: var(--color-primary-dark);
+}
+.sidebar-brand .theme-toggle { display: none; }  /* 桌面：brand 行不放，放 footer */
+
+/* sidebar footer 变 flex：作者名居左，主题切换居右 */
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em;
+}
+/* footer 顶部渐变短线改由 ::before 承担（原有），flex 下保持原视觉 */
+
+/* 代码卡片：header（语言标签 + 复制）+ pre。JS 把 pre 包进 .code-card。 */
+.code-card {
+  margin: 1em 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-code-bg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.code-card pre {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.code-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4em 0.6em 0.4em 1em;
+  background: var(--color-primary-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+.code-card-lang {
+  font-family: var(--font-mono);
+  font-size: var(--font-label);
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+.code-card-copy {
+  padding: 0.25em 0.8em;
+  font-size: var(--font-label);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-std),
+              color var(--dur-fast) var(--ease-std);
+}
+.code-card-copy:hover {
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+}
+.code-card-copy.is-copied {
+  color: var(--color-success);
+}
+
+/* 多选角标（v0.3.2 从 inline style 收编） */
+.quiz-multi-mark {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+/* quiz 反馈：mark 徽标 + 文案分行结构（feedback DOM 化 v0.3.2） */
+.quiz-fb-mark {
+  font-weight: 800;
+  margin-right: 0.45em;
+}
+
+/* ============================================================
+   Markdown 正文元素打磨（表格 / details / selection / 滚动条 / 平滑滚动）
+   ============================================================ */
+
+/* 表格：斑马纹 + 圆角胶囊表头行 */
+.article table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin: 1.2em 0;
+}
+.article th, .article td {
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+}
+.article tr:last-child td { border-bottom: none; }
+.article tbody tr:nth-child(even) { background: var(--color-primary-bg); }
+@supports (background: color-mix(in srgb, red 50%, transparent)) {
+  .article tbody tr:nth-child(even) { background: color-mix(in srgb, var(--color-primary-bg) 45%, transparent); }
+}
+.article tbody tr:hover { background: var(--color-primary-bg); }
+
+/* details / summary：品牌色 marker + hover 反馈（FAQ/提示折叠常用） */
+details summary {
+  list-style: none;
+  transition: color var(--dur-fast) var(--ease-std);
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 0.5em;
+  color: var(--color-primary);
+  transition: transform var(--dur-fast) var(--ease-std);
+}
+details[open] summary::before { transform: rotate(90deg); }
+details summary:hover { color: var(--color-primary-dark); }
+
+/* 文本选中：品牌色 25%（深浅主题各自可读） */
+::selection {
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+/* 滚动条：细 + 品牌 tint（webkit 系；Firefox 走 scrollbar-width） */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* 平滑滚动（锚点跳转），reduced-motion 用户自动豁免（下方 reduce 块已全局归零） */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* 窄屏：表格横向滚动（不撑破布局）+ 主题切换换位到吸顶 brand 行 */
+@media (max-width: 900px) {
+  .article table {
+    display: block;
+    overflow-x: auto;
+  }
+  html.js-nav .sidebar-footer .theme-toggle { display: none; }
+  html.js-nav .sidebar-brand .theme-toggle {
+    display: inline-flex;
+    margin-left: 0.4em;
+  }
+}
+
+/* 打印：新 UI 全部隐藏；代码卡片去壳（保留语言标签行也可省墨——整体保留 head 但去底色） */
+@media print {
+  .scroll-progress,
+  .back-to-top,
+  .theme-toggle,
+  .code-card-copy {
+    display: none !important;
+  }
+  .code-card {
+    border: none;
+    box-shadow: none;
+  }
+  .code-card-head {
+    background: none;
+    border-bottom: 1px solid #ccc;
+  }
+  /* 斑马纹打印归零（省墨） */
+  .article tbody tr:nth-child(even) { background: none !important; }
 }

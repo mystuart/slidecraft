@@ -3,6 +3,7 @@ title: Slidecraft
 subtitle: 写一份 Markdown，产出一个独立可交互课件
 author: Slidecraft
 theme: dark
+themeToggle: false
 sections:
   - 卖点
   - 上手
