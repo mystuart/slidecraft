@@ -1,6 +1,6 @@
 /**
  * @component quiz / quiz-track
- * @version 0.2.0
+ * @version 0.3.2
  * @status 打磨完成
  *
  * Quiz 选择题组件（含题组 quiz-track 模式）
@@ -9,20 +9,34 @@
  *
  * 单题字段（quiz）：
  *   - id        {string}            必填 · 题目 ID
- *   - question  {string}            必填 · 题干
+ *   - question  {string}            必填 · 题干（支持内联 markdown + LaTeX）
  *   - type      'single'|'multi'    必填 · 单选/多选
- *   - options   [{id, text}]        必填 · 选项数组
- *   - correct   [id, ...]           必填 · 正确答案 ID 数组
- *   - feedback  {correct, wrong}    可选 · 反馈文案（correct/wrong 二选一时也允许是 string）
- *   - hint      {string}            可选 · 提示
+ *   - options   [{id, text}]        必填 · 选项数组（text 支持内联 markdown + LaTeX）
+ *   - correct   [id, ...]           必填 · 正确答案 ID 数组（build 期校验 ⊆ options[].id）
+ *   - feedback  {correct, wrong}    可选 · 反馈文案（支持内联 markdown + LaTeX；传 string 视为答对文案）
+ *   - hint      {string}            可选 · 提示（支持内联 markdown + LaTeX）
  *   - category  'concept'|'calc'|'apply'|'review'  可选 · 题型分类标签
  *
  * 题组字段（quiz-track）：直接传 [单题1, 单题2, ...] 数组
  *
+ * v0.3.2 变更：
+ *   - **修复属性泄漏 bug**：feedback 文案含 $...$ 时，build 后置的 processInlineFormulas
+ *     会把 KaTeX HTML 注进 data-feedback-* 属性（含双引号），撑破属性泄漏为正文。
+ *     现在 feedback 改走隐藏 DOM（.quiz-feedback-store）+ processInline 渲染，
+ *     顺带解除"feedback 不支持内联 LaTeX"限制（系统级问题 #1 对 feedback 部分）。
+ *   - feedback 传 string 时明确语义：视为答对文案（此前实际走默认文案，行为未定义）
+ *   - "(多选)" 角标 inline style 改 class（.quiz-multi-mark）
+ *
+ * v0.3.0 变更：
+ *   - 学习进度持久化：作答 / 重做 / 题组位置（active）/ 完成态（summary）经 __SCProgress
+ *     存入 localStorage，刷新/重开自动恢复（重放式恢复，UI 与真人作答同链路）
+ *   - 完成态新增「复制成绩」按钮：一键复制文本成绩单，学生可回发给老师
+ *   - build 期硬校验：correct ⊆ options[].id、correct 非空、选项 ≥2
+ *
  * 借鉴方向：S04 Six Cells「icon + 编号 + 短标题 + 单行描述」
  * 详见 [COMPONENTS.md](../../COMPONENTS.md) § quiz / quiz-track
  *
- * 已知问题：options[].text、feedback.content、hint 不支持内联 LaTeX（系统级问题 #1）。
+ * 已知问题：无（原 #1「options/feedback/hint 不支持内联 LaTeX」已随 v0.3.2 + processInline v0.2.1 全部解除）。
  */
 
 const { escapeHtml, processInline } = require('./_inline.js');
@@ -40,15 +54,43 @@ function renderSingleQuestion(data) {
   const type = data.type === 'multi' ? 'multi' : 'single';
   const options = Array.isArray(data.options) ? data.options : [];
   const correct = Array.isArray(data.correct) ? data.correct : [];
-  const feedback = data.feedback || {};
+  const feedback = data.feedback;
+
+  // v0.3.0 build 期硬校验：correct 里的每个 id 必须存在于 options[].id。
+  // 否则学员永远答不对这道题（判分引用了不存在的选项），且 build 期完全无感知——
+  // 典型笔误：options 用 a/b/c/d、correct 写了 "B"（大小写）或抄错字母。
+  const optionIds = new Set(options.map(o => String((o && o.id != null) ? o.id : '')));
+  for (const c of correct) {
+    if (!optionIds.has(String(c))) {
+      throw new Error(
+        `[quiz "${id}"] correct 引用了 "${c}"，但 options 里没有这个 id。` +
+        `可用 id：[${Array.from(optionIds).join(', ')}]。请核对 options[].id 与 correct 是否一致（区分大小写）。`
+      );
+    }
+  }
+  if (options.length > 0 && correct.length === 0) {
+    throw new Error(`[quiz "${id}"] correct 为空——选择题必须有正确答案。`);
+  }
+  if (options.length > 0 && options.length < 2) {
+    throw new Error(`[quiz "${id}"] 只有 ${options.length} 个选项——选择题至少 2 个选项。`);
+  }
+
+  // v0.3.2：feedback 走隐藏 DOM（processInline 渲染，支持 LaTeX / 加粗 / code），
+  // 不再经 HTML 属性传递——含 $...$ 的反馈文案此前会在 build 后置的
+  // processInlineFormulas 阶段把 KaTeX HTML 注进属性，撑破属性泄漏为正文。
+  // feedback 为 string 时视为答对文案（兼容旧写法）。
+  const feedbackObj = (feedback && typeof feedback === 'object') ? feedback
+    : (typeof feedback === 'string' ? { correct: feedback } : {});
+  const fbCorrectHtml = processInline(feedbackObj.correct || '答对了！');
+  const fbWrongHtml = processInline(feedbackObj.wrong || '再想想～');
   const hint = data.hint || '';
   const category = CATEGORY_LABELS[data.category] ? data.category : '';
   const inputType = type === 'multi' ? 'checkbox' : 'radio';
   const name = 'q-' + id;
 
-  return `<div class="quiz" data-quiz-id="${escapeHtml(id)}" data-type="${type}" data-correct='${escapeHtml(JSON.stringify(correct))}' data-feedback-correct="${escapeHtml(feedback.correct || '答对了！')}" data-feedback-wrong="${escapeHtml(feedback.wrong || '再想想～')}" data-category="${escapeHtml(category)}">
+  return `<div class="quiz" data-quiz-id="${escapeHtml(id)}" data-type="${type}" data-correct='${escapeHtml(JSON.stringify(correct))}' data-category="${escapeHtml(category)}">
   ${category ? `<div class="quiz-category quiz-category--${escapeHtml(category)}">${CATEGORY_LABELS[category]}</div>` : ''}
-  <div class="quiz-question">${processInline(question)}${type === 'multi' ? ' <small style="color:var(--color-text-muted);font-weight:400;">(多选)</small>' : ''}</div>
+  <div class="quiz-question">${processInline(question)}${type === 'multi' ? ' <small class="quiz-multi-mark">(多选)</small>' : ''}</div>
   ${hint ? `<details class="quiz-hint"><summary>💡 提示</summary><div>${processInline(hint)}</div></details>` : ''}
   <div class="quiz-options">
     ${options.map(o => `
@@ -62,6 +104,7 @@ function renderSingleQuestion(data) {
     <button class="quiz-reset" type="button">重做</button>
   </div>
   <div class="quiz-feedback" hidden></div>
+  <div class="quiz-feedback-store" hidden aria-hidden="true"><span class="quiz-fb-correct">${fbCorrectHtml}</span><span class="quiz-fb-wrong">${fbWrongHtml}</span></div>
 </div>`;
 }
 
@@ -94,6 +137,7 @@ function renderTrack(quizArray) {
       <span class="summary-stat summary-stat--partial"><span class="summary-num" data-summary-partial>0</span><span class="summary-label">部分对</span></span>
       <span class="summary-stat summary-stat--wrong"><span class="summary-num" data-summary-wrong>0</span><span class="summary-label">答错</span></span>
     </div>
+    <button class="quiz-summary-copy" type="button" data-summary-copy title="复制文本成绩单，可直接发给老师">📋 复制成绩</button>
   </div>
   <div class="quiz-carousel-nav">
     <button class="quiz-carousel-prev" type="button" disabled aria-label="上一题">← 上一题</button>
@@ -114,13 +158,16 @@ const clientJs = `
 // 进度节点 + 总结态。
 document.querySelectorAll('.quiz').forEach(function(quiz) {
   var correct = JSON.parse(quiz.getAttribute('data-correct') || '[]');
-  var fbCorrect = quiz.getAttribute('data-feedback-correct') || '答对了！';
-  var fbWrong = quiz.getAttribute('data-feedback-wrong') || '再想想～';
   var type = quiz.getAttribute('data-type') || 'single';
   var checkBtn = quiz.querySelector('.quiz-check');
   var resetBtn = quiz.querySelector('.quiz-reset');
   var feedback = quiz.querySelector('.quiz-feedback');
   var options = quiz.querySelectorAll('.quiz-option');
+  var progressId = 'quiz:' + (quiz.getAttribute('data-quiz-id') || '');
+  // 反馈文案来自隐藏 DOM（v0.3.2 起 feedback 支持 LaTeX / 内联 markdown）
+  var fbStore = quiz.querySelector('.quiz-feedback-store');
+  var fbCorrect = fbStore ? fbStore.querySelector('.quiz-fb-correct').innerHTML : '答对了！';
+  var fbWrong = fbStore ? fbStore.querySelector('.quiz-fb-wrong').innerHTML : '再想想～';
 
   function getSelected() {
     var sels = [];
@@ -172,10 +219,13 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
     });
     feedback.hidden = false;
     var fbClass = isRight ? 'is-correct' : (isPartial ? 'is-partial' : 'is-wrong');
-    var fbText = isRight ? '✓ ' + fbCorrect : (isPartial ? '◐ 部分正确，再想想～' : '✗ ' + fbWrong);
+    var fbMark = isRight ? '✓' : (isPartial ? '◐' : '✗');
+    var fbText = isRight ? fbCorrect : (isPartial ? '部分正确，' + fbWrong : fbWrong);
     feedback.className = 'quiz-feedback ' + fbClass;
-    feedback.textContent = fbText;
+    feedback.innerHTML = '<span class="quiz-fb-mark">' + fbMark + '</span><span class="quiz-fb-text">' + fbText + '</span>';
     checkBtn.disabled = true;
+    // 进度持久化：存选项 + 已作答（恢复时重放提交，走同一套判分/样式链路）
+    if (window.__SCProgress) window.__SCProgress.save(progressId, { sel: sels, done: true });
     // 派发 quiz:answered 自定义事件，carousel 块会监听
     var status = isRight ? 'correct' : (isPartial ? 'partial' : 'wrong');
     quiz.dispatchEvent(new CustomEvent('quiz:answered', { bubbles: true, detail: { status: status } }));
@@ -191,18 +241,42 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
     feedback.className = 'quiz-feedback';
     feedback.textContent = '';
     checkBtn.disabled = false;
+    // 重做即放弃本次作答记录
+    if (window.__SCProgress) window.__SCProgress.clear(progressId);
     // 派发 quiz:reset，carousel 块会把 slide 状态重置回 default
     quiz.dispatchEvent(new CustomEvent('quiz:reset', { bubbles: true }));
   });
+
+  // 进度恢复：暂存到元素上。非 carousel 的单题立即重放；
+  // carousel 内的题组块稍后统一重放——那时 quiz:answered 监听才挂好，dots/进度才能联动。
+  if (window.__SCProgress) {
+    quiz.__scSaved = window.__SCProgress.load(progressId);
+    if (quiz.__scSaved && !quiz.closest('.quiz-carousel')) {
+      window.__SCProgress.replayQuiz(quiz);
+    }
+  }
 });
 
 // 题组 carousel 切换逻辑 + 进度反馈 + 完成态总结
 (function() {
+  function saveTrackState(car, activeIdx) {
+    if (!window.__SCProgress || !car.__scKey) return;
+    window.__SCProgress.save(car.__scKey, {
+      active: activeIdx,
+      summary: car.getAttribute('data-summary-state') === 'visible'
+    });
+  }
   document.querySelectorAll('.quiz-carousel').forEach(function(carousel) {
     var total = parseInt(carousel.getAttribute('data-total') || '0', 10);
+    // 题组进度 key 由组内题目 id 派生：作者改了题目内容，旧进度自动失效
+    carousel.__scKey = 'quiztrack:' + Array.prototype.map.call(
+      carousel.querySelectorAll('.quiz'),
+      function(q) { return q.getAttribute('data-quiz-id') || '?'; }
+    ).join(',');
     if (total <= 1) {
       // 单题 carousel：直接监听 quiz:answered 维护状态，但保留 finish/restart 入口
       bindProgressAndSummary(carousel, 1);
+      restoreTrack(carousel);
       return;
     }
 
@@ -227,6 +301,7 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
       });
       if (prevBtn) prevBtn.disabled = (active === 0);
       syncNextButton();
+      saveTrackState(carousel, active);
     }
 
     bindProgressAndSummary(carousel, total, {
@@ -277,7 +352,68 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
       if (e.key === 'ArrowLeft' && active > 0) { e.preventDefault(); goTo(active - 1); }
       else if (e.key === 'ArrowRight' && active < total - 1) { e.preventDefault(); goTo(active + 1); }
     });
+    // 「复制成绩」：学生把文本成绩单回发给老师（微信/邮件直接粘贴）
+    bindCopyScore(carousel, total);
+    // 进度恢复：先重放每题作答（触发 quiz:answered → dots/进度联动），再回到上次位置
+    restoreTrack(carousel, {
+      onRestored: function(saved) {
+        if (saved && typeof saved.active === 'number' && saved.active > 0 && saved.active < total) {
+          goTo(saved.active);
+        } else {
+          goTo(0);
+        }
+      }
+    });
   });
+
+  // 共享：恢复题组作答 + 上次浏览位置 / 完成态
+  function restoreTrack(carousel, hooks) {
+    if (!window.__SCProgress) return;
+    Array.prototype.forEach.call(carousel.querySelectorAll('.quiz'), function(q) {
+      window.__SCProgress.replayQuiz(q);
+    });
+    var saved = window.__SCProgress.load(carousel.__scKey);
+    if (saved && saved.summary && allAnswered(carousel)) {
+      showSummary(carousel);
+    }
+    if (hooks && hooks.onRestored) hooks.onRestored(saved);
+  }
+
+  // 共享：复制成绩按钮（读 summary 里的实时数字）
+  function bindCopyScore(carousel, total) {
+    var copyBtn = carousel.querySelector('[data-summary-copy]');
+    if (!copyBtn) return;
+    copyBtn.addEventListener('click', function() {
+      function num(sel) {
+        var el = carousel.querySelector(sel);
+        return el ? el.textContent : '0';
+      }
+      var text = '【' + (document.title || '课件') + '】题组成绩：共 ' + total +
+        ' 题 — 全对 ' + num('[data-summary-correct]') +
+        '，部分对 ' + num('[data-summary-partial]') +
+        '，答错 ' + num('[data-summary-wrong]');
+      function done() {
+        var old = copyBtn.textContent;
+        copyBtn.textContent = '✓ 已复制';
+        setTimeout(function() { copyBtn.textContent = old; }, 1600);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function() { fallbackCopy(text, done); });
+      } else {
+        fallbackCopy(text, done);
+      }
+    });
+    function fallbackCopy(text, done) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  }
 
   // 共享辅助：绑定每题进度状态 + 完成态总结渲染
   function bindProgressAndSummary(carousel, total, hooks) {
@@ -336,6 +472,13 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
     var summary = carousel.querySelector('.quiz-carousel-summary');
     if (summary) summary.hidden = false;
     carousel.setAttribute('data-summary-state', 'visible');
+    // 完成态持久化（配合 active 的保存，重开课件直接回到"本组完成"）
+    if (window.__SCProgress && carousel.__scKey) {
+      window.__SCProgress.save(carousel.__scKey, {
+        active: parseInt(carousel.getAttribute('data-active') || '0', 10),
+        summary: true
+      });
+    }
   }
 
   function resetCarousel(carousel, total) {
@@ -348,6 +491,10 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
     var summary = carousel.querySelector('.quiz-carousel-summary');
     if (summary) summary.hidden = true;
     carousel.setAttribute('data-summary-state', 'hidden');
+    // 重新开始 = 清空本组进度（goTo(0) 会写入全新的初始态）
+    if (window.__SCProgress && carousel.__scKey) {
+      window.__SCProgress.clear(carousel.__scKey);
+    }
   }
 })();
 `;
