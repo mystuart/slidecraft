@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="{{THEME}}">
+<html lang="{{LANG}}" data-theme="{{THEME}}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +16,7 @@
   <meta name="twitter:title" content="{{TITLE}}">
   <meta name="twitter:description" content="{{SUBTITLE}}">
   <meta name="twitter:image" content="{{OG_IMAGE}}">
+  {{THEME_BOOT}}
   <style>
 {{CSS}}
   </style>
