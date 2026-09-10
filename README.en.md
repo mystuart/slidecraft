@@ -9,10 +9,10 @@
 > Write one Markdown, ship one self-contained interactive HTML.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Version: 1.5.0](https://img.shields.io/badge/version-1.6.0-blue.svg)](./CHANGELOG.md)
+[![Version: 1.8.0](https://img.shields.io/badge/version-1.8.0-blue.svg)](./CHANGELOG.md)
 [![Components: 25](https://img.shields.io/badge/components-25-green.svg)](./COMPONENTS.md)
 
-**25 built-in components · single-file output · zero runtime · themable · print-friendly.**
+**25 built-in components · single-file output · zero runtime · themable · print-friendly · answers auto-saved.**
 
 Slidecraft is a Markdown-to-HTML compiler for interactive teaching material. You write structured Markdown with frontmatter and fenced component blocks; it compiles to one self-contained `.html` file you can email, host anywhere, or open offline. No JS framework, no build server, no runtime dependencies.
 
@@ -20,16 +20,24 @@ Slidecraft is a Markdown-to-HTML compiler for interactive teaching material. You
 
 ## Why Slidecraft
 
-| | Marp | Slidev | reveal.js | Pandoc | **Slidecraft** |
-|---|---|---|---|---|---|
-| Runtime deps | Bundler | Vue / Vite | JS lib | None (CLI) | **Zero** |
-| Output | Deck / SPA | SPA | SPA | HTML / LaTeX | **Single HTML file** |
-| Components | ❌ | ✅ (plugins) | ✅ (plugins) | ❌ | **✅ 25 built-in** |
-| Math (LaTeX) | ❌ | via plugin | manual | ✅ | **✅ KaTeX, compile-time** |
-| 3D geometry | ❌ | ❌ | ❌ | ❌ | **✅ Three.js, opt-in** |
-| Print / PDF | partial | ❌ | ❌ | ✅ | **✅** |
+| | Marp | Slidev | reveal.js | Quarto (revealjs) | AI slides (Gamma…) | **Slidecraft** |
+|---|---|---|---|---|---|---|
+| Runtime deps | Bundler | Vue / Vite | JS lib | CLI | Hosted service | **Zero** |
+| Output | Deck / SPA | SPA (no single-file export) | SPA | Single file (embed) | Static on export | **Single HTML file** |
+| Components | ❌ | ✅ (plugins) | ✅ (plugins) | ⚠️ (assemble yourself) | ✅ (online only) | **✅ 25 built-in + grading** |
+| Math (LaTeX) | ❌ | via plugin | manual | ✅ | ⚠️ | **✅ KaTeX, compile-time** |
+| 3D geometry | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ Three.js, opt-in** |
+| Print / PDF | partial | ❌ | ❌ | ✅ | ❌ | **✅** |
 
-The differentiator: **everything compiles to a single static HTML file** with math rendered, 3D optional, zero runtime. Open it on any device, no server.
+The differentiator: **everything compiles to a single static HTML file** with math rendered, images inlined, 3D optional, zero runtime. Open it on any device, no server.
+
+Reader-side experience, out of the box (progressive enhancement — content never depends on JS):
+
+- Reading progress bar + back-to-top button
+- Code blocks with language label + one-click copy
+- Light/dark theme toggle in the sidebar (remembered across visits; printing falls back to the authored theme to save ink)
+- Estimated reading time in the sidebar
+- Answers persist in localStorage — close and reopen where you left off; finished quiz sets offer one-click "copy score" to send back to the teacher
 
 ## 30-second quickstart
 
@@ -37,8 +45,11 @@ The differentiator: **everything compiles to a single static HTML file** with ma
 git clone https://github.com/mystuart/slidecraft.git
 cd slidecraft
 npm install
-node build.js content/triangular-prism-demo.md
-open dist/triangular-prism-demo.html
+
+npm run new -- my-course          # scaffold a lesson (frontmatter + component examples, compiles as-is)
+vi content/my-course.md           # make it yours
+node build.js content/my-course.md
+open dist/my-course.html
 ```
 
 Development loop:
@@ -47,6 +58,7 @@ Development loop:
 npm run dev      # watch + static server (auto-rebuild on .md change)
 npm run build    # build all .md in content/
 npm test         # run tests (numeric algorithms + build validation)
+node build.js --help   # full CLI usage
 ```
 
 ## Component overview (25 built-in)
@@ -89,6 +101,8 @@ title: "Lesson title"
 subtitle: "One-line description"
 author: "Your name"
 theme: lavender      # lavender (default) / dark
+lang: en             # <html lang>, defaults to zh-CN
+themeToggle: true    # reader-side light/dark toggle (default on; false to lock theme)
 sections:            # Sidebar nav, must match your ## h2 count
   - Introduction
   - Core concept
@@ -118,19 +132,14 @@ See [`content/components-showcase.md`](./content/components-showcase.md) → `di
 
 ## Themes
 
-Built-in: `lavender` (light, default) and `dark`. Add new themes by copying the CSS variable block in [`main.css`](./template/styles/main.css) and setting `theme: yourname` in frontmatter.
-
-## Roadmap
-
-- More components (accordion, code-reviewer)
-- External component packages (`slidecraft-component-*`)
-- Geometry-3d advanced: clipping plane, three-view, unfold
+Built-in: `lavender` (light, default) and `dark`. Readers can switch between them with the moon/sun button in the sidebar (persisted in localStorage; disabled per-lesson with `themeToggle: false`, and printing always uses the authored theme). Add new themes by copying the CSS variable block in [`main.css`](./template/styles/main.css) and setting `theme: yourname` in frontmatter.
 
 ## Documentation
 
 - **[README.md](./README.md)** — Full Chinese documentation (detailed, with teaching narrative)
 - **[SPEC.md](./SPEC.md)** — Architecture spec
 - **[COMPONENTS.md](./COMPONENTS.md)** — Component registry + roadmap
+- **[docs/ai-authoring.md](./docs/ai-authoring.md)** — Prompt-ready guide so any AI agent can author valid courseware
 - **[CHANGELOG.md](./CHANGELOG.md)** — Version history
 
 ## License

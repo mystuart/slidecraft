@@ -7,10 +7,10 @@
 **中文** · [English](./README.en.md) · **[🎬 在线 demo（landing）](https://mystuart.github.io/slidecraft/)**
 
 > **写一个 Markdown，产出一个独立的 HTML 互动课件。**
-> 25 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好。
+> 25 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好 · 作答自动保存。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version: 1.5.0](https://img.shields.io/badge/version-1.6.0-blue.svg)](./CHANGELOG.md)
+[![Version: 1.8.0](https://img.shields.io/badge/version-1.8.0-blue.svg)](./CHANGELOG.md)
 [![Components: 25](https://img.shields.io/badge/components-25-green.svg)](./COMPONENTS.md)
 [![Output: single .html](https://img.shields.io/badge/output-single%20.html-brightgreen.svg)](./dist)
 
@@ -43,12 +43,20 @@
 git clone https://github.com/mystuart/slidecraft.git
 cd slidecraft
 npm install
+
+npm run new -- my-course          # 生成脚手架（frontmatter + 组件示例，开箱即编译）
+vi content/my-course.md           # 改成你的内容
+node build.js content/my-course.md
+open dist/my-course.html
+```
+
+想直接看 3D 效果：
+
+```bash
 npm run build:three    # 一次性打包 Three.js（仅用 3D 组件时需要，产物进 dist/）
 node build.js content/triangular-prism-demo.md
 open dist/triangular-prism-demo.html
 ```
-
-看到浏览器里立体的三角棱柱能转、能切、能高亮——成了。
 
 > `build:three` 只在课件用到 `geometry-3d` / `cut-anim` / `tetra-equiv` 等 3D 组件时必跑。后续 build 会自动 hash 缓存破坏 + 拆外链；想单文件离线部署用 `node build.js content/xxx.md --inline-three`（Three.js 内联进 HTML）。
 
@@ -58,6 +66,7 @@ open dist/triangular-prism-demo.html
 npm run dev      # watch + 静态服务（改 .md 自动重 build，浏览器刷新即可看效果）
 npm run build    # 一次性全量编译 content/ 下所有 .md
 npm test         # 跑测试（数值算法 / build 校验逻辑）
+node build.js --help   # 全部用法
 ```
 
 > `npm run dev` 用 `& python3` 启静态服务，**仅 Linux/macOS 可用**。Windows 用户请手动跑 `node build.js --watch`，另开终端 `python -m http.server 8000 --directory dist`（或用 `npx serve dist`）。
@@ -70,16 +79,27 @@ npm test         # 跑测试（数值算法 / build 校验逻辑）
 |---|---|---|---|---|---|
 | Marp | 浏览器 | 多文件 | ❌ | ⚠️ | ❌ |
 | Reveal.js | 浏览器 | 多文件 | ⚠️ | ✅ | ❌ |
-| Slidev | Node 服务 | 多文件 | ✅ | ✅ | ❌ |
-| **Slidecraft** | **零** | **单文件 HTML** | **✅ 25 个** | **✅ CSS 变量** | **✅** |
+| Slidev | Node 服务 | 多文件（无单文件导出） | ✅ | ✅ | ❌ |
+| Quarto (revealjs) | 浏览器 | 可单文件（embed-resources） | ⚠️（靠扩展拼装） | ✅ | ❌ |
+| Gamma 等 AI 工具 | 锁在自家托管 | 导出即静态 | ✅（仅在线） | ✅ | ❌ |
+| **Slidecraft** | **零** | **单文件 HTML** | **✅ 25 个 + 判分** | **✅ CSS 变量** | **✅** |
 
 **Slidecraft 的核心差异**：产物是**单文件 HTML**，不是 Web 应用。这决定了它可以——
 
 - 邮件附件发出去
 - U 盘拷给学生
-- 微信传文件直接打开
+- 微信传文件直接打开（手机端自动切吸顶目录 + 沉浸阅读）
 - 打印成纸质讲义（侧栏自动隐藏、答案强制展开、每章新页）
 - 部署到任何静态托管（甚至 `file://` 协议）
+- 图片编译时内联进 HTML——发一个文件就是完整课件，不裂图
+- 学员作答自动保存在本机（localStorage），关掉重开接着做；题组完成后可一键复制成绩回发老师
+
+**读者侧的开箱体验**（全部渐进增强，无 JS 不影响内容）：
+
+- 顶边阅读进度条 + 滚动浮现的返回顶部按钮
+- 代码块带语言标签 + 一键复制
+- 侧栏月亮/太阳按钮一键切换深浅主题（自动记住选择，打印时回浅色省墨）
+- 侧栏自动显示「约 N 分钟读完」
 
 ---
 
@@ -184,6 +204,8 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 | `subtitle` | ❌ | 副标题、meta description |
 | `author` | ❌ | 作者名 |
 | `theme` | ❌ | 主题名：`lavender`（默认）/ `dark` |
+| `lang` | ❌ | `<html lang>`，默认 `zh-CN`，英文课件写 `en` |
+| `themeToggle` | ❌ | 默认开（读者可切深浅主题）；写 `false` 关闭（单主题设计的页面用） |
 | `sections` | ✅ | 章节标题列表，自动生成侧边导航 |
 
 ---
@@ -245,6 +267,7 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 - [SPEC.md](./SPEC.md) — 完整设计规范（理念、语法约定、内容大纲）
 - [COMPONENTS.md](./COMPONENTS.md) — 组件登记簿（v0.x.x 状态、打磨参考、决策依据）
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — 贡献指南与扩展流程
+- [docs/ai-authoring.md](./docs/ai-authoring.md) — **AI 课件创作指南**（投喂给任意 AI agent 即可产出合规课件）
 - [template/components/*.js](./template/components/) — 组件源码，字段契约在文件顶部 JSDoc
 - [docs/](./docs/) — 进阶 schema 与设计文档
   - [docs/README.md](./docs/README.md) — docs 目录索引

@@ -9,6 +9,7 @@ Slidecraft 项目的文档目录。**纳入 git 管理**——和源码、SPEC�
 - [tetra-equiv-schema.md](./tetra-equiv-schema.md) — tetra-equiv 组件的字段契约（v0.1）
 - [cut-anim-schema.md](./cut-anim-schema.md) — cut-anim 组件的字段契约（v0.1）
 - [brand.md](./brand.md) — Logo / 视觉资产规范（层叠卡片 logo + 4 件资产 + 配色 + 使用规则 + 设计决策）
+- [ai-authoring.md](./ai-authoring.md) — **AI 课件创作指南**（可直接投喂给任意 AI agent：硬约束 + 组件最小 schema + 验证闭环）
 
 > 2026-06-08 起：原 `docs/components-registry.md` 已被合并到根目录 [`COMPONENTS.md`](../COMPONENTS.md)（commit 744351e），字段契约统一放 `template/components/<name>.js` 顶部 JSDoc，schema 文档只放 3D 体系这种"v0.1 阶段字段多、几何特性多"需要独立成文的内容。
 

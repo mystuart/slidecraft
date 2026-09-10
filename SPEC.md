@@ -2,7 +2,7 @@
 
 > 目标：一次开发，永久复用。Markdown 写内容，HTML 是编译产物。零基础小白友好。
 
-**当前版本：v1.3.0**（见 [`package.json`](./package.json)）
+**当前版本：v1.8.0**（见 [`package.json`](./package.json)）
 
 > **版本号约定**：Slidecraft 有两套独立的版本号，不要混用——
 > - **项目版本**（`package.json` 的 `version`）= **功能里程碑号**。每加一个体系（如 3D / 2D）或一次大的能力扩展 +0.1。`1.0.0` = MVP 10 组件稳定，`1.2.0` = 3D 体系，`1.3.0` = 2D 体系。
@@ -78,6 +78,8 @@ title: 如何创作 SKILL
 subtitle: 从零开始，写出可复用的 AI 技能
 author: Alice
 theme: lavender      # 主题色：lavender（默认，薰衣草紫）/ dark（深色护眼）
+lang: zh-CN          # <html lang>，英文课件写 en（默认 zh-CN）
+themeToggle: true    # 读者侧深浅主题切换开关（默认开；单主题设计页写 false）
 sections:
   - 开篇：什么是 SKILL
   - SKILL 的结构解剖
@@ -344,6 +346,7 @@ sections:
 - `_inline.js` — 行内 markdown 解析（processInline，KaTeX 集成，v0.2.3：先剥 `$...$` display 占位 + `strict:'ignore'`）
 - `_geom_utils.js` — 几何工具函数（顶点/面/法线计算 + polyEval / polyDeriv / polyRealRoots 多项式工具，供 geometry-3d / coords-2d / function-plot / intersection-marker 共用，v0.2.0）
 - `_lifecycle.js` — 组件生命周期基础设施（v0.1.0，2026-06-17）。`createLifecycle(root)` 返回 per-element 句柄，统一登记 document/window 监听 / observer / RAF / timeout / 自定义 disposer；`destroy()` 幂等回滚；全局 `__SC_LIFECYCLES` + `sc:destroy` 事件批量销毁。8 个组件接入（架构债 C2-4/5 + H4 清零）。**现有单页课件不触发 destroy = 行为零变化**，仅 SPA 嵌入 / 热重载 / 多实例场景受益。
+- `_progress.js` — 学习进度持久化运行时（v0.1.0，2026-08-20）。`__SCProgress` 全局：save/load/clear/replayQuiz，localStorage 按页面 pathname 命名空间隔离，异常（隐私模式等）静默降级为不持久化。quiz（作答/重做）、quiz-track（active/summary，key 由组内题目 id 派生——内容变更自动失效）、fill-blank（输入值/判分态）接入。恢复采用「重放」策略：勾选保存的选项后程序化触发提交，判分/样式/事件走与真人作答完全相同的链路。题组完成态配「复制成绩」按钮（文本成绩单，clipboard + execCommand 双路径）。
 
 **后续可扩展**（不进入 MVP）：
 - `accordion`（折叠列表）—— 可用 `<details>` 替代
@@ -490,11 +493,14 @@ if (sectionsCount > 0 && h2Count > 0 && sectionsCount !== h2Count) {
 ## 6. 视觉风格
 
 - 主题：lavender（薰衣草紫，默认）/ dark（深色护眼），CSS 变量驱动，frontmatter theme 字段切换
+- **读者可切主题**（v1.8.0）：侧栏月亮/太阳按钮一键 lavender↔dark，localStorage 持久化 + head boot 防闪变；打印自动回作者主题；`themeToggle: false` 可关
 - 字号：四级系统（display / heading / body / label），main.css 顶部 --font-* 变量
 - 图标：callout 5 种 type 用内联 SVG（跨平台一致）
 - 字体：标题用思源黑体/Inter，正文用系统字体
 - 强调：内容驱动，不堆装饰
-- 响应式：优先桌面端，移动端可读
+- 响应式：优先桌面端，移动端吸顶目录抽屉（<900px）+ 表格横向滚动
+- **框架 UI 2.0**（v1.8.0，全部渐进增强）：阅读进度条（顶边品牌渐变）/ 返回顶部圆钮 / 代码卡片（语言标签 + 复制）/ 斑马表格 / details 品牌 marker / ::selection / 细滚动条 / 平滑滚动；打印态自动隐藏，reduced-motion 全局尊重
+- **CLI**：`node build.js --help` 查看全部用法；`node build.js new <name>` 生成课件脚手架；侧栏自动显示阅读时间估算
 
 ---
 
@@ -512,12 +518,14 @@ if (sectionsCount > 0 && h2Count > 0 && sectionsCount !== h2Count) {
 
 ## 8. 后续优化方向（不在本次范围）
 
-- watch 模式（改 markdown 自动重编译，配套 dev server）
-- 支持内嵌图片/视频
+- ~~watch 模式（改 markdown 自动重编译，配套 dev server）~~ ✅ 1.3.0 已交付（`--watch` / `npm run dev`）
+- ~~支持内嵌图片~~ ✅ 1.7.0 已交付（相对路径图片编译时内联 data URI，缺失报错 exit 1）
+- ~~学习进度持久化（localStorage）~~ ✅ 1.7.0 已交付（quiz / quiz-track / fill-blank，刷新自动恢复）
+- ~~主题切换 UI~~ ✅ 1.8.0 已交付（侧栏月亮/太阳按钮 + localStorage + themeToggle 开关）
+- ~~课件脚手架 / CLI 帮助~~ ✅ 1.8.0 已交付（`node build.js new <name>` / `--help` / 阅读时间）
+- 支持内嵌视频
 - 支持导出 PDF（基于 print 样式 + 浏览器「另存为 PDF」可先用）
-- 主题切换 UI
-- 学习进度持久化（localStorage）
-- 移动端深度适配
+- 移动端组件级触控优化（目录抽屉 1.7.0 已交付）
 
 ---
 
