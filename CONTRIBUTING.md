@@ -52,6 +52,10 @@
 
 `build.js` 是 Node.js 脚本，没有外部依赖（除了 `gray-matter` 和 `marked`）。改完跑一次 `node build.js content/*.md` 确认所有源文件都能编过。
 
+### 跑测试
+
+`npm test` 开箱即跑：集成测试（`test/progress.test.js`）的夹具是 gitignore 的编译产物，`before` 钩子会先自动 build 一次（约 0.5s）——所以**新 clone 不需要先 build 就能测试**，且测试永远跑在当前代码构建的产物上。改动组件的 clientJs 后记得跑全量测试，产物级行为（保存/恢复/判分）只有集成测试能抓到。
+
 ## 提交规范
 
 commit message 风格参考 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/)：

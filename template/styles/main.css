@@ -2774,6 +2774,12 @@ button:active, .hero-cta:active, .quiz-check:active, .quiz-reset:active,
 .back-to-top:hover {
   background: var(--color-primary-bg);
 }
+/* 移动端目录抽屉打开时，浮层 UI 让位——它们 z-index 更高，不隐藏会盖在全屏目录上 */
+body.is-nav-open .back-to-top,
+body.is-nav-open .scroll-progress {
+  opacity: 0;
+  visibility: hidden;
+}
 
 /* 主题切换按钮：桌面在 sidebar footer，移动端在吸顶 brand 行（断点二选一） */
 .theme-toggle {

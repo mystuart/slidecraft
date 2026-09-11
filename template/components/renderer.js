@@ -534,6 +534,9 @@ function initSideNavScript() {
       toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
       toggleBtn.textContent = open ? '\\u2715' : '\\u2630'; // ✕ / ☰
       document.body.style.overflow = open ? 'hidden' : '';
+      // body class 联动：全屏目录打开时，返回顶部/阅读进度条等浮层 UI 让位
+      //（它们 z-index 更高，不隐藏会盖在目录上——复审 P1）
+      document.body.classList.toggle('is-nav-open', open);
     }
     toggleBtn.addEventListener('click', function() {
       setNavOpen(sidebarEl.getAttribute('data-nav-open') !== '1');
@@ -553,6 +556,7 @@ function initSideNavScript() {
       createLifecycle(document.documentElement).dispose(function() {
         document.removeEventListener('keydown', onNavKey);
         document.body.style.overflow = '';
+        document.body.classList.remove('is-nav-open');
       });
     }
   }

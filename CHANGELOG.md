@@ -36,6 +36,15 @@
 
 - npm test: **66/66**（新增 10 个：公式标签保护回归 4 + CLI/脚手架/阅读时间 6）
 
+### 复审修复（2026-09-11，对 1.8.0 的自查四连修）
+
+- **移动端抽屉 z-index 穿模**：返回顶部（z:70）/ 阅读进度条（z:80）盖在全屏目录（z:55）上——
+  `setNavOpen` 现同步 `body.is-nav-open` class，抽屉打开时浮层 UI 让位（含 lifecycle 销毁回滚）
+- **测试夹具隐性依赖产物**：`test/progress.test.js` 直读 gitignore 的 `dist/*.html`，
+  新 clone 直接 `npm test` 会 ENOENT——改 `before` 钩子自动构建夹具（永远测当前代码的产物）
+- **登记簿失同步**：quiz-track 行漏跟 quiz.js 版本（v0.3.0 → v0.3.3）
+- **复制逻辑重复**：quiz「复制成绩」删自带 fallback 拷贝，改调框架 `__SCCopy`（与代码卡片同一实现）
+
 ## [1.7.0] — 2026-08-20
 
 ### 实际价值导向优化（竞品对标后的一轮补强）

@@ -3,16 +3,30 @@
 //   1. 首次加载 → 作答 → localStorage 写入
 //   2. 二次加载 → 自动恢复（反馈可见 / 提交钮禁用 / 值回填 / 判分态重放 / 题组状态恢复）
 //   3. 重做 → 进度清除
+// 夹具是 .gitignore 的编译产物：before 钩子里先 build（~0.5s），新 clone 直接 npm test 也能跑，
+// 且永远测「当前代码构建出的产物」，不会吃到陈旧 dist 的假信号。
 // jsdom 的 localStorage 不跨实例共享，用 beforeParse 把上一会话的 storage 预置进下一会话，
 // 模拟「同一浏览器刷新/重开同一课件」。
 // jsdom 无 IntersectionObserver / WebGL，相关代码均有 guard，不会阻断本测试路径。
-const { test } = require('node:test');
+const { test, before } = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 const { JSDOM } = require('jsdom');
 
-const HTML = fs.readFileSync(path.join(__dirname, '../dist/binary-card-trick.html'), 'utf8');
+const ROOT = path.join(__dirname, '..');
+const FIXTURE_OUT = path.join(ROOT, 'dist', 'binary-card-trick.html');
+
+let HTML;
+before(function buildFixture() {
+  execFileSync('node', ['build.js', 'content/binary-card-trick.md'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'inherit'],
+  });
+  HTML = fs.readFileSync(FIXTURE_OUT, 'utf8');
+});
 const URL = 'http://localhost/courseware/binary-card-trick.html';
 
 function snapshotStorage(dom) {

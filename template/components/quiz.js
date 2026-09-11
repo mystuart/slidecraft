@@ -1,6 +1,6 @@
 /**
  * @component quiz / quiz-track
- * @version 0.3.2
+ * @version 0.3.3
  * @status 打磨完成
  *
  * Quiz 选择题组件（含题组 quiz-track 模式）
@@ -18,6 +18,10 @@
  *   - category  'concept'|'calc'|'apply'|'review'  可选 · 题型分类标签
  *
  * 题组字段（quiz-track）：直接传 [单题1, 单题2, ...] 数组
+ *
+ * v0.3.3 变更（复审修复）：
+ *   - 「复制成绩」改调框架 `__SCCopy`（clipboard API + execCommand 兜底），
+ *     删除组件内独立的 fallback 拷贝——与代码卡片复制同一实现，后续只改一处
  *
  * v0.3.2 变更：
  *   - **修复属性泄漏 bug**：feedback 文案含 $...$ 时，build 后置的 processInlineFormulas
@@ -392,27 +396,15 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
         ' 题 — 全对 ' + num('[data-summary-correct]') +
         '，部分对 ' + num('[data-summary-partial]') +
         '，答错 ' + num('[data-summary-wrong]');
-      function done() {
+      // 复制走框架 __SCCopy（clipboard API + execCommand 兜底），与代码卡片同一实现——
+      // 此前这里有一份独立 fallback 拷贝，两处逻辑重复（复审 P4 已去重）
+      if (!window.__SCCopy) return;
+      window.__SCCopy(text, function() {
         var old = copyBtn.textContent;
         copyBtn.textContent = '✓ 已复制';
         setTimeout(function() { copyBtn.textContent = old; }, 1600);
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, function() { fallbackCopy(text, done); });
-      } else {
-        fallbackCopy(text, done);
-      }
+      });
     });
-    function fallbackCopy(text, done) {
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); done(); } catch (e) {}
-      document.body.removeChild(ta);
-    }
   }
 
   // 共享辅助：绑定每题进度状态 + 完成态总结渲染
