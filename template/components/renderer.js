@@ -1,7 +1,16 @@
 /**
  * @component renderer
- * @version 0.3.1
+ * @version 0.4.0
  * @status 内部调度器，不参与组件登记
+ *
+ * v0.4.0 变更：
+ *   - processMarkdown 重写为 CommonMark 嵌套围栏语义（逐行扫描）：
+ *     ≥4 反引号包裹层保护内部示例不被误提取（原单正则会被无语言包裹层击穿）；
+ *     组件围栏未闭合 throw 自描述错误（原静默不提取）；单行/多行风格均兼容
+ *   - collectClientScript 注入 _progress.js runtime（__SCProgress，进度持久化）
+ *   - initSideNavScript 新增移动端目录抽屉（<900px 汉堡按钮 + 全屏目录面板，
+ *     html.js-nav 渐进增强门控，无 JS 保持原布局；Esc/选中章节收起，body 滚动锁）
+ *   - initSideNavScript activate() 同步 aria-current（读屏器可感知当前章节）
  *
  * v0.3.1 变更：
  *   - collectClientScript 注入 _progress.js runtime（__SCProgress，进度持久化）
@@ -149,37 +158,82 @@ const PLACEHOLDER_RE = /<!--\s*SC-COMPONENT-(\d+)\s*-->/g;
 
 /**
  * 扫描 markdown，把组件代码块替换为占位符，返回剩余 markdown + 组件 HTML 列表
+ *
+ * v0.4.0 重写为 CommonMark 嵌套围栏语义（逐行扫描，替代原来的单正则）：
+ *   - 3 反引号 + 组件语言名 → 提取为组件
+ *   - ≥4 反引号的围栏视为「示例包裹层」，整块原样保留、内部不再扫描——
+ *     课件里可以放心展示组件示例而不被误提取（原正则会被无语言包裹层击穿，
+ *     内层 ```quiz 示例被当真组件执行、示例文本被吃掉）
+ *   - 非组件围栏整块透传（保留 info 参数，交给 marked 渲染）
+ *   - 组件围栏未闭合 → throw 自描述错误（原正则静默不提取，作者无从发现）
+ *   - 单行风格（```hero {"json"}）与多行风格均支持（junk 并入 body 兼容）
  * @param {string} md
  * @returns {{ md: string, components: string[] }}
  */
 function processMarkdown(md) {
   const components = [];
-  // 匹配 ```lang ... ``` 三反引号代码块
-  // lang 与 body 之间允许空格/tab/可选换行（标准 markdown 允许 ```hero` 直接接内容）
-  const replaced = md.replace(/```([a-zA-Z][\w-]*)[ \t]*\n?([\s\S]*?)```/g, (m, lang, body, offset) => {
-    const key = String(lang).toLowerCase();
-    const comp = COMPONENT_MAP[key];
-    if (!comp) return m; // 不是组件，留给 marked 正常处理
-    let data;
-    try {
-      data = JSON.parse(String(body).trim());
-    } catch (e) {
-      // 算出 body 在原文中大致行号，便于定位
-      const before = md.slice(0, offset);
-      const line = (before.match(/\n/g) || []).length + 1;
-      throw new Error(
-        `[renderer] 组件 "${key}" JSON 解析失败（大约第 ${line} 行）: ${e.message}\n` +
-        `Body 内容:\n${body}`
-      );
+  const lines = md.split('\n');
+  const out = [];
+  const OPEN_RE = /^\s*(`{3,})\s*([A-Za-z][\w-]*)?([^\n]*)$/;
+  const CLOSE_RE = /^\s*(`{3,})\s*$/;
+
+  let i = 0;
+  while (i < lines.length) {
+    const m = OPEN_RE.exec(lines[i]);
+    if (!m) {
+      out.push(lines[i]);
+      i += 1;
+      continue;
     }
-    const html = (comp.renderTrack && Array.isArray(data))
-      ? comp.renderTrack(data)
-      : comp.render(data);
-    const idx = components.length;
-    components.push(html);
-    return `<!--SC-COMPONENT-${idx}-->`;
-  });
-  return { md: replaced, components };
+    const ticks = m[1].length;
+    const lang = (m[2] || '').toLowerCase();
+    const junk = (m[3] || '').trim();
+    const comp = COMPONENT_MAP[lang];
+
+    // 找闭合围栏（整行只有反引号，长度 ≥ 开启围栏）
+    let close = -1;
+    for (let j = i + 1; j < lines.length; j++) {
+      const cm = CLOSE_RE.exec(lines[j]);
+      if (cm && cm[1].length >= ticks) {
+        close = j;
+        break;
+      }
+    }
+
+    if (comp && ticks === 3) {
+      if (close === -1) {
+        throw new Error(
+          `[renderer] 组件 "${lang}"（第 ${i + 1} 行起）缺少闭合围栏 \`\`\`。` +
+          `请检查是否漏写了收尾的三个反引号。`
+        );
+      }
+      const body = (junk ? junk + '\n' : '') + lines.slice(i + 1, close).join('\n');
+      let data;
+      try {
+        data = JSON.parse(body.trim());
+      } catch (e) {
+        throw new Error(
+          `[renderer] 组件 "${lang}" JSON 解析失败（第 ${i + 1} 行起）: ${e.message}\n` +
+          `Body 内容:\n${body}`
+        );
+      }
+      const html = (comp.renderTrack && Array.isArray(data))
+        ? comp.renderTrack(data)
+        : comp.render(data);
+      const idx = components.length;
+      components.push(html);
+      out.push(`<!--SC-COMPONENT-${idx}-->`);
+      i = close + 1;
+      continue;
+    }
+
+    // 非组件围栏：整块原样透传（不扫描内部——嵌套示例的保护就在这里）
+    const end = close === -1 ? lines.length : close + 1;
+    out.push(lines.slice(i, end).join('\n'));
+    i = end;
+  }
+
+  return { md: out.join('\n'), components };
 }
 
 /**
@@ -298,7 +352,7 @@ function collectClientScript(config) {
       })
       .map(c => c.clientJs)
       .filter(Boolean))
-    .concat([getUiRuntime(config), initSideNavScript()])
+    .concat([getUiRuntime(config), getSearchRuntime(), initSideNavScript()])
     .join('\n\n');
 }
 
@@ -452,6 +506,131 @@ ${allowThemeToggle ? `
 }
 
 /**
+ * 站内搜索运行时（v1.9.0）：读 build 期注入的 window.__SC_SEARCH 分节索引，
+ * 侧栏顶部注入搜索框（Ctrl/Cmd+K 聚焦），结果面板跳章节锚点。
+ * 零依赖、无高亮库——匹配高亮用 <mark> 手拼（内容已 escape）。
+ */
+function getSearchRuntime() {
+  return `
+// ===== 站内搜索（编译期索引；无索引/无导航时静默不注入）=====
+(function() {
+  var data = window.__SC_SEARCH;
+  var nav = document.querySelector('.side-nav');
+  if (!data || !data.items || !data.items.length || !nav || !nav.querySelector('ol a')) return;
+  if (nav.querySelector('.sc-search')) return;
+  var items = data.items;
+  var box = document.createElement('div');
+  box.className = 'sc-search';
+  var input = document.createElement('input');
+  input.type = 'search';
+  input.className = 'sc-search-input';
+  input.placeholder = '搜索本课件…';
+  input.setAttribute('aria-label', '搜索课件内容');
+  input.setAttribute('autocomplete', 'off');
+  var panel = document.createElement('div');
+  panel.className = 'sc-search-panel';
+  panel.hidden = true;
+  box.appendChild(input);
+  box.appendChild(panel);
+  nav.insertBefore(box, nav.firstChild);
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  var current = [];
+  var active = -1;
+  function close() { panel.hidden = true; active = -1; }
+  function snippet(src, pos, qlen) {
+    var start = Math.max(0, pos - 22);
+    var frag = src.slice(start, Math.min(src.length, pos + qlen + 48));
+    var lead = start > 0 ? '…' : '';
+    var tail = (start + frag.length) < src.length ? '…' : '';
+    return lead +
+      esc(frag.slice(0, pos - start)) +
+      '<mark>' + esc(frag.slice(pos - start, pos - start + qlen)) + '</mark>' +
+      esc(frag.slice(pos - start + qlen)) + tail;
+  }
+  function render(q) {
+    var lq = q.toLowerCase();
+    if (!lq) { close(); return; }
+    current = [];
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      // toLowerCase 对个别 Unicode 会变长，长度不一致时放弃大小写不敏感（保 index 对齐）
+      var lt = it.t.toLowerCase(); if (lt.length !== it.t.length) lt = it.t;
+      var lx = it.x.toLowerCase(); if (lx.length !== it.x.length) lx = it.x;
+      var ti = lt.indexOf(lq), xi = lx.indexOf(lq);
+      if (ti === -1 && xi === -1) continue;
+      current.push({ it: it, ti: ti, xi: xi, order: i });
+    }
+    current.sort(function(a, b) { return ((a.ti === -1) - (b.ti === -1)) || (a.order - b.order); });
+    current = current.slice(0, 8);
+    active = -1;
+    if (!current.length) {
+      panel.innerHTML = '<div class="sc-search-empty">没有匹配「' + esc(q) + '」的内容</div>';
+      panel.hidden = false;
+      return;
+    }
+    panel.innerHTML = current.map(function(r, k) {
+      var src = r.ti !== -1 ? r.it.t : r.it.x;
+      var pos = r.ti !== -1 ? r.ti : r.xi;
+      return '<a class="sc-search-item" role="option" href="#' + esc(r.it.id) + '">' +
+        '<span class="t">' + esc(r.it.t) + '</span>' +
+        '<span class="s">' + snippet(src, pos, lq.length) + '</span></a>';
+    }).join('');
+    panel.hidden = false;
+  }
+  input.addEventListener('input', function() { render(input.value); });
+  input.addEventListener('keydown', function(e) {
+    var opts = panel.querySelectorAll('.sc-search-item');
+    if (e.key === 'Escape') { input.value = ''; close(); input.blur(); return; }
+    if (e.key === 'Enter' && opts.length) {
+      var el = opts[active >= 0 ? active : 0];
+      close();
+      input.value = '';
+      location.hash = el.getAttribute('href').slice(1);
+      return;
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!opts.length) return;
+      active = e.key === 'ArrowDown' ? (active + 1) % opts.length : (active - 1 + opts.length) % opts.length;
+      opts.forEach(function(o, k) { o.classList.toggle('is-active', k === active); });
+      if (opts[active]) opts[active].scrollIntoView({ block: 'nearest' });
+    }
+  });
+  panel.addEventListener('click', function(e) {
+    var a = e.target.closest ? e.target.closest('.sc-search-item') : null;
+    if (!a) return;
+    close();
+    input.value = '';
+    // 移动端抽屉里搜索命中：借用汉堡按钮的既有关闭链路收起抽屉
+    if (document.body.classList.contains('is-nav-open')) {
+      var t = document.querySelector('.sidebar-toggle');
+      if (t) t.click();
+    }
+  });
+  function onDocClick(e) { if (!box.contains(e.target)) close(); }
+  function onHotkey(e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      input.focus();
+      input.select();
+    }
+  }
+  document.addEventListener('click', onDocClick);
+  document.addEventListener('keydown', onHotkey);
+  if (typeof createLifecycle === 'function') {
+    createLifecycle(document.documentElement).dispose(function() {
+      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('keydown', onHotkey);
+    });
+  }
+})();
+`;
+}
+
+/**
  * 侧边导航的 HTML
  * @param {string[]} sections
  * @param {string} [title]
@@ -501,6 +680,9 @@ function initSideNavScript() {
   function activate(idx) {
     navLinks.forEach(function(a, i) {
       a.classList.toggle('is-active', i === idx);
+      // 读屏器可感知当前章节（复审补强）
+      if (i === idx) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
     });
   }
   // 点击直接跳转（不依赖 hashchange 重新触发）
