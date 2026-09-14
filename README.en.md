@@ -9,7 +9,7 @@
 > Write one Markdown, ship one self-contained interactive HTML.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Version: 1.8.0](https://img.shields.io/badge/version-1.8.0-blue.svg)](./CHANGELOG.md)
+[![Version: 1.9.0](https://img.shields.io/badge/version-1.9.0-blue.svg)](./CHANGELOG.md)
 [![Components: 25](https://img.shields.io/badge/components-25-green.svg)](./COMPONENTS.md)
 
 **25 built-in components · single-file output · zero runtime · themable · print-friendly · answers auto-saved.**
@@ -37,6 +37,8 @@ Reader-side experience, out of the box (progressive enhancement — content neve
 - Code blocks with language label + one-click copy
 - Light/dark theme toggle in the sidebar (remembered across visits; printing falls back to the authored theme to save ink)
 - Estimated reading time in the sidebar
+- **In-courseware search** (Ctrl/Cmd+K): compile-time index, highlighted hits, jump to section
+- Skip-to-content link for keyboard users
 - Answers persist in localStorage — close and reopen where you left off; finished quiz sets offer one-click "copy score" to send back to the teacher
 
 ## 30-second quickstart
@@ -103,7 +105,7 @@ author: "Your name"
 theme: lavender      # lavender (default) / dark
 lang: en             # <html lang>, defaults to zh-CN
 themeToggle: true    # reader-side light/dark toggle (default on; false to lock theme)
-sections:            # Sidebar nav, must match your ## h2 count
+sections:            # optional — auto-derived from your ## h2 headings
   - Introduction
   - Core concept
   - Practice

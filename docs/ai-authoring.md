@@ -22,8 +22,8 @@
 
 ## 硬约束（违反 = build 失败或静默劣化）
 
-1. **frontmatter 必填 `title` 和 `sections`**；`sections` 数量必须**恰好等于**正文 `##` 二级标题数量，
-   顺序一致（多了少了都会 `exit 1`，侧栏锚点按位置对齐）。
+1. **frontmatter 必填 `title`**；`sections` 可省略——缺省自动按正文 `##` 二级标题生成侧栏；
+   **显式给出时**数量必须恰好等于 `##` 数量且顺序一致（违反 `exit 1`）。不确定时干脆不写 `sections`。
 2. 组件只通过 fenced code block 嵌入，语言标记必须是组件名（如 ` ```quiz `），块内**必须是合法 JSON**（双引号、无尾逗号、无注释）。
 3. `quiz.correct` 里的每个 id **必须存在于 options[].id**（区分大小写）；选择题至少 2 个选项，correct 非空。
 4. `fill-blank` 多空占位必须从 `{{1}}` 起连续编号、不重复（`{{1}} {{2}} {{3}}`），`answers` 数组按空序对齐。
@@ -188,7 +188,7 @@ node build.js content/<name>.md    # 必须 ✓ Built 且无 ⚠ / exit 0
 npm test                           # 全绿（不改框架代码时必然通过）
 ```
 
-1. build 报「锚点错位」→ 对齐 sections 与 `##` 数量/顺序。
+1. build 报「锚点错位」→ 对齐 sections 与 `##` 数量/顺序（或直接删掉 sections 自动推导）。
 2. build 报「公式解析错误」→ 按清单修 LaTeX（通常是 `\\` 转义或缺失 `}`）。
 3. build 报「图片引用问题」→ 修路径或把图放进项目。
 4. build 报 quiz 校验 throw → 核对 options[].id 与 correct。

@@ -2,7 +2,7 @@
 
 > 目标：一次开发，永久复用。Markdown 写内容，HTML 是编译产物。零基础小白友好。
 
-**当前版本：v1.8.0**（见 [`package.json`](./package.json)）
+**当前版本：v1.9.0**（见 [`package.json`](./package.json)）
 
 > **版本号约定**：Slidecraft 有两套独立的版本号，不要混用——
 > - **项目版本**（`package.json` 的 `version`）= **功能里程碑号**。每加一个体系（如 3D / 2D）或一次大的能力扩展 +0.1。`1.0.0` = MVP 10 组件稳定，`1.2.0` = 3D 体系，`1.3.0` = 2D 体系。
@@ -80,7 +80,7 @@ author: Alice
 theme: lavender      # 主题色：lavender（默认，薰衣草紫）/ dark（深色护眼）
 lang: zh-CN          # <html lang>，英文课件写 en（默认 zh-CN）
 themeToggle: true    # 读者侧深浅主题切换开关（默认开；单主题设计页写 false）
-sections:
+sections:            # 可省略（v1.9.0 起缺省自动按正文 ## 推导）；显式给出时数量必须等于 ## 数
   - 开篇：什么是 SKILL
   - SKILL 的结构解剖
   - 写一个 SKILL 的 5 个步骤
@@ -446,10 +446,9 @@ if (sectionsCount > 0 && h2Count > 0 && sectionsCount !== h2Count) {
 }
 ```
 
-**约束（写新课件时）**：
-- `sections` 数量 **必须** 等于正文 h2 数量
-- `sections` 顺序应与 h2 在正文中出现顺序一致
-- 漏写 `sections` 不会让 build 失败（向后兼容，只给 warning），但 sidebar 会是空
+**约束（v1.9.0 起）**：
+- 漏写 `sections` 时自动按正文 h2 推导侧栏（数量天然对齐）
+- **显式提供** `sections` 时，数量 **必须** 等于正文 h2 数量、顺序一致，否则 build 报错（exit 1）
 
 ---
 
@@ -525,7 +524,9 @@ if (sectionsCount > 0 && h2Count > 0 && sectionsCount !== h2Count) {
 - ~~课件脚手架 / CLI 帮助~~ ✅ 1.8.0 已交付（`node build.js new <name>` / `--help` / 阅读时间）
 - 支持内嵌视频
 - 支持导出 PDF（基于 print 样式 + 浏览器「另存为 PDF」可先用）
+- ~~站内搜索~~ ✅ 1.9.0 已交付（编译期索引 + Ctrl/Cmd+K）
 - 移动端组件级触控优化（目录抽屉 1.7.0 已交付）
+- 演示模式（钢人分析后暂缓：品类是滚动课件 + 打印讲义，等真实教学反馈再立项）
 
 ---
 

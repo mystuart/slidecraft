@@ -10,7 +10,7 @@
 > 25 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好 · 作答自动保存。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version: 1.8.0](https://img.shields.io/badge/version-1.8.0-blue.svg)](./CHANGELOG.md)
+[![Version: 1.9.0](https://img.shields.io/badge/version-1.9.0-blue.svg)](./CHANGELOG.md)
 [![Components: 25](https://img.shields.io/badge/components-25-green.svg)](./COMPONENTS.md)
 [![Output: single .html](https://img.shields.io/badge/output-single%20.html-brightgreen.svg)](./dist)
 
@@ -63,7 +63,7 @@ open dist/triangular-prism-demo.html
 **写课件时的开发循环：**
 
 ```bash
-npm run dev      # watch + 静态服务（改 .md 自动重 build，浏览器刷新即可看效果）
+npm run dev      # watch + 静态服务（改 .md / 模板 / CSS 均自动重编译，新建 .md 自动纳入）
 npm run build    # 一次性全量编译 content/ 下所有 .md
 npm test         # 跑测试（数值算法 / build 校验逻辑）
 node build.js --help   # 全部用法
@@ -100,6 +100,8 @@ node build.js --help   # 全部用法
 - 代码块带语言标签 + 一键复制
 - 侧栏月亮/太阳按钮一键切换深浅主题（自动记住选择，打印时回浅色省墨）
 - 侧栏自动显示「约 N 分钟读完」
+- **站内搜索**（Ctrl/Cmd+K）：编译期生成索引，命中高亮、章节直达，长课件找内容不用再滚动
+- 键盘用户可 Tab 直达「跳到正文」
 
 ---
 
@@ -206,7 +208,7 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 | `theme` | ❌ | 主题名：`lavender`（默认）/ `dark` |
 | `lang` | ❌ | `<html lang>`，默认 `zh-CN`，英文课件写 `en` |
 | `themeToggle` | ❌ | 默认开（读者可切深浅主题）；写 `false` 关闭（单主题设计的页面用） |
-| `sections` | ✅ | 章节标题列表，自动生成侧边导航 |
+| `sections` | ❌ | 缺省自动按正文 `##` 生成侧栏；显式给出时数量须与 `##` 一致 |
 
 ---
 
