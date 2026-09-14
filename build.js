@@ -196,13 +196,15 @@ const DIST_DIR = path.join(ROOT, 'dist');
  */
 function injectSectionIds(html) {
   let counter = 0;
+  const titles = [];
   const out = html.replace(/<h2(\s*)>([\s\S]*?)<\/h2>/g, (m, sp, content) => {
     counter += 1;
     // 去掉内层可能的标签，只留纯文本做 title
     const titleText = content.replace(/<[^>]+>/g, '').trim();
+    titles.push(titleText);
     return `<h2${sp} id="section-${counter}">${content}</h2>`;
   });
-  return { html: out, count: counter };
+  return { html: out, count: counter, titles };
 }
 
 // ============================================================
@@ -303,27 +305,24 @@ async function buildFile(inputPath) {
   const componentCss = componentCssParts.join('\n');
 
   // 7) 渲染侧边导航（footer 附阅读时间：CJK 400 字/分 + 英文 200 词/分估算）
+  // sections 自动推导（v1.9.0）：frontmatter 缺省时直接用正文 h2 文字做侧栏，
+  // 消除「漏写 sections → 空侧栏」整类问题；显式提供时保留严格校验（7.6）。
   const readMinutes = estimateReadingTime(content);
   const authorWithMeta = [fm.author, `约 ${readMinutes} 分钟读完`].filter(Boolean).join(' · ');
-  const nav = renderer.renderSideNav(fm.sections || [], fm.title, fm.subtitle, authorWithMeta);
+  const explicitSections = Array.isArray(fm.sections) && fm.sections.length > 0;
+  const navSections = explicitSections ? fm.sections : injected.titles.map(t => ({ title: t }));
+  const nav = renderer.renderSideNav(navSections, fm.title, fm.subtitle, authorWithMeta);
 
-  // 7.5) 兜底提醒：frontmatter 没写 sections 但正文有 h2，sidebar 会是空的
-  // 漏写 sections 不会让 build 失败（向后兼容），只给 warning
-  if (!nav.items && /<h2[\s>]/i.test(bodyHtml)) {
-    console.warn(`! 提醒：${path.basename(inputPath)} 有 <h2> 但 frontmatter 没写 sections，sidebar 会是空的。`);
-    console.warn('  参考 content/binary-card-trick.md 的 frontmatter 补 sections。');
-  }
-
-  // 7.6) strict 校验：sections 数量必须 == h2 数量，否则锚点错位
+  // 7.6) strict 校验（仅显式提供 sections 时）：数量必须 == h2 数量，否则锚点错位
   // 之前 sections 按位置 (i+1) 编号、h2 也按位置 (1..N) 编号，两边数量不一致会无声错位
   // （如三角柱 demo 漏写 ## 原题 时 "原题"sidebar 跳到不存在的 section-1、"第(2)问"跳到 section-3 而非 section-4）
-  // 2026-06-15 升级：所有现有 .md 已修齐，从 warn 升级为 error + exit 1（架构债 #4 收尾）
-  const sectionsCount = Array.isArray(fm.sections) ? fm.sections.length : 0;
-  if (sectionsCount > 0 && h2Count > 0 && sectionsCount !== h2Count) {
-    console.error('! 锚点错位：' + path.basename(inputPath) + ' frontmatter sections=' + sectionsCount + '，但正文 h2=' + h2Count + '。');
+  // v1.9.0 起缺省自动推导（天然对齐），显式提供时的校验保留
+  if (explicitSections && h2Count > 0 && fm.sections.length !== h2Count) {
+    console.error('! 锚点错位：' + path.basename(inputPath) + ' frontmatter sections=' + fm.sections.length + '，但正文 h2=' + h2Count + '。');
     console.error('  侧边栏按 (i+1) 编号、正文按出现顺序编号 —— 数量不一致会导致锚点错位。');
+    console.error('  若不需要自定义侧栏文字，直接删掉 sections 字段即可自动按正文 ## 推导。');
     // 给出 sections 列表便于排查
-    (fm.sections || []).forEach(function(s, i) {
+    fm.sections.forEach(function(s, i) {
       const label = typeof s === 'string' ? s : (s && s.title ? s.title : '');
       console.error('    sidebar #section-' + (i + 1) + ' -> "' + label + '"');
     });
@@ -346,6 +345,27 @@ async function buildFile(inputPath) {
   const themeBoot = fm.themeToggle !== false
     ? `<script>try{var t=localStorage.getItem('sc-theme');if(t&&t!==document.documentElement.getAttribute('data-theme'))document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>`
     : '';
+
+  // 8.15) 站内搜索索引（v1.9.0）：编译期抽取分节文本，随单文件内嵌。
+  // fm.search: false 关闭；索引体积护栏：超 96KB 先截每段到 400 字，仍超则只留标题
+  // ——搜索不能悄悄把单文件产物体积翻倍。
+  let searchJs = '';
+  if (fm.search !== false && injected.count > 0) {
+    const items = extractSearchIndex(bodyHtml);
+    if (items.length > 0) {
+      let json = JSON.stringify(items);
+      if (json.length > 96 * 1024) {
+        items.forEach(it => { it.x = it.x.slice(0, 400); });
+        json = JSON.stringify(items);
+      }
+      if (json.length > 96 * 1024) {
+        items.forEach(it => { it.x = ''; });
+        json = JSON.stringify(items);
+      }
+      // </ 转义防止提前闭合 <script>（HTML 规范友好写法 \\u003c）
+      searchJs = '\nwindow.__SC_SEARCH={items:' + json.replace(/</g, '\\u003c') + '};';
+    }
+  }
 
   // 8.5) Three.js 包处理（A1 · 拆外链 + 缓存破坏）
   // 仅当输出文件用到了 geometry-3d 组件时才注入，避免给不需要 3D 的课件也增加 730KB
@@ -388,8 +408,10 @@ async function buildFile(inputPath) {
   }
 
   // 9) 注入模板
+  const SC_VERSION = require('./package.json').version;
   const out = tpl
     .replace(/\{\{LANG\}\}/g, () => escapeHtml(String(fm.lang || 'zh-CN').trim() || 'zh-CN'))
+    .replace(/\{\{SC_VERSION\}\}/g, () => SC_VERSION)
     .replace(/\{\{TITLE\}\}/g, () => nav.titleTag)
     .replace(/\{\{SUBTITLE\}\}/g, () => escapeHtml(fm.subtitle || ''))
     .replace(/\{\{SUBTITLE_TAG\}\}/g, () => nav.subtitleTag)
@@ -401,7 +423,8 @@ async function buildFile(inputPath) {
     .replace(/\{\{CONTENT\}\}/g, () => bodyHtml)
     .replace(/\{\{CSS\}\}/g, () => css + '\n' + katexCss + (componentCss ? '\n' + componentCss : ''))
     .replace(/\{\{THREE_SCRIPT\}\}/g, () => threeBundleTag)
-    .replace(/\{\{CLIENT_JS\}\}/g, () => threeBundleJs + '\n' + clientJs);
+    // searchJs 必须在 clientJs 之前：搜索 runtime 是立即执行的 IIFE，读取 __SC_SEARCH 时它必须已定义
+    .replace(/\{\{CLIENT_JS\}\}/g, () => searchJs + '\n' + threeBundleJs + '\n' + clientJs);
 
   // 10) 写文件
   // 每个 markdown 编译成独立的 dist/<name>.html，避免多文件互相覆盖
@@ -432,6 +455,36 @@ function estimateReadingTime(bodyMd) {
   const words = (text.replace(/[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]/g, ' ').match(/[A-Za-z0-9_'-]+/g) || []).length;
   const minutes = Math.max(1, Math.ceil(cjk / 400 + words / 200));
   return minutes;
+}
+
+/**
+ * 站内搜索索引提取（v1.9.0）：按 h2 分段，抽标题 + 纯文本正文。
+ * 剥 KaTeX <math>（其 annotation 会让公式文本重复两遍）、script/style、所有标签，
+ * 压缩空白。搜索是长课件的头号导航需求，索引随单文件内嵌、零运行时依赖。
+ */
+function extractSearchIndex(bodyHtml) {
+  const strip = (s) => String(s)
+    .replace(/<math[\s\S]*?<\/math>/gi, ' ')
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    // 压缩 CJK 文字（含中文标点）之间的空格：剥标签留下的空格会破坏中文短语匹配
+    .replace(/([\u3000-\u303f\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]) (?=[\u3000-\u303f\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af])/g, '$1')
+    .trim();
+  const re = /<h2[^>]*\bid="(section-\d+)"[^>]*>([\s\S]*?)<\/h2>([\s\S]*?)(?=<h2[^>]*\bid=|$)/g;
+  const items = [];
+  let m;
+  while ((m = re.exec(bodyHtml)) !== null) {
+    items.push({ id: m[1], t: strip(m[2]), x: strip(m[3]).slice(0, 1500) });
+  }
+  // h2 之前的导语（hero 后第一段）并入第一节，保证开头内容可搜
+  const pre = strip(bodyHtml.split(/<h2[^>]*\bid=/)[0] || '');
+  if (items.length > 0 && pre) {
+    items[0].x = (pre + ' ' + items[0].x).slice(0, 1500);
+  }
+  return items;
 }
 
 const HELP_TEXT = `
@@ -622,18 +675,39 @@ sections:
 
   if (targets.length === 0) {
     console.error('没有可编译的 markdown 文件');
-    console.error('用法: node build.js [file.md ...]');
+    console.error('用法: node build.js [file.md ...]（--help 查看全部）');
     process.exit(1);
   }
 
+  // 单文件错误隔离（v1.9.0）：一个坏 .md 不再阻塞其余文件，最后汇总 + exit 1
+  const failures = [];
+  let okCount = 0;
   for (const t of targets) {
-    await buildFile(t);
+    try {
+      await buildFile(t);
+      okCount += 1;
+    } catch (e) {
+      failures.push(t);
+      console.error('✗ 编译失败 ' + path.basename(t) + '：' + String(e.message).split('\n')[0]);
+    }
+  }
+  console.log('');
+  if (failures.length > 0) {
+    console.error('✗ ' + failures.length + '/' + targets.length + ' 个课件编译失败（其余 ' + okCount + ' 个已生成；修复上方错误后重跑）：');
+    failures.forEach(f => console.error('    ' + path.relative(ROOT, f)));
+    process.exitCode = 1;
+  } else {
+    console.log('✓ 完成：' + okCount + ' 个课件 → dist/');
   }
 
   // --watch 模式：监听文件变化，debounce 后增量重 build，不退出
+  // v1.9.0 盲区修复：此前只监听初始 .md 列表——改 template/CSS/组件 JS 不触发重编译、
+  // 新建的 .md 要重启才能被监听。现在 template/ 递归监听（变更→全量重建）、
+  // content/ 目录监听（新建 .md 自动纳入监听并编译）。
   if (WATCH) {
     console.log('');
-    console.log('[watch] 监听 ' + targets.length + ' 个文件，保存即重 build（Ctrl+C 退出）');
+    console.log('[watch] 监听 ' + targets.length + ' 个课件 + template/ + content/ 新增文件（Ctrl+C 退出）');
+    console.log('[watch] 注意：build.js 自身的改动仍需重启 watch');
     const changedFiles = new Set();
     let debounceTimer = null;
     function scheduleRebuild() {
@@ -647,10 +721,14 @@ sections:
           try {
             await buildFile(f);
           } catch (e) {
-            console.error('[watch] build 失败 ' + path.basename(f) + ': ' + e.message);
+            console.error('[watch] build 失败 ' + path.basename(f) + ': ' + String(e.message).split('\n')[0]);
           }
         }
       }, 300);
+    }
+    function scheduleFullRebuild() {
+      targets.forEach(t => changedFiles.add(t));
+      scheduleRebuild();
     }
     targets.forEach(t => {
       fs.watch(t, { persistent: true }, (eventType) => {
@@ -660,6 +738,40 @@ sections:
         }
       });
     });
+    // 模板 / 样式 / 组件 JS 变更 → 全量重建
+    const templateDir = path.join(ROOT, 'template');
+    try {
+      fs.watch(templateDir, { persistent: true, recursive: true }, (eventType, fname) => {
+        if (!fname || fname.endsWith('.DS_Store')) return;
+        console.log('[watch] 模板变更：' + fname + ' → 全量重建');
+        scheduleFullRebuild();
+      });
+    } catch (e) {
+      console.warn('[watch] template/ 目录监听不可用（' + e.message + '），模板改动需手动重跑 build');
+    }
+    // content/ 目录：新建 .md 自动纳入监听并编译
+    const contentDir = path.join(ROOT, 'content');
+    try {
+      fs.watch(contentDir, { persistent: true }, (eventType, fname) => {
+        if (!fname || !fname.endsWith('.md')) return;
+        const full = path.join(contentDir, fname);
+        if (!fs.existsSync(full)) return; // 删除：无产物可回滚，忽略
+        if (!targets.includes(full)) {
+          targets.push(full);
+          fs.watch(full, { persistent: true }, (ev) => {
+            if (ev === 'change') {
+              changedFiles.add(full);
+              scheduleRebuild();
+            }
+          });
+          console.log('[watch] 新增课件：' + fname);
+        }
+        changedFiles.add(full);
+        scheduleRebuild();
+      });
+    } catch (e) {
+      console.warn('[watch] content/ 目录监听不可用（' + e.message + '），新建 .md 需重启 watch');
+    }
     return; // watch 模式不退出进程，也不走错误报告的 exit code
   }
 
@@ -703,4 +815,4 @@ if (require.main === module) {
 }
 
 // 导出供测试用（不触发 main）
-module.exports = { injectSectionIds, collectKatexErrors, inlineImages, assetErrors, estimateReadingTime };
+module.exports = { injectSectionIds, collectKatexErrors, inlineImages, assetErrors, estimateReadingTime, extractSearchIndex };
