@@ -161,7 +161,19 @@ const clientJs = `
     );
     if (containers.length === 0) return;
     containers.forEach(function(c) {
-      try { initOne(c); } catch (err) { console.error('[geometry-3d] init failed:', err); }
+      try {
+        initOne(c);
+      } catch (err) {
+        console.error('[geometry-3d] init failed:', err);
+        // 降级提示：无 WebGL（老机器/禁用 GPU/无头环境）时给用户可见的说明，不留空白块
+        var fb = c.querySelector('.geom-3d-stage');
+        if (fb && !fb.childElementCount) {
+          fb.innerHTML = '<div class="geom-3d-fallback">'
+            + '<strong>3D 演示无法显示</strong>：当前环境不支持 WebGL。'
+            + '文字、公式与练习不受影响；请在 Chrome / Edge / Safari 等现代浏览器中查看 3D 部分。'
+            + '</div>';
+        }
+      }
     });
   }
 

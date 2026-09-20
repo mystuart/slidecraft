@@ -255,6 +255,25 @@ async function buildFile(inputPath) {
   // 4.55) 图片内联：相对路径 <img> → data URI，兑现单文件分发承诺
   bodyHtml = inlineImages(bodyHtml, path.dirname(inputPath), path.basename(inputPath));
 
+  // 4.58) 互动组件 id 全页唯一校验（v1.10.0）
+  // quiz / fill-blank 的 id 是进度持久化的 localStorage key——重复 id 的题会静默
+  // 共享作答记录（学员做第二题时"自动恢复"第一题的答案）。
+  {
+    const idCounts = new Map();
+    const idRe = /data-(?:quiz|fillblank)-id="([^"]*)"/g;
+    let idm;
+    while ((idm = idRe.exec(bodyHtml)) !== null) {
+      idCounts.set(idm[1], (idCounts.get(idm[1]) || 0) + 1);
+    }
+    const dups = Array.from(idCounts.entries()).filter(([, n]) => n > 1);
+    if (dups.length > 0) {
+      console.error('! 组件 id 重复（进度持久化会串题）：' + path.basename(inputPath));
+      dups.forEach(([id, n]) => console.error(`    id="${id}" 出现 ${n} 次`));
+      console.error('  请为每个 quiz / fill-blank 分配全页唯一的 id。');
+      process.exitCode = 1;
+    }
+  }
+
   // 4.6) 架构债 #3：扫描 KaTeX 静默降级
   // throwOnError:false 让 KaTeX 把错误渲染成 katex-error span 而非抛异常，
   // 这里主动收集，build 末尾汇总报告 + exit code 非 0。

@@ -1,6 +1,6 @@
 {
   "name": "slidecraft",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "private": true,
   "description": "Interactive Slidecraft handouts from Markdown. 25 components · single-file · zero runtime.",
   "main": "build.js",
@@ -9,6 +9,9 @@
     "build:watch": "node build.js --watch",
     "build:three": "node_modules/.bin/esbuild three-bundle.js --bundle --format=iife --target=es2020 --minify --outfile=three-bundle.iife.js",
     "new": "node build.js new",
+    "check": "node scripts/dist-lint.js && node scripts/check-registry.js",
+    "visual": "node scripts/visual.mjs",
+    "visual:baseline": "node scripts/visual.mjs --baseline",
     "dev": "node build.js --watch & python3 -m http.server 8000 --directory dist",
     "test": "node --test \"test/**/*.test.js\"",
     "clean": "rm -rf dist/"
@@ -25,7 +28,9 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.0",
-    "jsdom": "^27.0.1"
+    "jsdom": "^27.0.1",
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0"
   },
   "author": "Stuart Ma <mystuart@163.com>",
   "license": "MIT",

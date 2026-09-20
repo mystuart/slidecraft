@@ -38,3 +38,6 @@ logs/
 
 # OpenCode runtime 临时目录
 .opencode/
+
+# 视觉基线（本地工具，不入库——跨机器抗渲染差异不适合 CI 自动 fail）
+test/__screenshots__/

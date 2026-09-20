@@ -435,3 +435,19 @@
 }
 
 /* @boundary-end geometry-3d.css */
+
+/* WebGL 降级提示（无 WebGL 环境的可见说明，不留空白块） */
+.geom-3d-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 1.2em;
+  font-size: var(--font-small);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  background: var(--color-primary-bg);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  text-align: center;
+}

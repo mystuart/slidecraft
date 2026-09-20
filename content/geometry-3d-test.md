@@ -3,10 +3,6 @@ title: Geometry-3D 立体几何测试
 description: 验证 3D 组件的 box / sphere / cylinder / cone / 顶点标签 / 坐标轴 / 网格
 theme: lavender
 author: Alice
-sections:
-  - 1、正方体（带顶点标签 + 坐标轴）
-  - 2、圆柱（带网格）
-  - 3、圆锥（不透明面 + 棱线）
 ---
 
 # 1、正方体（带顶点标签 + 坐标轴）

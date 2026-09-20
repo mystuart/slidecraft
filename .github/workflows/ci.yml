@@ -1,0 +1,35 @@
+# Slidecraft CI — 质量守门机制（v1.10.0）
+# 每次 push / PR 自动跑：安装 → 全量编译 → 产物/登记簿守门 → 全部测试 → 覆盖率日志
+# 本地等价序列：npm ci && node build.js && npm run check && npm test
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 全量编译（含 KaTeX / 图片 / 锚点 / id 唯一等 build 期校验）
+        run: node build.js
+
+      - name: 产物气味 lint + 登记簿一致性
+        run: npm run check
+
+      - name: 全部测试（含 jsdom 产物冒烟：零未捕获异常）
+        run: npm test
+
+      - name: 覆盖率日志（仅报告，不设阈值门槛）
+        run: node --test --experimental-test-coverage "test/**/*.test.js" 2>&1 | grep -E "^ℹ (all files|test/)|^\s{2,}\S+\.js\s+\|" || true
