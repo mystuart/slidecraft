@@ -107,7 +107,12 @@ function normalizeBlanksSpec(question, answers) {
 }
 
 function render(data) {
+  // id 是进度持久化的 localStorage key：缺省随机 id 在重新编译后会变化（v1.10.0 警告）
+  const explicitId = Boolean(data.id);
   const id = data.id || ('f-' + Math.random().toString(36).slice(2, 8));
+  if (!explicitId) {
+    console.warn(`[fill-blank] "${String(data.question || '').slice(0, 24)}…" 缺少 id，已生成随机 id。重新编译后学员作答进度会失效，建议显式指定。`);
+  }
   const question = data.question || '';
   const hint = data.hint || '';
   const placeholder = data.placeholder || '在此输入答案';

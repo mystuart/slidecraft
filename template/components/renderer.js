@@ -98,6 +98,7 @@ const quote = require('./quote.js');
 const diagram = require('./diagram.js');
 const codeRunner = require('./code-runner.js');
 const chart = require('./chart.js');
+const feedback = require('./feedback.js');
 
 // 语言标记 → 组件渲染器
 const COMPONENT_MAP = {
@@ -152,6 +153,7 @@ const COMPONENT_MAP = {
   'flowchart': diagram,
   'code-runner': codeRunner,
   'coderunner': codeRunner,
+  'feedback': feedback,
 };
 
 const PLACEHOLDER_RE = /<!--\s*SC-COMPONENT-(\d+)\s*-->/g;

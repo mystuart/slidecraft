@@ -21,6 +21,7 @@ sections:
   - 16. diagram · 流程图
   - 17. code-runner · 代码对照
   - 打磨方向预告
+  - 19. 学习反馈（feedback）
 ---
 
 ```hero
@@ -810,3 +811,13 @@ sections:
 5. **compare 的 4 种 tag（good/bad/warn/neutral）**：4 种颜色够不够？要不要加「正确 vs 错误」的二色版（黑白分明）和「注意 vs 提醒」的温和版？
 6. **hero 的 CTA**：现在是锚点跳到 `#sec-xxx`，但侧边栏锚点是 renderer 自动生成的——能不能让 hero 直接引用 section id？需要规范化锚点命名。
 7. **fill-blank 的多答案**：现在用 `|` 分隔，教学场景够用，但如果答案有「同义/等价但顺序不同」的情况（如 `H2O` 和 `H₂O`），目前是手动枚举——能不能搞个简单的等价规则？
+
+## 19. 学习反馈（feedback）
+
+单文件离线课件没有埋点——`feedback` 组件用「学员一键复制反馈回发作者」的方式，把「哪里没讲明白」的信号收回来。配合 `email` 字段可直接邮件发送：
+
+```feedback
+{"id": "fb-showcase", "title": "这份组件总览对你有帮助吗？", "email": "mystuart@163.com"}
+```
+
+打印时整块隐藏（反馈是交互件，纸上无意义）。

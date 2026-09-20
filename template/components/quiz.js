@@ -1,6 +1,6 @@
 /**
  * @component quiz / quiz-track
- * @version 0.3.3
+ * @version 0.4.0
  * @status 打磨完成
  *
  * Quiz 选择题组件（含题组 quiz-track 模式）
@@ -18,6 +18,10 @@
  *   - category  'concept'|'calc'|'apply'|'review'  可选 · 题型分类标签
  *
  * 题组字段（quiz-track）：直接传 [单题1, 单题2, ...] 数组
+ *
+ * v0.4.0 变更：
+ *   - 「复制成绩」升级为错题分布报告：逐题列出 ✓/◐/✗ + 截断题干——
+ *     老师收到就知道哪一节的内容需要重讲（内容不足探测器）
  *
  * v0.3.3 变更（复审修复）：
  *   - 「复制成绩」改调框架 `__SCCopy`（clipboard API + execCommand 兜底），
@@ -53,7 +57,13 @@ const CATEGORY_LABELS = {
 };
 
 function renderSingleQuestion(data) {
+  // id 是进度持久化的 localStorage key：缺省随机 id 在重新编译后会变化，
+  // 学员旧进度将无法对应——给出 build 期警告（v1.10.0）
+  const explicitId = Boolean(data.id);
   const id = data.id || ('q-' + Math.random().toString(36).slice(2, 8));
+  if (!explicitId) {
+    console.warn(`[quiz] "${String(data.question || '').slice(0, 24)}…" 缺少 id，已生成随机 id。重新编译后学员作答进度会失效，建议显式指定。`);
+  }
   const question = data.question || '';
   const type = data.type === 'multi' ? 'multi' : 'single';
   const options = Array.isArray(data.options) ? data.options : [];
@@ -383,7 +393,7 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
     if (hooks && hooks.onRestored) hooks.onRestored(saved);
   }
 
-  // 共享：复制成绩按钮（读 summary 里的实时数字）
+  // 共享：复制成绩按钮（读 summary 里的实时数字 + 每题对错分布）
   function bindCopyScore(carousel, total) {
     var copyBtn = carousel.querySelector('[data-summary-copy]');
     if (!copyBtn) return;
@@ -392,12 +402,21 @@ document.querySelectorAll('.quiz').forEach(function(quiz) {
         var el = carousel.querySelector(sel);
         return el ? el.textContent : '0';
       }
-      var text = '【' + (document.title || '课件') + '】题组成绩：共 ' + total +
+      var lines = ['【' + (document.title || '课件') + '】题组成绩：共 ' + total +
         ' 题 — 全对 ' + num('[data-summary-correct]') +
         '，部分对 ' + num('[data-summary-partial]') +
-        '，答错 ' + num('[data-summary-wrong]');
-      // 复制走框架 __SCCopy（clipboard API + execCommand 兜底），与代码卡片同一实现——
-      // 此前这里有一份独立 fallback 拷贝，两处逻辑重复（复审 P4 已去重）
+        '，答错 ' + num('[data-summary-wrong]')];
+      // 每题对错分布：老师收到就知道哪一节的内容需要重讲（v1.10.0）
+      var marks = { correct: '✓', partial: '◐', wrong: '✗', default: '—' };
+      carousel.querySelectorAll('.quiz-carousel-slide').forEach(function(slide, i) {
+        var status = slide.getAttribute('data-slide-status') || 'default';
+        var q = slide.querySelector('.quiz-question');
+        var text = q ? q.textContent.replace(/\s+/g, ' ').trim() : '';
+        if (text.length > 30) text = text.slice(0, 30) + '…';
+        lines.push('第' + (i + 1) + '题 ' + (marks[status] || '—') + ' ' + text);
+      });
+      var text = lines.join('\\n');
+      // 复制走框架 __SCCopy（clipboard API + execCommand 兜底），与代码卡片同一实现
       if (!window.__SCCopy) return;
       window.__SCCopy(text, function() {
         var old = copyBtn.textContent;
