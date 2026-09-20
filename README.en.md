@@ -9,10 +9,10 @@
 > Write one Markdown, ship one self-contained interactive HTML.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Version: 1.9.0](https://img.shields.io/badge/version-1.9.0-blue.svg)](./CHANGELOG.md)
-[![Components: 25](https://img.shields.io/badge/components-25-green.svg)](./COMPONENTS.md)
+[![Version: 1.10.0](https://img.shields.io/badge/version-1.10.0-blue.svg)](./CHANGELOG.md)
+[![Components: 25](https://img.shields.io/badge/components-26-green.svg)](./COMPONENTS.md)
 
-**25 built-in components · single-file output · zero runtime · themable · print-friendly · answers auto-saved.**
+**26 built-in components · single-file output · zero runtime · themable · print-friendly · answers auto-saved.**
 
 Slidecraft is a Markdown-to-HTML compiler for interactive teaching material. You write structured Markdown with frontmatter and fenced component blocks; it compiles to one self-contained `.html` file you can email, host anywhere, or open offline. No JS framework, no build server, no runtime dependencies.
 
@@ -80,6 +80,7 @@ node build.js --help   # full CLI usage
 | | `diagram` | Flowchart / relationship graph (SVG) |
 | | `code-runner` | Code + output comparison |
 | **Practice** | `quiz` | Single/multiple choice with feedback |
+| | `feedback` | Student feedback (thumbs up/down + copyable report) |
 | | `quiz-track` | Quiz progress tracker |
 | | `fill-blank` | Fill-in-the-blank |
 | | `math-step` | Stepwise solution with collapse + progress |

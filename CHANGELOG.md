@@ -3,6 +3,59 @@
 本项目的所有重要变更记录。版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)，
 但 Slidecraft 的版本 = 功能里程碑（每加一个体系 +0.1）。
 
+## [1.10.0] — 2026-09-11
+
+### 质量守门机制落地（让"发现不足"从人工自觉变成机器保证）
+
+把历次复审靠人工自觉的发现手段机制化——每个机制都对应一个**实际抓到过**的 bug 类别。
+
+**🤖 机器守门（CI 每次提交自动跑）**
+
+- **GitHub Actions CI**（`.github/workflows/ci.yml`）——npm ci → 全量编译 → `npm run check`
+  → 全部测试 → 覆盖率日志。此前 push 无任何检查，回归只有下次人工跑测试才可能发现
+- **产物冒烟测试**（`test/smoke.test.js`）——jsdom 逐个加载 dist/*.html 执行全部脚本，
+  断言零未捕获异常（jsdom「Not implemented」与 geometry-3d 可控降级白名单放行）
+- **dist-lint**（`scripts/dist-lint.js`）——产物气味检查：katex-error 残留 / 未替换占位符 /
+  废弃 data-feedback-* 属性 / 正文 undefined/NaN / 锚点死链（引用不存在的 section）
+- **check-registry**（`scripts/check-registry.js`）——登记簿 ↔ 源码 JSDoc 版本双向比对
+  （quiz-track 与 quiz 共文件映射；「不参与组件登记」的调度器白名单）
+- **build 期 id 唯一校验**——quiz/fill-blank 的 id 是进度持久化 key，重复 = 学员做第二题
+  「自动恢复」第一题答案；缺省随机 id 加警告（重新编译后进度失效）
+- `npm run check` 一键跑两道守门
+
+**👁 视觉回归**
+
+- **visual 基线工具**（`scripts/visual.mjs`，`npm run visual`）——六 canonical 场景
+  （桌面/移动/暗色/抽屉展开/搜索展开）截图 + pixelmatch 逐像素比对（>1% fail，diff 图输出）。
+  基线本地化不入库（跨机器抗渲染差异不适合 CI 自动 fail），纳入发布检查单人工执行。
+  发布前跑一遍，把「每轮手工拍截图」机制化
+
+**📣 内容反馈回路（发现「内容哪里不足」的唯一真实信号）**
+
+- **新组件 `feedback` v0.1.0**——👍👎 + 可选意见 → 一键生成文本反馈单复制/邮件回发作者。
+  单文件离线不能也不该做埋点，沿用「复制成绩」模式让学员手动回传；选择记忆 localStorage；
+  打印隐藏。showcase 已加示例
+- **quiz 复制成绩升级错题分布**（quiz v0.4.0）——逐题列出 ✓/◐/✗ + 截断题干，
+  老师收到就知道哪一节需要重讲
+
+**📐 顺带修复（守门机制第一天抓到的历史腐烂）**
+
+- 登记簿 3 处版本失同步（callout v0.3.0 / geometry-3d v0.2.0 / code-runner v0.1.1）
+- 2 个组件漏登（trajectory、_highlight 补登记；feedback 新增登记）
+- geometry-3d-test 页面死链（写了 3 条 sections 但正文无 h2，删 sections 走自动推导）
+- **geometry-3d WebGL 降级提示**——无 WebGL 环境（老机器/禁 GPU）从空白块变为用户可见说明
+
+**🤝 人机协作流程**
+
+- **AGENTS.md**（仓库根）——项目不变量写给未来 AI 会话：不静默失败 / 单文件零运行时 /
+  token 纪律 / escapeHtml 溯源 / id 唯一 / 改动纪律 / 验证闭环 / 明确不做清单
+- **docs/review-checklist.md**——两轮真实复审提炼的可重复复审协议（每项对应实际抓到过的 bug）
+- CONTRIBUTING 新增**发布检查单**（CI 四步 + 文档/版本同步 + 人工复审项）
+
+### 测试
+
+- npm test: **90/90**（新增 6 个：产物冒烟 1 + feedback 渲染/交互 3 + 错题分布 1 + id 重复校验 1）
+
 ## [1.9.0] — 2026-09-11
 
 ### 钢人分析驱动的迭代：写作管线健壮性 + 读者侧检索导航

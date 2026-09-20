@@ -56,6 +56,18 @@
 
 `npm test` 开箱即跑：集成测试（`test/progress.test.js`）的夹具是 gitignore 的编译产物，`before` 钩子会先自动 build 一次（约 0.5s）——所以**新 clone 不需要先 build 就能测试**，且测试永远跑在当前代码构建的产物上。改动组件的 clientJs 后记得跑全量测试，产物级行为（保存/恢复/判分）只有集成测试能抓到。
 
+## 发布检查单（Release Checklist）
+
+每次发布/较大合并前按序执行（CI 会自动跑前四步）：
+
+1. `node build.js` —— 全量编译，无 error、exit 0
+2. `npm run check` —— dist-lint（产物气味）+ check-registry（登记簿一致性）
+3. `npm test` —— 全部测试（含产物冒烟：零未捕获异常）
+4. `npm run visual` —— 六场景像素比对（有意改动后先 `npm run visual:baseline`）
+5. 文档同步：CHANGELOG / README 中英 / SPEC / COMPONENTS / ai-authoring 中涉及本次改动的说法
+6. 版本号：package.json + README 徽章（项目里程碑）；组件 `@version` + 登记簿（组件演进）
+7. 翻一遍 `docs/review-checklist.md` 的人工项（安全面 / 渐进增强 / 暗色 / 打印 / 边界数据）
+
 ## 提交规范
 
 commit message 风格参考 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/)：

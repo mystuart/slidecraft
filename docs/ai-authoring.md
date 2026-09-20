@@ -132,6 +132,10 @@ sections:
 ```code-runner
 {"lang": "python", "code": "print('hi')", "output": "hi"}
 ```
+
+```feedback
+{"id": "fb1", "title": "这节内容对你有帮助吗？", "email": "you@example.com"}
+```
 ````
 
 ### 练习类（判分逻辑敏感，字段务必对齐）

@@ -7,11 +7,11 @@
 **中文** · [English](./README.en.md) · **[🎬 在线 demo（landing）](https://mystuart.github.io/slidecraft/)**
 
 > **写一个 Markdown，产出一个独立的 HTML 互动课件。**
-> 25 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好 · 作答自动保存。
+> 26 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好 · 作答自动保存。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version: 1.9.0](https://img.shields.io/badge/version-1.9.0-blue.svg)](./CHANGELOG.md)
-[![Components: 25](https://img.shields.io/badge/components-25-green.svg)](./COMPONENTS.md)
+[![Version: 1.10.0](https://img.shields.io/badge/version-1.10.0-blue.svg)](./CHANGELOG.md)
+[![Components: 25](https://img.shields.io/badge/components-26-green.svg)](./COMPONENTS.md)
 [![Output: single .html](https://img.shields.io/badge/output-single%20.html-brightgreen.svg)](./dist)
 
 ---
@@ -102,10 +102,11 @@ node build.js --help   # 全部用法
 - 侧栏自动显示「约 N 分钟读完」
 - **站内搜索**（Ctrl/Cmd+K）：编译期生成索引，命中高亮、章节直达，长课件找内容不用再滚动
 - 键盘用户可 Tab 直达「跳到正文」
+- `feedback` 组件让学员一键把「哪里没讲明白」回发作者（复制/邮件，无埋点）
 
 ---
 
-## 25 个内嵌组件速览
+## 26 个内嵌组件速览
 
 完整 API 见 [`template/components/*.js`](./template/components/) 顶部 JSDoc。
 
@@ -124,6 +125,7 @@ node build.js --help   # 全部用法
 | | `diagram` | 流程图 / 关系图（SVG） |
 | | `code-runner` | 代码 + 输出对照 |
 | **练习** | `quiz` | 选择题（单/多选） |
+| | `feedback` | 学习反馈（👍👎 + 文本反馈单回发作者） |
 | | `quiz-track` | 题组 |
 | | `fill-blank` | 填空题 |
 | | `math-step` | 分步解题（带高亮联动） |
