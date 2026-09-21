@@ -9,7 +9,7 @@
 > Write one Markdown, ship one self-contained interactive HTML.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Version: 1.10.0](https://img.shields.io/badge/version-1.10.0-blue.svg)](./CHANGELOG.md)
+[![Version: 1.10.1](https://img.shields.io/badge/version-1.10.1-blue.svg)](./CHANGELOG.md)
 [![Components: 25](https://img.shields.io/badge/components-26-green.svg)](./COMPONENTS.md)
 
 **26 built-in components · single-file output · zero runtime · themable · print-friendly · answers auto-saved.**
@@ -24,7 +24,7 @@ Slidecraft is a Markdown-to-HTML compiler for interactive teaching material. You
 |---|---|---|---|---|---|---|
 | Runtime deps | Bundler | Vue / Vite | JS lib | CLI | Hosted service | **Zero** |
 | Output | Deck / SPA | SPA (no single-file export) | SPA | Single file (embed) | Static on export | **Single HTML file** |
-| Components | ❌ | ✅ (plugins) | ✅ (plugins) | ⚠️ (assemble yourself) | ✅ (online only) | **✅ 25 built-in + grading** |
+| Components | ❌ | ✅ (plugins) | ✅ (plugins) | ⚠️ (assemble yourself) | ✅ (online only) | **✅ 26 built-in + grading** |
 | Math (LaTeX) | ❌ | via plugin | manual | ✅ | ⚠️ | **✅ KaTeX, compile-time** |
 | 3D geometry | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ Three.js, opt-in** |
 | Print / PDF | partial | ❌ | ❌ | ✅ | ❌ | **✅** |
@@ -63,7 +63,7 @@ npm test         # run tests (numeric algorithms + build validation)
 node build.js --help   # full CLI usage
 ```
 
-## Component overview (25 built-in)
+## Component overview (26 built-in)
 
 | Category | Component | What it does |
 |---|---|---|

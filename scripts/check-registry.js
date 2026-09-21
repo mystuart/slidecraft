@@ -84,6 +84,30 @@ for (const file of fs.readdirSync(COMPONENTS_DIR).filter(f => f.endsWith('.js'))
   }
 }
 
+// 4) schema 文档版本头 ↔ JSDoc：docs/<name>-schema.md 头部的 vX.Y.Z 必须跟代码走
+//    （slider-schema 曾停在 v0.1 而代码已 v0.1.2——版本写进文档就会腐烂，交给脚本盯）
+for (const file of fs.readdirSync(path.join(ROOT, 'docs')).filter(f => /-schema\.md$/.test(f))) {
+  const comp = file.replace(/-schema\.md$/, '');
+  const src = fs.readFileSync(path.join(ROOT, 'docs', file), 'utf8');
+  const docM = /（v([\d.]+)）/.exec(src.slice(0, 1200));
+  const codeFile = path.join(COMPONENTS_DIR, comp + '.js');
+  if (!docM) {
+    console.error(`✗ docs/${file}: 头部没有「（vX.Y.Z）」版本标注`);
+    problems += 1;
+    continue;
+  }
+  if (!fs.existsSync(codeFile)) {
+    console.error(`✗ docs/${file}: 对应组件源码 ${comp}.js 不存在`);
+    problems += 1;
+    continue;
+  }
+  const ver = codeVersion(comp + '.js');
+  if (ver !== 'v' + docM[1]) {
+    console.error(`✗ docs/${file}: 文档 v${docM[1]} vs 源码 ${ver}——版本头没跟上代码`);
+    problems += 1;
+  }
+}
+
 if (problems > 0) {
   console.error(`\n[check-registry] ${problems} 处登记簿与源码不一致`);
   process.exit(1);

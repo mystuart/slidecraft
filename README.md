@@ -10,7 +10,7 @@
 > 26 个内嵌组件 · 单文件分发 · 零运行时 · 主题可换 · 打印友好 · 作答自动保存。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version: 1.10.0](https://img.shields.io/badge/version-1.10.0-blue.svg)](./CHANGELOG.md)
+[![Version: 1.10.1](https://img.shields.io/badge/version-1.10.1-blue.svg)](./CHANGELOG.md)
 [![Components: 25](https://img.shields.io/badge/components-26-green.svg)](./COMPONENTS.md)
 [![Output: single .html](https://img.shields.io/badge/output-single%20.html-brightgreen.svg)](./dist)
 
@@ -82,7 +82,7 @@ node build.js --help   # 全部用法
 | Slidev | Node 服务 | 多文件（无单文件导出） | ✅ | ✅ | ❌ |
 | Quarto (revealjs) | 浏览器 | 可单文件（embed-resources） | ⚠️（靠扩展拼装） | ✅ | ❌ |
 | Gamma 等 AI 工具 | 锁在自家托管 | 导出即静态 | ✅（仅在线） | ✅ | ❌ |
-| **Slidecraft** | **零** | **单文件 HTML** | **✅ 25 个 + 判分** | **✅ CSS 变量** | **✅** |
+| **Slidecraft** | **零** | **单文件 HTML** | **✅ 26 个 + 判分** | **✅ CSS 变量** | **✅** |
 
 **Slidecraft 的核心差异**：产物是**单文件 HTML**，不是 Web 应用。这决定了它可以——
 
@@ -268,7 +268,7 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 
 - [CHANGELOG.md](./CHANGELOG.md) — 版本变更记录
 - [README.en.md](./README.en.md) — English documentation
-- [SPEC.md](./SPEC.md) — 完整设计规范（理念、语法约定、内容大纲）
+- [SPEC.md](./SPEC.md) — 架构规范（编译管线、语法约定、校验哲学、路线图）
 - [COMPONENTS.md](./COMPONENTS.md) — 组件登记簿（v0.x.x 状态、打磨参考、决策依据）
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — 贡献指南与扩展流程
 - [docs/ai-authoring.md](./docs/ai-authoring.md) — **AI 课件创作指南**（投喂给任意 AI agent 即可产出合规课件）
@@ -285,7 +285,7 @@ node build.js content/xxx.md       # 编译指定文件 → dist/xxx.html
 
 ## 路线图
 
-当前 25 个组件之外的候选（与 [SPEC.md §4.10](./SPEC.md#410-组件清单) 同步）：
+当前 26 个组件之外的候选（与 [COMPONENTS.md](./COMPONENTS.md) 登记簿同步）：
 
 - `accordion`（折叠列表）—— 当前用 `<details>` 替代
 - `code-reviewer`（代码对比+高亮）—— 内容量大时再加

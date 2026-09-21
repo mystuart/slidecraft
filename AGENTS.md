@@ -5,7 +5,7 @@
 
 ## 项目一句话
 
-Markdown 写课件 → 编译成**单文件 HTML 互动课件**。25+ 组件（quiz 判分 / 3D 几何 / 函数图像 / 站内搜索），零运行时、可离线、可打印。读者是学生，作者是老师/博主。
+Markdown 写课件 → 编译成**单文件 HTML 互动课件**。26 个组件（quiz 判分 / 3D 几何 / 函数图像 / 站内搜索 / 学习反馈），零运行时、可离线、可打印。读者是学生，作者是老师/博主。
 
 ## 不变量（违反 = 退化）
 
@@ -28,7 +28,7 @@ Markdown 写课件 → 编译成**单文件 HTML 互动课件**。25+ 组件（q
 ```bash
 node build.js      # 18 个课件编译 + build 期校验
 npm run check      # dist-lint（产物气味）+ check-registry（登记簿一致性）
-npm test           # 84+ 测试，含 jsdom 产物冒烟（零未捕获异常）
+npm test           # 90+ 测试，含 jsdom 产物冒烟（零未捕获异常）
 ```
 
 视觉改动追加：`npm run visual`（六场景像素比对 vs 基线；有意改动后 `npm run visual:baseline` 刷新）。
