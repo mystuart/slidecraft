@@ -41,6 +41,7 @@ quiz 选择题，按钮态在深色下应清晰：
 
 ```quiz
 {
+  "id": "q-dark-bg",
   "question": "dark 主题的 bg 色是？",
   "type": "single",
   "options": [

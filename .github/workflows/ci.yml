@@ -22,6 +22,9 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
+      - name: 打包 Three.js bundle（构建产物不入库，干净环境需先打包）
+        run: npm run build:three
+
       - name: 全量编译（含 KaTeX / 图片 / 锚点 / id 唯一等 build 期校验）
         run: node build.js
 
