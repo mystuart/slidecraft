@@ -1,6 +1,7 @@
 # Slidecraft CI — 质量守门机制（v1.10.0）
 # 每次 push / PR 自动跑：安装 → 全量编译 → 产物/登记簿守门 → 全部测试 → 覆盖率日志
 # 本地等价序列：npm ci && node build.js && npm run check && npm test
+# 矩阵：20 = engines 下限（最老可支持），24 = 当前活跃 LTS（主流用户）
 name: CI
 
 on:
@@ -8,15 +9,30 @@ on:
     branches: [main]
   pull_request:
 
+# 最小 token 权限（只读仓库内容，防意外发布/写操作）
+permissions:
+  contents: read
+
+# 同分支新推送取消进行中的旧跑（单人仓库省额度，结果始终取最新）
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 24]
+    name: test (Node ${{ matrix.node-version }})
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: npm
 
       - name: 安装依赖
@@ -34,5 +50,6 @@ jobs:
       - name: 全部测试（含 jsdom 产物冒烟：零未捕获异常）
         run: npm test
 
+      # 注意：--test 无参数自动发现（18+ 全版本一致；glob 字符串是 21+ 特性，20 会静默失败）
       - name: 覆盖率日志（仅报告，不设阈值门槛）
-        run: node --test --experimental-test-coverage "test/**/*.test.js" 2>&1 | grep -E "^ℹ (all files|test/)|^\s{2,}\S+\.js\s+\|" || true
+        run: node --test --experimental-test-coverage 2>&1 | grep -E "^ℹ (all files|test)|\.js\s+\|" || true
